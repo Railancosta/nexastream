@@ -1,169 +1,102 @@
 /**
- * NexaStream Backend - Main Entry Point
- * Military-Grade Security Enabled
+ * NexaStream Backend v3.0 - Complete Video Platform
+ * The First Democratic Video Platform with Blockchain Payments
  */
 
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { createServer } from 'http';
-import { Server as SocketServer } from 'socket.io';
-import { config } from './config';
-import { logger } from './utils/logger';
-import { helmetConfig } from './middleware/security';
-import { errorHandler } from './middleware/errorHandler';
-import { rateLimiters } from './middleware/rateLimiter';
-import {
-  sqlInjectionDetector,
-  xssDetector,
-  commandInjectionDetector,
-  pathTraversalDetector,
-  requestValidator,
-  blockchainSecurityValidator
-} from './utils/securityScanner';
+import { Server } from 'socket.io';
+import { config } from './config/index.js';
+import { logger } from './utils/logger.js';
+import { prisma } from './utils/prisma.js';
+import { helmetConfig } from './middleware/security.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { rateLimiters } from './middleware/rateLimiter.js';
+import { sqlInjectionDetector, xssDetector } from './middleware/security.js';
 
 // Routes
-import authRoutes from './routes/api/v1/auth';
-import userRoutes from './routes/api/v1/users';
-import videoRoutes from './routes/api/v1/videos';
-import channelRoutes from './routes/api/v1/channels';
-import paymentRoutes from './routes/api/v1/payments';
-import walletRoutes from './routes/api/v1/wallet';
-import analyticsRoutes from './routes/api/v1/analytics';
-import searchRoutes from './routes/api/v1/search';
-import feedRoutes from './routes/api/v1/feed';
-import moderationRoutes from './routes/api/v1/moderation';
-import adminRoutes from './routes/api/v1/admin';
-import blockchainRoutes from './routes/api/v1/blockchain';
-import sponsorshipRoutes from './routes/api/v1/sponsorships';
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import videoRoutes from './routes/videos.js';
+import channelRoutes from './routes/channels.js';
+import walletRoutes from './routes/wallet.js';
+import paymentRoutes from './routes/payments.js';
+import analyticsRoutes from './routes/analytics.js';
+import searchRoutes from './routes/search.js';
+import feedRoutes from './routes/feed.js';
+import sponsorshipRoutes from './routes/sponsorships.js';
+import adminRoutes from './routes/admin.js';
 
 const app = express();
 const httpServer = createServer(app);
-
-// Socket.IO setup
-const io = new SocketServer(httpServer, {
-  cors: {
-    origin: config.corsOrigins,
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
+const io = new Server(httpServer, {
+  cors: { origin: config.corsOrigins, methods: ['GET', 'POST'], credentials: true }
 });
 
-// Middleware
+// Security Middleware
 app.use(helmet(helmetConfig));
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
-
-// Security Scanners - Block attacks before processing
+app.use(morgan('combined'));
 app.use(sqlInjectionDetector);
 app.use(xssDetector);
-app.use(commandInjectionDetector);
-app.use(pathTraversalDetector);
-app.use(requestValidator);
-app.use(blockchainSecurityValidator);
 
-// Apply rate limiters
+// Rate Limiting
 app.use(rateLimiters.global);
 app.use('/api/', rateLimiters.api);
 app.use('/api/auth/', rateLimiters.auth);
 app.use('/api/auth/login', rateLimiters.login);
-app.use('/api/auth/register', rateLimiters.register);
 
-// Health check
+// Health Check
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString(), version: '2.0.0' });
+  res.json({ status: 'healthy', timestamp: new Date().toISOString(), version: '3.0.0' });
 });
 
-app.get('/api/v1', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({
     name: 'NexaStream API',
-    version: '2.0.0',
-    description: 'The First Democratic Video Platform API',
-    blockchain: {
-      network: config.blockchain.network,
-      currency: 'USDC',
-      contract: config.blockchain.usdcContract
-    },
-    features: [
-      'Instant Monetization',
-      'Blockchain Payments',
-      'Transparent Algorithms',
-      'Creator-First Economics',
-      'Democratic Boosting',
-      'Multi-language Support'
-    ]
+    version: '3.0.0',
+    blockchain: { network: config.blockchain.network, currency: 'USDC' },
+    features: ['Instant Monetization', 'Blockchain Payments', 'Transparent Algorithms', 'SEO Optimized']
   });
 });
 
 // API Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/videos', videoRoutes);
-app.use('/api/v1/channels', channelRoutes);
-app.use('/api/v1/payments', paymentRoutes);
-app.use('/api/v1/wallet', walletRoutes);
-app.use('/api/v1/analytics', analyticsRoutes);
-app.use('/api/v1/search', searchRoutes);
-app.use('/api/v1/feed', feedRoutes);
-app.use('/api/v1/moderation', moderationRoutes);
-app.use('/api/v1/admin', adminRoutes);
-app.use('/api/v1/blockchain', blockchainRoutes);
-app.use('/api/v1/sponsorships', sponsorshipRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/videos', videoRoutes);
+app.use('/api/channels', channelRoutes);
+app.use('/api/wallet', walletRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/feed', feedRoutes);
+app.use('/api/sponsorships', sponsorshipRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Socket.IO connection handling
+// Socket.IO
 io.on('connection', (socket) => {
   logger.info(`Client connected: ${socket.id}`);
-
-  socket.on('join-channel', (channelId: string) => {
-    socket.join(`channel:${channelId}`);
-    logger.info(`Socket ${socket.id} joined channel:${channelId}`);
-  });
-
-  socket.on('leave-channel', (channelId: string) => {
-    socket.leave(`channel:${channelId}`);
-  });
-
-  socket.on('watch-video', (videoId: string) => {
-    socket.join(`video:${videoId}`);
-  });
-
-  socket.on('disconnect', () => {
-    logger.info(`Client disconnected: ${socket.id}`);
-  });
+  socket.on('join-video', (videoId) => socket.join(`video:${videoId}`));
+  socket.on('leave-video', (videoId) => socket.leave(`video:${videoId}`));
+  socket.on('join-channel', (channelId) => socket.join(`channel:${channelId}`));
 });
 
-// Error handling
+// Error Handling
 app.use(errorHandler);
+app.use((req, res) => res.status(404).json({ error: 'Not Found' }));
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not Found', message: 'The requested endpoint does not exist' });
-});
-
-// Start server
-const PORT = config.port || 3001;
-
+// Start Server
+const PORT = config.port;
 httpServer.listen(PORT, () => {
-  logger.info(`
-╔═══════════════════════════════════════════════════════════════╗
-║                                                               ║
-║   ██╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗               ║
-║   ██║   ██║██╔════╝╚██╗██╔╝██║   ██║██╔════╝               ║
-║   ██║   ██║█████╗   ╚███╔╝ ██║   ██║███████╗               ║
-║   ╚██╗ ██╔╝██╔══╝   ██╔██╗ ██║   ██║╚════██║               ║
-║    ╚████╔╝ ███████╗██╔╝ ██╗╚██████╔╝███████║               ║
-║     ╚═══╝  ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝               ║
-║                                                               ║
-║   🚀 NexaStream Backend v2.0.0                                ║
-║   🌐 API Server running on port ${PORT}                          ║
-║   🔗 Blockchain: ${config.blockchain.network}                      ║
-║   💰 Payment: USDC on Ethereum                                ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
-  `);
+  logger.info(`🚀 NexaStream Backend v3.0 running on port ${PORT}`);
+  logger.info(`🔗 Blockchain: ${config.blockchain.network}`);
+  logger.info(`💰 Platform Wallet: ${config.platformWallet}`);
 });
 
 export { app, httpServer, io };

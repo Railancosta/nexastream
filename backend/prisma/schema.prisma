@@ -1,368 +1,232 @@
-// NexaStream Database Schema - Prisma ORM
-
+// NexaStream Database Schema v3.0
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-// ==================== USERS ====================
-
 model User {
-  id                String    @id @default(uuid())
-  email             String    @unique
-  emailVerified     Boolean   @default(false)
-  passwordHash      String?
-  googleId          String?   @unique
-  
-  name              String
-  username          String    @unique
-  avatarUrl         String?
-  bio               String?
-  language          String    @default("en")
-  country           String?
-  timezone          String?
-  
-  walletAddress     String?   @unique
-  usdcAddress       String?   // USDC payment address
-  
-  twoFactorEnabled  Boolean   @default(false)
-  twoFactorSecret   String?
-  trustScore        Int       @default(100)
-  isBanned          Boolean   @default(false)
-  banReason         String?
-  
-  followingIds      String[]  @default([])
-  followerIds       String[]  @default([])
-  
-  channel           Channel?
-  wallets           Wallet[]
-  transactions      Transaction[]
-  activities        Activity[]
-  notifications     Notification[]
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id             String   @id @default(uuid())
+  email          String   @unique
+  emailVerified  Boolean  @default(false)
+  passwordHash   String?
+  googleId       String?  @unique
+  name           String
+  username       String   @unique
+  avatarUrl      String?
+  bio            String?
+  language       String   @default("en")
+  country        String?
+  walletAddress  String?  @unique
+  usdcAddress    String?
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret String?
+  trustScore     Int      @default(100)
+  isBanned       Boolean  @default(false)
+  banReason      String?
+  channel        Channel?
+  wallets        Wallet[]
+  transactions   Transaction[]
+  notifications  Notification[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   @@map("users")
 }
-
-// ==================== CHANNELS ====================
-
 model Channel {
-  id                String    @id @default(uuid())
-  userId            String    @unique
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  name              String
-  slug              String    @unique
-  description       String?
-  avatarUrl         String?
-  bannerUrl         String?
-  category          String
-  
-  subscriberCount   Int       @default(0)
-  videoCount        Int       @default(0)
-  viewCount         BigInt    @default(0)
-  totalEarnings     Float     @default(0)
-  
-  isMonetized       Boolean   @default(true)
-  isVerified        Boolean   @default(false)
-  isActive          Boolean   @default(true)
-  
-  seoTitle          String?
-  seoDescription    String?
-  
-  videos            Video[]
-  sponsorships      Sponsorship[]
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  name            String
+  slug            String   @unique
+  description     String?
+  avatarUrl       String?
+  bannerUrl       String?
+  category        String
+  subscriberCount Int      @default(0)
+  videoCount     Int      @default(0)
+  viewCount       BigInt  @default(0)
+  totalEarnings   Float   @default(0)
+  isMonetized     Boolean @default(true)
+  isVerified      Boolean @default(false)
+  isActive        Boolean @default(true)
+  seoTitle        String?
+  seoDescription  String?
+  videos          Video[]
+  sponsorships    Sponsorship[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   @@map("channels")
 }
-
-// ==================== VIDEOS ====================
-
 model Video {
-  id                String    @id @default(uuid())
-  channelId         String
-  channel           Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  
-  title             String
-  description       String?
-  thumbnailUrl      String
-  videoUrl          String?
-  duration          Int
-  
-  ipfsCid           String?
-  ipfsThumbnailCid  String?
-  
-  category          String
-  tags              String[]
-  language          String    @default("en")
-  isLive            Boolean   @default(false)
-  isShort           Boolean   @default(false)
-  
-  status            String    @default("PROCESSING")
-  visibility        String    @default("PUBLIC")
-  
-  viewCount         BigInt    @default(0)
-  likeCount         Int       @default(0)
-  dislikeCount      Int       @default(0)
-  commentCount      Int       @default(0)
-  shareCount        Int       @default(0)
-  watchTime         BigInt    @default(0)
-  
-  engagementRate    Float     @default(0)
-  
-  isMonetized       Boolean   @default(true)
-  earningsUsdc      Float     @default(0)
-  boostedCount      Int       @default(0)
-  boostLevel        Int       @default(0)
-  
-  isFeatured        Boolean   @default(false)
-  isFlagged         Boolean   @default(false)
-  flagReason        String?
-  
-  seoTitle          String?
-  seoDescription    String?
-  slug              String
-  
-  comments          Comment[]
-  likes             Like[]
-  boosts            Boost[]
-  
-  publishedAt       DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id              String    @id @default(uuid())
+  channelId       String
+  channel         Channel   @relation(fields: [channelId], references: [id])
+  title           String
+  description     String?
+  thumbnailUrl    String
+  videoUrl        String?
+  duration        Int
+  ipfsCid         String?
+  category        String
+  tags            String[]
+  language        String    @default("en")
+  isLive          Boolean   @default(false)
+  isShort         Boolean   @default(false)
+  status          String    @default("PROCESSING")
+  visibility      String    @default("PUBLIC")
+  viewCount       BigInt   @default(0)
+  likeCount       Int      @default(0)
+  commentCount    Int      @default(0)
+  shareCount      Int      @default(0)
+  watchTime       BigInt   @default(0)
+  engagementRate  Float     @default(0)
+  isMonetized     Boolean  @default(true)
+  earningsUsdc    Float     @default(0)
+  boostedCount    Int      @default(0)
+  boostLevel      Int      @default(0)
+  isFeatured      Boolean  @default(false)
+  isFlagged       Boolean  @default(false)
+  flagReason      String?
+  seoTitle        String?
+  seoDescription  String?
+  slug            String
+  comments        Comment[]
+  likes           Like[]
+  boosts          Boost[]
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   @@unique([channelId, slug])
   @@map("videos")
 }
-
-// ==================== COMMENTS ====================
-
 model Comment {
-  id                String    @id @default(uuid())
-  videoId           String
-  video             Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  userId            String
-  
-  content           String
-  parentId          String?
-  parent            Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies           Comment[] @relation("CommentReplies")
-  
-  likeCount         Int       @default(0)
-  isPinned          Boolean   @default(false)
-  isDeleted         Boolean   @default(false)
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id        String    @id @default(uuid())
+  videoId   String
+  video     Video     @relation(fields: [videoId], references: [id])
+  userId    String
+  content   String
+  parentId  String?
+  parent    Comment?  @relation("Replies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("Replies")
+  likeCount Int       @default(0)
+  isPinned  Boolean   @default(false)
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
   @@map("comments")
 }
-
-// ==================== LIKES ====================
-
 model Like {
-  id                String    @id @default(uuid())
-  userId            String
-  videoId           String
-  video             Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  type              String    @default("LIKE")
-  
-  createdAt         DateTime  @default(now())
-  
+  id        String   @id @default(uuid())
+  userId    String
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id])
+  type      String   @default("LIKE")
+  createdAt DateTime @default(now())
   @@unique([userId, videoId])
   @@map("likes")
 }
-
-// ==================== BOOSTS ====================
-
 model Boost {
-  id                String    @id @default(uuid())
-  videoId           String
-  video             Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  userId            String
-  level             Int
-  
-  costUsdc          Float
-  txHash            String?
-  
-  isActive          Boolean   @default(true)
-  startsAt          DateTime  @default(now())
-  expiresAt         DateTime
-  
-  createdAt         DateTime  @default(now())
-  
+  id        String   @id @default(uuid())
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id])
+  userId    String
+  level     Int
+  costUsdc  Float
+  txHash    String?
+  isActive  Boolean  @default(true)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
   @@map("boosts")
 }
-
-// ==================== WALLETS ====================
-
 model Wallet {
-  id                String    @id @default(uuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  address           String    @unique
-  network           String    @default("ethereum")
-  isPrimary         Boolean   @default(false)
-  
-  balanceUsdc       Float     @default(0)
-  balanceEth        Float     @default(0)
-  
-  totalDeposited    Float     @default(0)
-  totalWithdrawn    Float     @default(0)
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  address        String   @unique
+  network        String   @default("ethereum")
+  isPrimary      Boolean  @default(false)
+  balanceUsdc    Float    @default(0)
+  balanceEth     Float    @default(0)
+  totalDeposited Float    @default(0)
+  totalWithdrawn Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   @@map("wallets")
 }
-
-// ==================== TRANSACTIONS ====================
-
 model Transaction {
-  id                String    @id @default(uuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type              String
-  status            String    @default("PENDING")
-  
-  amount            Float
-  currency          String    @default("USDC")
-  fee               Float     @default(0)
-  netAmount         Float
-  
-  txHash            String?
-  fromAddress       String?
-  toAddress         String?
-  network           String    @default("ethereum")
-  blockNumber       BigInt?
-  
-  reference         String?
-  description       String?
-  
-  createdAt         DateTime  @default(now())
-  completedAt       DateTime?
-  
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  type         String
+  status       String    @default("PENDING")
+  amount       Float
+  currency     String    @default("USDC")
+  fee          Float     @default(0)
+  netAmount    Float
+  txHash       String?
+  fromAddress  String?
+  toAddress    String?
+  network      String    @default("ethereum")
+  reference    String?
+  description  String?
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
   @@index([userId, createdAt])
   @@map("transactions")
 }
-
-// ==================== SPONSORSHIPS ====================
-
 model Sponsorship {
-  id                String    @id @default(uuid())
-  channelId         String
-  channel           Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  
-  sponsorName       String
-  sponsorLogo       String?
-  sponsorUrl        String?
-  
-  title             String
-  description       String?
-  targetVideoIds    String[]
-  totalBudget       Float
-  spentBudget       Float     @default(0)
-  costPerView       Float
-  maxViews          Int
-  
-  status            String    @default("ACTIVE")
-  startDate         DateTime
-  endDate           DateTime
-  
-  createdAt         DateTime  @default(now())
-  
+  id           String   @id @default(uuid())
+  channelId    String
+  channel      Channel  @relation(fields: [channelId], references: [id])
+  sponsorName  String
+  sponsorLogo  String?
+  sponsorUrl   String?
+  title        String
+  description  String?
+  totalBudget  Float
+  spentBudget  Float    @default(0)
+  costPerView  Float
+  maxViews     Int
+  status       String   @default("ACTIVE")
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime @default(now())
   @@map("sponsorships")
 }
-
-// ==================== FEED PREFERENCES ====================
-
-model FeedPreference {
-  id                String    @id @default(uuid())
-  userId            String    @unique
-  
-  trendingWeight    Int       @default(33)
-  meritWeight       Int       @default(33)
-  socialWeight      Int       @default(34)
-  
-  preferredCategories String[]
-  excludedCategories String[]
-  preferredLanguages String[]
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  @@map("feed_preferences")
-}
-
-// ==================== ACTIVITIES ====================
-
-model Activity {
-  id                String    @id @default(uuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type              String
-  entityType        String?
-  entityId          String?
-  metadata          Json?
-  
-  createdAt         DateTime  @default(now())
-  
-  @@index([userId, createdAt])
-  @@map("activities")
-}
-
-// ==================== NOTIFICATIONS ====================
-
 model Notification {
-  id                String    @id @default(uuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type              String
-  title             String
-  message           String
-  data              Json?
-  
-  isRead            Boolean   @default(false)
-  readAt            DateTime?
-  
-  createdAt         DateTime  @default(now())
-  
-  @@index([userId, isRead, createdAt])
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([userId, isRead])
   @@map("notifications")
 }
-
-// ==================== SESSIONS ====================
-
 model Session {
-  id                String    @id @default(uuid())
-  userId            String
-  
-  token             String    @unique
-  refreshToken      String?   @unique
-  
-  userAgent         String?
-  ipAddress         String?
-  location          String?
-  
-  isActive          Boolean   @default(true)
-  
-  expiresAt         DateTime
-  createdAt         DateTime  @default(now())
-  lastActivityAt    DateTime  @default(now())
-  
+  id           String   @id @default(uuid())
+  userId       String
+  token        String   @unique
+  refreshToken String?  @unique
+  isActive     Boolean  @default(true)
+  expiresAt    DateTime
+  lastActivity DateTime @default(now())
   @@index([userId])
   @@map("sessions")
+}
+model FeedPreference {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  trendingWeight       Int      @default(33)
+  meritWeight          Int      @default(33)
+  socialWeight         Int      @default(34)
+  preferredCategories  String[]
+  excludedCategories   String[]
+  preferredLanguages   String[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  @@map("feed_preferences")
 }

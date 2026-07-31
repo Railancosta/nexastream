@@ -1,129 +1,174 @@
-# NexaStream
+# NexaStream v3.0 - The First Democratic Video Platform
 
-## The First Democratic Video Platform
+## 🚀 Features
 
-NexaStream is a next-generation video platform that revolutionizes content creation with instant monetization, transparent algorithms, and blockchain-powered payments.
+### Core Platform
+- **Instant Monetization** - Earn USDC from your first video
+- **YouTube-Style Algorithm** - Fair, transparent ranking based on engagement
+- **Blockchain Payments** - Secure USDC payouts directly to your wallet
+- **SEO Optimized** - Built-in search and discoverability
 
-### Key Features
+### Monetization
+- **70% Revenue Share** - Industry-leading creator earnings
+- **Boost System** - Pay to promote videos (optional)
+- **Sponsorships** - Connect with brands directly
+- **Real-time Analytics** - Track your earnings
 
-- 🚀 **Instant Monetization** - Earn from your first view, no minimum subscribers
-- 💰 **Blockchain Payments** - USDC and crypto payments directly to your wallet
-- 🎯 **Transparent Algorithms** - Customize your feed with adjustable weights
-- 🔐 **Bank-Grade Security** - Military-level encryption and protection
-- 🌐 **Multi-Language** - Available in 100+ languages
-- 📊 **Creator Dashboard** - Real-time analytics and earnings tracking
+### Security
+- **Military-Grade Security** - SQL/XSS/CSRF protection
+- **JWT Authentication** - Secure session management
+- **Rate Limiting** - DDoS protection
+- **Ethereum Blockchain** - Immutable, transparent transactions
 
-### Tech Stack
+## 📋 Requirements
 
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
-- **Backend**: Node.js, Express, TypeScript, Prisma ORM
-- **Database**: PostgreSQL
-- **Cache**: Redis
-- **Blockchain**: Ethereum, USDC, viem
-- **Storage**: S3/IPFS
+- Node.js 20+
+- PostgreSQL 15+
+- npm or yarn
 
-### Quick Start
+## 🚀 Quick Start
 
-```bash
-# Clone the repository
-git clone https://github.com/Railancosta/nexastream.git
-cd nexastream
-
-# Install dependencies
+### 1. Install Dependencies
+\`\`\`bash
 npm install
+cd backend && npm install
+cd ../frontend && npm install
+\`\`\`
 
-# Start development servers
+### 2. Setup Database
+\`\`\`bash
+cd backend
+npx prisma generate
+npx prisma db push
+npm run seed
+\`\`\`
+
+### 3. Configure Environment
+Edit \`backend/.env\` with your settings.
+
+### 4. Start Development
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
-### Project Structure
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
 
-```
+### Default Login
+- Email: admin@nexastream.org
+- Password: admin123
+
+## 💰 Payment Configuration
+
+Your USDC payment address is pre-configured:
+\`\`\`
+0xa453B71A216a8A6608e79247B162df47B2770899
+\`\`\`
+
+All creator withdrawals will be sent to this address.
+
+## 📊 Algorithm Weights
+
+| Factor | Weight |
+|--------|--------|
+| Views | 25% |
+| Likes | 20% |
+| Engagement Rate | 20% |
+| Boost Level | 15% |
+| Recency | 10% |
+| Watch Time | 10% |
+
+## 🛠 Tech Stack
+
+### Backend
+- Node.js + Express + TypeScript
+- Prisma ORM + PostgreSQL
+- JWT + bcrypt
+- ethers.js (Ethereum)
+
+### Frontend
+- Next.js 14 + React 18
+- Tailwind CSS
+- Zustand (State)
+- Lucide Icons
+
+## 📁 Project Structure
+
+\`\`\`
 nexastream/
-├── frontend/          # Next.js frontend
+├── backend/
 │   ├── src/
-│   │   ├── components/ # React components
-│   │   ├── pages/     # Next.js pages
-│   │   ├── lib/       # Utilities and API client
-│   │   └── styles/    # Global styles
-│   └── package.json
-├── backend/           # Express.js backend
+│   │   ├── routes/      # API endpoints
+│   │   ├── middleware/  # Auth, security
+│   │   ├── config/      # Configuration
+│   │   └── utils/       # Helpers
+│   └── prisma/          # Database schema
+├── frontend/
 │   ├── src/
-│   │   ├── routes/    # API routes
-│   │   ├── middleware/ # Express middleware
-│   │   ├── services/  # Business logic
-│   │   ├── config/    # Configuration
-│   │   └── utils/     # Utilities
-│   ├── prisma/        # Database schema
-│   └── package.json
-├── security/          # Security implementations
-├── management/       # Management tools
-└── package.json       # Root workspace config
-```
+│   │   ├── pages/       # Next.js pages
+│   │   ├── lib/         # API client, store
+│   │   └── styles/      # Global styles
+│   └── public/          # Static assets
+└── docker/              # Deployment configs
+\`\`\`
 
-### Environment Variables
+## 🌐 Deploy
 
-Create `.env` files in both `frontend/` and `backend/`:
+### Docker
+\`\`\`bash
+docker-compose -f docker/docker-compose.yml up -d
+\`\`\`
 
-**Backend (.env)**
-```env
-DATABASE_URL=postgresql://...
-REDIS_HOST=localhost
-JWT_SECRET=your-secret-key
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-ETHEREUM_RPC_URL=...
-USDC_CONTRACT=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
-```
+### Manual Deploy
+1. Build: \`npm run build\`
+2. Set production env vars
+3. Start: \`npm start\`
 
-**Frontend (.env.local)**
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
-```
+## 🔐 Environment Variables
 
-### API Documentation
+| Variable | Description |
+|----------|-------------|
+| DATABASE_URL | PostgreSQL connection string |
+| JWT_SECRET | Secret for JWT tokens |
+| ETHEREUM_RPC_URL | Ethereum RPC endpoint |
+| PLATFORM_WALLET | Your USDC receiving address |
+| CORS_ORIGINS | Allowed origins |
 
-API endpoints are available at `/api/v1`:
+## 📈 API Endpoints
 
-- `POST /api/v1/auth/register` - Register new user
-- `POST /api/v1/auth/login` - Login
-- `POST /api/v1/auth/google` - Google OAuth
-- `GET /api/v1/videos` - List videos
-- `GET /api/v1/videos/trending` - Trending videos
-- `GET /api/v1/channels` - List channels
-- `POST /api/v1/wallet/connect` - Connect wallet
-- `POST /api/v1/wallet/withdraw` - Withdraw funds
+### Auth
+- POST /api/auth/register
+- POST /api/auth/login
+- POST /api/auth/google
+- GET /api/auth/me
 
-### Security Features
+### Videos
+- GET /api/videos
+- GET /api/videos/trending
+- POST /api/videos
+- POST /api/videos/:id/like
+- POST /api/videos/:id/boost
 
-- ✅ Helmet.js security headers
-- ✅ Rate limiting
-- ✅ CSRF protection
-- ✅ Input sanitization
-- ✅ bcrypt password hashing
-- ✅ JWT authentication
-- ✅ 2FA support
-- ✅ Blockchain transaction verification
+### Channels
+- GET /api/channels
+- POST /api/channels
+- POST /api/channels/:id/subscribe
 
-### Contributing
+### Wallet
+- GET /api/wallet
+- POST /api/wallet/connect
+- POST /api/wallet/withdraw
+- GET /api/wallet/transactions
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 📜 License
 
-### License
+MIT © NexaStream
 
-MIT License - see LICENSE file for details.
+## 🌟 Support
 
-### Support
-
-- Documentation: https://docs.nexastream.org
-- Discord: https://discord.gg/nexastream
 - Email: support@nexastream.org
+- Docs: https://docs.nexastream.org
 
 ---
 
-Built with ❤️ by the NexaStream Team
+**Built with ❤️ for creators worldwide**

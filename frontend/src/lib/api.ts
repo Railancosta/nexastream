@@ -1,138 +1,47 @@
-/**
- * NexaStream API Client
- */
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
-type FetchOptions = RequestInit & {
-  params?: Record<string, string | number | boolean>;
-};
-
-class ApiClient {
+class NexaStreamAPI {
   private token: string | null = null;
-
-  setToken(token: string | null) {
-    this.token = token;
-    if (typeof window !== 'undefined') {
-      if (token) {
-        localStorage.setItem('token', token);
-      } else {
-        localStorage.removeItem('token');
-      }
-    }
-  }
-
-  getToken(): string | null {
-    if (this.token) return this.token;
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('token');
-    }
-    return null;
-  }
-
-  private async fetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-    const { params, ...fetchOptions } = options;
-    
-    let url = `${API_BASE}${endpoint}`;
-    if (params) {
-      const searchParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        searchParams.append(key, String(value));
-      });
-      url += `?${searchParams.toString()}`;
-    }
-
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    };
-
-    const token = this.getToken();
-    if (token) {
-      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(url, {
-      ...fetchOptions,
-      headers,
+  setToken(token: string | null) { this.token = token; if (typeof window !== 'undefined') token ? localStorage.setItem('token', token) : localStorage.removeItem('token'); }
+  getToken() { return this.token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null); }
+  private async fetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const res = await fetch(`${API}${endpoint}`, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(this.getToken() ? { Authorization: `Bearer ${this.getToken()}` } : {}), ...options.headers }
     });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(error.error || error.message || 'Request failed');
-    }
-
-    return response.json();
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ error: 'Error' })).then((j: any) => j.error));
+    return res.json();
   }
-
-  async register(data: { email: string; password: string; name: string; username: string }) {
-    return this.fetch<any>('/v1/auth/register', { method: 'POST', body: JSON.stringify(data) });
-  }
-
-  async login(data: { email: string; password: string }) {
-    return this.fetch<any>('/v1/auth/login', { method: 'POST', body: JSON.stringify(data) });
-  }
-
-  async loginWithGoogle(token: string) {
-    return this.fetch<any>('/v1/auth/google', { method: 'POST', body: JSON.stringify({ token }) });
-  }
-
-  async getMe() {
-    return this.fetch<any>('/v1/auth/me');
-  }
-
-  async logout() {
-    return this.fetch<any>('/v1/auth/logout', { method: 'POST' });
-  }
-
-  async getVideos(params?: { page?: number; limit?: number; category?: string; sort?: string }) {
-    return this.fetch<any>('/v1/videos', { params: params as any });
-  }
-
-  async getTrendingVideos() {
-    return this.fetch<any>('/v1/videos/trending');
-  }
-
-  async getVideo(id: string) {
-    return this.fetch<any>(`/v1/videos/${id}`);
-  }
-
-  async getChannels(params?: { page?: number; limit?: number; category?: string; sort?: string }) {
-    return this.fetch<any>('/v1/channels', { params: params as any });
-  }
-
-  async getChannel(id: string) {
-    return this.fetch<any>(`/v1/channels/${id}`);
-  }
-
-  async getChannelVideos(id: string, params?: { page?: number; limit?: number }) {
-    return this.fetch<any>(`/v1/channels/${id}/videos`, { params: params as any });
-  }
-
-  async createChannel(data: { name: string; description?: string; category?: string }) {
-    return this.fetch<any>('/v1/channels', { method: 'POST', body: JSON.stringify(data) });
-  }
-
-  async subscribeToChannel(id: string) {
-    return this.fetch<any>(`/v1/channels/${id}/subscribe`, { method: 'POST' });
-  }
-
-  async getWallet() {
-    return this.fetch<any>('/v1/wallet');
-  }
-
-  async connectWallet(address: string) {
-    return this.fetch<any>('/v1/wallet/connect', { method: 'POST', body: JSON.stringify({ address }) });
-  }
-
-  async setUsdcAddress(address: string) {
-    return this.fetch<any>('/v1/wallet/set-usdc-address', { method: 'POST', body: JSON.stringify({ address }) });
-  }
-
-  async withdraw(amount: number, currency: 'USDC' | 'ETH') {
-    return this.fetch<any>('/v1/wallet/withdraw', { method: 'POST', body: JSON.stringify({ amount, currency }) });
-  }
+  // Auth
+  register = (data: any) => this.fetch<any>('/auth/register', { method: 'POST', body: JSON.stringify(data) });
+  login = (data: any) => this.fetch<any>('/auth/login', { method: 'POST', body: JSON.stringify(data) });
+  loginWithGoogle = (token: string) => this.fetch<any>('/auth/google', { method: 'POST', body: JSON.stringify({ token }) });
+  logout = () => this.fetch<any>('/auth/logout', { method: 'POST' });
+  getMe = () => this.fetch<any>('/auth/me');
+  // Videos
+  getVideos = (params?: any) => this.fetch<any>('/videos', { params });
+  getTrendingVideos = () => this.fetch<any>('/videos/trending');
+  getVideo = (id: string) => this.fetch<any>(`/videos/${id}`);
+  createVideo = (data: any) => this.fetch<any>('/videos', { method: 'POST', body: JSON.stringify(data) });
+  likeVideo = (id: string) => this.fetch<any>(`/videos/${id}/like`, { method: 'POST' });
+  boostVideo = (id: string, level: number) => this.fetch<any>(`/videos/${id}/boost`, { method: 'POST', body: JSON.stringify({ level }) });
+  // Channels
+  getChannels = (params?: any) => this.fetch<any>('/channels', { params });
+  getChannel = (id: string) => this.fetch<any>(`/channels/${id}`);
+  createChannel = (data: any) => this.fetch<any>('/channels', { method: 'POST', body: JSON.stringify(data) });
+  subscribe = (id: string) => this.fetch<any>(`/channels/${id}/subscribe`, { method: 'POST' });
+  // Wallet
+  getWallet = () => this.fetch<any>('/wallet');
+  connectWallet = (address: string) => this.fetch<any>('/wallet/connect', { method: 'POST', body: JSON.stringify({ address }) });
+  setUsdcAddress = (address: string) => this.fetch<any>('/wallet/set-usdc-address', { method: 'POST', body: JSON.stringify({ address }) });
+  withdraw = (amount: number, currency: string) => this.fetch<any>('/wallet/withdraw', { method: 'POST', body: JSON.stringify({ amount, currency }) });
+  getTransactions = (params?: any) => this.fetch<any>('/wallet/transactions', { params });
+  // Payments
+  getPaymentDashboard = () => this.fetch<any>('/payments/dashboard');
+  // Feed
+  getFeed = (type?: string) => this.fetch<any>(`/feed?type=${type || 'foryou'}`);
+  // Search
+  search = (q: string, type?: string) => this.fetch<any>(`/search?q=${q}${type ? `&type=${type}` : ''}`);
 }
-
-export const api = new ApiClient();
+export const api = new NexaStreamAPI();
 export default api;
