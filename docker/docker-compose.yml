@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexastream-db
+    environment:
+      POSTGRES_DB: nexastream
+      POSTGRES_USER: nexastream
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nexastream_secure_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - nexastream-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexastream -d nexastream"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: nexastream-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secure_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - nexastream-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: nexastream-api
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://nexastream:${DB_PASSWORD:-nexastream_secure_password}@postgres:5432/nexastream
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secure_password}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      ETHEREUM_RPC_URL: ${ETHEREUM_RPC_URL}
+      USDC_CONTRACT: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # Frontend (Next.js)
+  frontend:
+    image: node:20-alpine
+    container_name: nexastream-frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:3001/api
+      NEXT_PUBLIC_GA_ID: ${GA_ID}
+    volumes:
+      - ../frontend:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nexastream-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+networks:
+  nexastream-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

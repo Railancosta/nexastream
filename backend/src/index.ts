@@ -1,6 +1,6 @@
 /**
  * NexaStream Backend - Main Entry Point
- * The First Democratic Video Platform
+ * Military-Grade Security Enabled
  */
 
 import express from 'express';
@@ -14,6 +14,14 @@ import { logger } from './utils/logger';
 import { helmetConfig } from './middleware/security';
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiters } from './middleware/rateLimiter';
+import {
+  sqlInjectionDetector,
+  xssDetector,
+  commandInjectionDetector,
+  pathTraversalDetector,
+  requestValidator,
+  blockchainSecurityValidator
+} from './utils/securityScanner';
 
 // Routes
 import authRoutes from './routes/api/v1/auth';
@@ -48,6 +56,14 @@ app.use(cors({ origin: config.corsOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
+
+// Security Scanners - Block attacks before processing
+app.use(sqlInjectionDetector);
+app.use(xssDetector);
+app.use(commandInjectionDetector);
+app.use(pathTraversalDetector);
+app.use(requestValidator);
+app.use(blockchainSecurityValidator);
 
 // Apply rate limiters
 app.use(rateLimiters.global);
