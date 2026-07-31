@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 283 71% 58%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 199 89% 48%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 283 71% 58%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Video player styles */
+.video-container {
+  @apply relative w-full aspect-video bg-black rounded-lg overflow-hidden;
+}
+
+.video-controls {
+  @apply absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity;
+}
+
+.video-progress {
+  @apply relative h-1 bg-white/30 rounded-full cursor-pointer group;
+}
+
+.video-progress-fill {
+  @apply absolute h-full bg-primary rounded-full;
+}
+
+/* Card animations */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+}
+
+/* Glass morphism */
+.glass {
+  @apply bg-white/10 backdrop-blur-lg border border-white/20;
+}
+
+/* Pulse glow animation */
+.pulse-glow {
+  @apply animate-pulse-glow;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-primary text-white px-6 py-3 rounded-lg font-semibold 
+         hover:bg-primary/90 transition-all duration-200 
+         focus:outline-none focus:ring-2 focus:ring-primary/50 
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-lg font-semibold 
+         hover:bg-secondary/80 transition-all duration-200 
+         focus:outline-none focus:ring-2 focus:ring-secondary/50;
+}
+
+.btn-outline {
+  @apply border-2 border-primary text-primary px-6 py-3 rounded-lg font-semibold 
+         hover:bg-primary hover:text-white transition-all duration-200;
+}
+
+/* Input styles */
+.input-field {
+  @apply w-full px-4 py-3 bg-secondary rounded-lg border border-input 
+         focus:outline-none focus:ring-2 focus:ring-primary/50 
+         focus:border-primary transition-all duration-200;
+}
+
+/* Alert badge */
+.alert-badge {
+  @apply absolute -top-1 -right-1 w-5 h-5 bg-accent text-white text-xs 
+         rounded-full flex items-center justify-center font-bold;
+}
+
+/* Skeleton loader */
+.skeleton {
+  @apply animate-pulse bg-muted rounded;
+}
+
+/* Channel avatar */
+.channel-avatar {
+  @apply w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent 
+         flex items-center justify-center text-white font-bold;
+}
+
+.channel-avatar-lg {
+  @apply w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent 
+         flex items-center justify-center text-white text-3xl font-bold;
+}
+
+/* Video thumbnail overlay */
+.thumbnail-overlay {
+  @apply absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent 
+         flex flex-col justify-end p-4 opacity-0 hover:opacity-100 transition-opacity;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  @apply absolute right-0 mt-2 w-56 bg-card rounded-lg shadow-lg border 
+         py-2 z-50 animate-in fade-in slide-in-from-top-2;
+}
+
+/* Tab styles */
+.tab-active {
+  @apply text-primary border-b-2 border-primary;
+}
+
+.tab-inactive {
+  @apply text-muted-foreground hover:text-foreground;
+}
