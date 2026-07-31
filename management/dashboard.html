@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexaStream Manager - Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #00cec9;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #ff7675;
+            --text: #dfe6e9;
+            --text-muted: #636e72;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online { background: var(--success); }
+        .status-dot.offline { background: var(--danger); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(108, 92, 231, 0.2);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .card .change {
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .change.positive { color: var(--success); }
+        .change.negative { color: var(--danger); }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .video-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .thumbnail {
+            width: 120px;
+            height: 68px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .video-info h4 {
+            margin-bottom: 5px;
+        }
+
+        .video-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-published { background: var(--success); color: white; }
+        .badge-draft { background: var(--warning); color: #000; }
+        .badge-boosted { background: var(--primary); color: white; }
+
+        .channel-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .channel-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions .btn {
+            padding: 8px 15px;
+            font-size: 0.85rem;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .earnings {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+        }
+
+        .modal .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+
+        .modal input, .modal select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 NexaStream Manager</h1>
+            <p>Plataforma de Gerenciamento de Conteúdo</p>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Conectando...</span>
+                </div>
+                <div class="status-item">
+                    <span>🕐</span>
+                    <span id="lastUpdate">-</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon">🎬</div>
+                <h3>Total de Vídeos</h3>
+                <div class="value" id="totalVideos">-</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👥</div>
+                <h3>Total de Canais</h3>
+                <div class="value" id="totalChannels">-</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👁️</div>
+                <h3>Visualizações</h3>
+                <div class="value" id="totalViews">-</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">💰</div>
+                <h3>Ganhos (USDC)</h3>
+                <div class="value earnings" id="totalEarnings">-</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">❤️</div>
+                <h3>Total de Likes</h3>
+                <div class="value" id="totalLikes">-</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📈</div>
+                <h3>Inscritos</h3>
+                <div class="value" id="totalSubscribers">-</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('videos')">🎬 Vídeos</button>
+            <button class="tab" onclick="showTab('channels')">👥 Canais</button>
+            <button class="tab" onclick="showTab('trending')">🔥 Tendências</button>
+        </div>
+
+        <div id="tabVideos" class="section">
+            <div class="section-header">
+                <h2>🎬 Todos os Vídeos</h2>
+                <div class="actions">
+                    <input type="text" class="search-box" placeholder="Buscar vídeos..." id="videoSearch" onkeyup="filterVideos()">
+                    <button class="btn btn-primary" onclick="refreshData()">🔄 Atualizar</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vídeo</th>
+                        <th>Canal</th>
+                        <th>Views</th>
+                        <th>Likes</th>
+                        <th>Ganhos</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="videosTable">
+                    <tr><td colspan="7" class="loading"><div class="spinner"></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tabChannels" class="section" style="display:none;">
+            <div class="section-header">
+                <h2>👥 Todos os Canais</h2>
+                <button class="btn btn-primary" onclick="refreshData()">🔄 Atualizar</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Canal</th>
+                        <th>Categoria</th>
+                        <th>Inscritos</th>
+                        <th>Vídeos</th>
+                        <th>Ganhos Totais</th>
+                        <th>Monetizado</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="channelsTable">
+                    <tr><td colspan="7" class="loading"><div class="spinner"></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tabTrending" class="section" style="display:none;">
+            <div class="section-header">
+                <h2>🔥 Vídeos em Tendência</h2>
+                <button class="btn btn-primary" onclick="refreshData()">🔄 Atualizar</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Vídeo</th>
+                        <th>Views</th>
+                        <th>Boost</th>
+                        <th>Ganhos</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="trendingTable">
+                    <tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshData()" title="Atualizar Dados">🔄</button>
+
+    <footer>
+        <p>NexaStream Manager © 2026 | Conectado via OpenHands</p>
+    </footer>
+
+    <script>
+        const API_BASE = 'https://nexastream.org/api';
+        
+        let videos = [];
+        let channels = [];
+        let trending = [];
+
+        async function fetchAPI(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}/${endpoint}`);
+                if (!response.ok) throw new Error('API Error');
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return null;
+            }
+        }
+
+        async function loadData() {
+            updateStatus('Conectando...', false);
+            
+            const [videosData, channelsData, trendingData] = await Promise.all([
+                fetchAPI('videos'),
+                fetchAPI('channels'),
+                fetchAPI('videos/trending')
+            ]);
+
+            if (videosData && channelsData && trendingData) {
+                videos = videosData;
+                channels = channelsData;
+                trending = trendingData;
+                
+                updateStatus('Online', true);
+                updateStats();
+                renderVideos();
+                renderChannels();
+                renderTrending();
+                
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            } else {
+                updateStatus('Offline', false);
+            }
+        }
+
+        function updateStatus(text, online) {
+            document.getElementById('statusText').textContent = text;
+            const dot = document.getElementById('statusDot');
+            dot.className = 'status-dot ' + (online ? 'online' : 'offline');
+        }
+
+        function updateStats() {
+            const totalViews = videos.reduce((sum, v) => sum + v.viewCount, 0);
+            const totalLikes = videos.reduce((sum, v) => sum + v.likeCount, 0);
+            const totalEarnings = videos.reduce((sum, v) => sum + v.earningsUsdc, 0);
+            const totalSubscribers = channels.reduce((sum, c) => sum + c.subscriberCount, 0);
+
+            document.getElementById('totalVideos').textContent = videos.length;
+            document.getElementById('totalChannels').textContent = channels.length;
+            document.getElementById('totalViews').textContent = formatNumber(totalViews);
+            document.getElementById('totalEarnings').textContent = '$' + totalEarnings.toFixed(2);
+            document.getElementById('totalLikes').textContent = formatNumber(totalLikes);
+            document.getElementById('totalSubscribers').textContent = formatNumber(totalSubscribers);
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function renderVideos() {
+            const tbody = document.getElementById('videosTable');
+            tbody.innerHTML = videos.map(v => `
+                <tr>
+                    <td>
+                        <div class="video-row">
+                            <img src="${v.thumbnailUrl}" class="thumbnail" alt="${v.title}">
+                            <div class="video-info">
+                                <h4>${v.title.substring(0, 50)}...</h4>
+                                <div class="video-meta">${v.category} • ${formatDuration(v.durationSeconds)}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${v.channelName || '-'}</td>
+                    <td>${formatNumber(v.viewCount)}</td>
+                    <td>${formatNumber(v.likeCount)}</td>
+                    <td class="earnings">$${v.earningsUsdc.toFixed(2)}</td>
+                    <td>
+                        <span class="badge badge-${v.status}">${v.status}</span>
+                        ${v.boostLevel > 0 ? '<span class="badge badge-boosted">⭐ x' + v.boostLevel + '</span>' : ''}
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-success btn-sm" onclick="boostVideo(${v.id})">🚀 Boost</button>
+                            <button class="btn btn-primary btn-sm" onclick="viewVideo(${v.id})">👁️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderChannels() {
+            const tbody = document.getElementById('channelsTable');
+            tbody.innerHTML = channels.map(c => `
+                <tr>
+                    <td>
+                        <div class="channel-row">
+                            <img src="${c.avatarUrl}" class="avatar" alt="${c.name}">
+                            <div>
+                                <h4>${c.name}</h4>
+                                <div class="video-meta">@${c.slug}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${c.category}</td>
+                    <td>${formatNumber(c.subscriberCount)}</td>
+                    <td>${c.videoCount}</td>
+                    <td class="earnings">$${c.totalEarningsUsdc.toFixed(2)}</td>
+                    <td>${c.isMonetized ? '✅' : '❌'}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewChannel(${c.id})">👁️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTrending() {
+            const tbody = document.getElementById('trendingTable');
+            tbody.innerHTML = trending.map((v, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>
+                        <div class="video-row">
+                            <img src="${v.thumbnailUrl}" class="thumbnail" alt="${v.title}">
+                            <div class="video-info">
+                                <h4>${v.title.substring(0, 50)}...</h4>
+                                <div class="video-meta">${v.channelName} • ${formatNumber(v.viewCount)} views</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${formatNumber(v.viewCount)}</td>
+                    <td><span class="badge badge-boosted">🔥 ${v.boostLevel}</span></td>
+                    <td class="earnings">$${v.earningsUsdc.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-success btn-sm" onclick="boostVideo(${v.id})">🚀</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            
+            document.querySelector(`.tab:nth-child(${tab === 'videos' ? 1 : tab === 'channels' ? 2 : 3})`).classList.add('active');
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
+        }
+
+        function filterVideos() {
+            const query = document.getElementById('videoSearch').value.toLowerCase();
+            const filtered = videos.filter(v => 
+                v.title.toLowerCase().includes(query) || 
+                (v.channelName && v.channelName.toLowerCase().includes(query))
+            );
+            
+            const tbody = document.getElementById('videosTable');
+            tbody.innerHTML = filtered.map(v => `
+                <tr>
+                    <td>
+                        <div class="video-row">
+                            <img src="${v.thumbnailUrl}" class="thumbnail" alt="${v.title}">
+                            <div class="video-info">
+                                <h4>${v.title.substring(0, 50)}...</h4>
+                                <div class="video-meta">${v.category}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${v.channelName || '-'}</td>
+                    <td>${formatNumber(v.viewCount)}</td>
+                    <td>${formatNumber(v.likeCount)}</td>
+                    <td class="earnings">$${v.earningsUsdc.toFixed(2)}</td>
+                    <td>
+                        <span class="badge badge-${v.status}">${v.status}</span>
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-success btn-sm" onclick="boostVideo(${v.id})">🚀</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function boostVideo(id) {
+            alert(`Boost enviado para vídeo #${id}!\n(Nota: Requer autenticação admin para aplicar)`);
+        }
+
+        function viewVideo(id) {
+            window.open(`https://nexastream.org/watch/${id}`, '_blank');
+        }
+
+        function viewChannel(id) {
+            window.open(`https://nexastream.org/channel/${id}`, '_blank');
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        // Load on start
+        document.addEventListener('DOMContentLoaded', loadData);
+        
+        // Auto-refresh every 60 seconds
+        setInterval(loadData, 60000);
+    </script>
+</body>
+</html>

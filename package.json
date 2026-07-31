@@ -1,0 +1,56 @@
+{
+  "name": "nexastream",
+  "version": "2.0.0",
+  "description": "🚀 The First Democratic Video Platform - Surpassing YouTube & TikTok with instant monetization, blockchain payments, and transparent algorithms",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspaces",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "start": "npm run start --workspace=backend",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "docker:up": "docker-compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f docker/docker-compose.yml down",
+    "deploy:prod": "./scripts/deploy.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "keywords": [
+    "video",
+    "streaming",
+    "blockchain",
+    "web3",
+    "crypto",
+    "creator-economy",
+    "democratic-platform",
+    "usdc",
+    "ethereum"
+  ],
+  "author": "NexaStream Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Railancosta/nexastream"
+  },
+  "bugs": {
+    "url": "https://github.com/Railancosta/nexastream/issues"
+  }
+}
