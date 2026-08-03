@@ -1,0 +1,18 @@
+{
+  "name": "nexachain",
+  "version": "1.0.0",
+  "description": "NexaChain - Hybrid PoW/PoS Blockchain",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "node": "node src/node.js",
+    "miner": "node src/miner.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "elliptic": "^6.5.5",
+    "level": "^8.0.0"
+  }
+}
