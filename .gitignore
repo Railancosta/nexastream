@@ -1,0 +1,9 @@
+node_modules/
+*.log
+.env
+.next/
+out/
+dist/
+*.db
+backend/data/
+nexastream/node_modules/
