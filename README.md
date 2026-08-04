@@ -178,8 +178,8 @@ Stake NEXA to earn rewards and participate in governance.
 - [x] DAO Governance
 - [x] NFT Marketplace Integration
 - [x] Creator Verification Program
+- [x] Mobile Apps (iOS/Android)
 - [ ] Mainnet Launch
-- [ ] Mobile Apps (iOS/Android)
 
 ## 🤝 Contributing
 
