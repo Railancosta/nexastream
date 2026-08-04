@@ -189,6 +189,13 @@ Stake NEXA to earn rewards and participate in governance.
 4. Push to the branch
 5. Open a Pull Request
 
+## 🙏 Acknowledgments
+
+- **OpenZeppelin** for secure smart contracts
+- **RainbowKit** for wallet integration
+- **Next.js** for the amazing framework
+- **TailwindCSS** for styling
+
 ## 📄 License
 
 MIT License - see LICENSE file for details.
