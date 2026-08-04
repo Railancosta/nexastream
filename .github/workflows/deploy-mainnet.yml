@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd contracts
-          npm ci
+          npm install
 
       - name: Compile contracts
         run: |
@@ -48,9 +48,9 @@ jobs:
           cd contracts
           npx hardhat run deploy.js --network celo
         env:
-          CELO_RPC_URL: ${{ secrets.CELO_RPC_URL }}
+          CELO_RPC_URL: ${{ vars.CELO_RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-        continue-on-error: false
+          CELOSCAN_API_KEY: ${{ secrets.CELOSCAN_API_KEY }}
 
       - name: Deploy to Celo Alfajores
         if: github.event.inputs.network == 'celoAlfajores'
@@ -58,7 +58,7 @@ jobs:
           cd contracts
           npx hardhat run deploy.js --network celoAlfajores
         env:
-          CELO_ALFAJORES_RPC_URL: ${{ secrets.CELO_ALFAJORES_RPC_URL }}
+          CELO_ALFAJORES_RPC_URL: ${{ vars.CELO_ALFAJORES_RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
 
       - name: Deploy to Sepolia
@@ -67,44 +67,13 @@ jobs:
           cd contracts
           npx hardhat run deploy.js --network sepolia
         env:
-          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
+          SEPOLIA_RPC_URL: ${{ vars.SEPOLIA_RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
 
-      - name: Verify contracts on CeloScan
-        if: github.event.inputs.network == 'celo' || github.event.inputs.network == ''
-        run: |
-          cd contracts
-          npx hardhat verify --network celo ${{ env.NFTA_ADDRESS }} ${{ env.DEPLOYER_ADDRESS }}
-        env:
-          CELOSCAN_API_KEY: ${{ secrets.CELOSCAN_API_KEY }}
-
-      - name: Update Frontend Environment
-        run: |
-          echo "NEXT_PUBLIC_NFT_CONTRACT=${{ env.NFTA_ADDRESS }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_MARKETPLACE_CONTRACT=${{ env.MARKETPLACE_ADDRESS }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_TOKEN_CONTRACT=${{ env.TOKEN_ADDRESS }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_DAO_CONTRACT=${{ env.DAO_ADDRESS }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_VERIFICATION_CONTRACT=${{ env.VERIFICATION_ADDRESS }}" >> $GITHUB_ENV
-
-      - name: Create Commit for Environment Updates
-        run: |
-          cd frontend
-          sed -i 's|NEXT_PUBLIC_NFT_CONTRACT=.*|NEXT_PUBLIC_NFT_CONTRACT=${{ env.NFTA_ADDRESS }}|' .env.production
-          sed -i 's|NEXT_PUBLIC_MARKETPLACE_CONTRACT=.*|NEXT_PUBLIC_MARKETPLACE_CONTRACT=${{ env.MARKETPLACE_ADDRESS }}|' .env.production
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add -A
-          git commit -m "chore: Update production environment with mainnet addresses" || true
-          git push
-
-  create-release:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload deployment info
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          files: contracts/artifacts/**/*.json
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: deployment-info
+          path: contracts/deployment-addresses.json
+          retention-days: 30

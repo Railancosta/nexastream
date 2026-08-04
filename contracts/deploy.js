@@ -1,4 +1,6 @@
 const { ethers } = require('hardhat');
+const fs = require('fs');
+const path = require('path');
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -61,11 +63,11 @@ async function main() {
   const verificationAddress = await verification.getAddress();
   console.log('CreatorVerification deployed to:', verificationAddress);
 
-  // Verify contracts on Celo Explorer (if mainnet)
+  // Get network info
   const network = await ethers.provider.getNetwork();
   console.log('\n📋 Network:', network.name, 'Chain ID:', network.chainId.toString());
 
-  // Save deployment addresses
+  // Save deployment addresses to JSON file
   const deployments = {
     network: network.name,
     chainId: network.chainId.toString(),
@@ -81,8 +83,34 @@ async function main() {
     timestamp: new Date().toISOString(),
   };
 
+  // Write to file
+  const outputPath = path.join(__dirname, 'deployment-addresses.json');
+  fs.writeFileSync(outputPath, JSON.stringify(deployments, null, 2));
+  console.log('\n✅ Deployment addresses saved to:', outputPath);
+
+  // Also set GitHub Actions outputs
+  if (process.env.GITHUB_OUTPUT) {
+    const outputs = `
+NFT_ADDRESS=${nftAddress}
+MARKETPLACE_ADDRESS=${marketplaceAddress}
+TOKEN_ADDRESS=${tokenAddress}
+TIMELOCK_ADDRESS=${timelockAddress}
+DAO_ADDRESS=${daoAddress}
+VERIFICATION_ADDRESS=${verificationAddress}
+`;
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, outputs);
+  }
+
   console.log('\n✅ Deployment Summary:');
   console.log(JSON.stringify(deployments, null, 2));
+
+  // Set environment variables for verification
+  process.env.NFTA_ADDRESS = nftAddress;
+  process.env.MARKETPLACE_ADDRESS = marketplaceAddress;
+  process.env.TOKEN_ADDRESS = tokenAddress;
+  process.env.TIMELOCK_ADDRESS = timelockAddress;
+  process.env.DAO_ADDRESS = daoAddress;
+  process.env.VERIFICATION_ADDRESS = verificationAddress;
 
   return deployments;
 }
