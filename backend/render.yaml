@@ -1,0 +1,37 @@
+# Render Blueprint
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: nexastream-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nexastream-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: nexastream-redis
+          property: connectionString
+
+databases:
+  - name: nexastream-db
+    plan: free
+    databaseName: nexastream
+    ipAllowList: []
+
+redis:
+  - name: nexastream-redis
+    plan: free
+    ipAllowList: []
