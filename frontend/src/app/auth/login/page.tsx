@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { PlaySquare, Mail, Lock, User, ArrowRight } from 'lucide-react'
+import { PlaySquare, Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nexastream.org'
 
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -48,7 +49,7 @@ export default function LoginPage() {
         localStorage.setItem('user', JSON.stringify(data.user))
       }
 
-      router.push('/dashboard/Dashboard')
+      router.push('/')
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -58,27 +59,26 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-dark flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
-              <PlaySquare className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
+              <PlaySquare className="w-7 h-7 text-white" />
             </div>
-            <span className="text-2xl font-bold">NexaStream</span>
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 className="text-2xl font-bold text-white mb-2">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h1>
-          <p className="text-slate-400">
-            {isLogin ? 'Sign in to continue watching' : 'Join the decentralized video revolution'}
+          <p className="text-slate-400 text-sm">
+            {isLogin ? 'Sign in to your account' : 'Join NexaStream today'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -86,30 +86,27 @@ export default function LoginPage() {
                     value={formData.username}
                     onChange={(e) => setFormData({...formData, username: e.target.value})}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
-                    placeholder="yourusername"
+                    placeholder="username"
                     required={!isLogin}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Display Name</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
-                    type="text"
-                    value={formData.display_name}
-                    onChange={(e) => setFormData({...formData, display_name: e.target.value})}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
-                    placeholder="Your Name"
-                    required={!isLogin}
-                  />
-                </div>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">Display Name</label>
+                <input
+                  type="text"
+                  value={formData.display_name}
+                  onChange={(e) => setFormData({...formData, display_name: e.target.value})}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
+                  placeholder="Your Name"
+                  required={!isLogin}
+                />
               </div>
             </>
           )}
           
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
@@ -124,18 +121,25 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-11 pr-12 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
                 placeholder="Min 6 characters"
                 required
                 minLength={6}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
@@ -148,10 +152,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary py-3 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full btn-primary py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? (
-              <span>Loading...</span>
+              <span className="animate-spin">⏳</span>
             ) : (
               <>
                 {isLogin ? 'Sign In' : 'Create Account'}
@@ -161,20 +165,20 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-slate-400 mt-6">
+        <p className="text-center text-slate-400 mt-6 text-sm">
           {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:underline"
+            className="text-primary font-medium hover:underline"
           >
             {isLogin ? 'Sign up' : 'Sign in'}
           </button>
         </p>
 
         <div className="mt-8 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-          <p className="text-sm text-slate-400 text-center mb-2">Demo Account</p>
-          <p className="text-xs text-slate-500 text-center">Email: crypto@demo.com</p>
-          <p className="text-xs text-slate-500 text-center">Password: demo123</p>
+          <p className="text-xs text-slate-500 text-center">
+            By continuing, you agree to NexaStream's Terms of Service and Privacy Policy.
+          </p>
         </div>
       </div>
     </div>
