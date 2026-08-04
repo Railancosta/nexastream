@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="NexaStream - Decentralized Video Platform. Watch, create and earn cryptocurrency.">
+    <meta name="keywords" content="video, blockchain, crypto, web3, decentralized, streaming, NFT">
+    <meta property="og:title" content="NexaStream - Decentralized Video Platform">
+    <meta property="og:description" content="Watch videos, support creators and earn $NEXA rewards.">
+    <meta property="og:type" content="website">
+    <title>NexaStream - Decentralized Video Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        :root{--p:#8b5cf6;--s:#ec4899;--a:#06b6d4;--g:#10b981;--bg:#0f0f0f;--bs:#18181b;--bd:#27272a;--t:#fff;--m:#71717a;--navH:56px;--bottomNav:64px}
+        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+        body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;overflow-x:hidden}
+        /* Header */
+        header{position:fixed;top:0;left:0;right:0;height:var(--navH);background:rgba(15,15,15,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:1000}
+        .logo{display:flex;align-items:center;gap:6px}
+        .li{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--s));display:flex;align-items:center;justify-content:center;font-size:16px}
+        .lt{font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--p),var(--s),var(--a));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .ha{display:flex;align-items:center;gap:8px}
+        .wallet-btn{min-width:44px;height:34px;padding:0 10px;background:linear-gradient(135deg,var(--p),var(--s));border:none;border-radius:17px;color:var(--t);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+        .search-toggle,.lang-btn{width:36px;height:36px;background:var(--bs);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        /* Language Modal */
+        .lang-modal{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);z-index:2000;display:none;align-items:flex-end;justify-content:center}
+        .lang-modal.active{display:flex}
+        .lang-content{background:var(--bs);border:1px solid var(--bd);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto}
+        .lang-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .lang-header h2{font-size:18px;font-weight:700}
+        .lang-close{width:36px;height:36px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .lang-search{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;color:var(--t);font-size:15px;margin-bottom:16px}
+        .lang-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+        .lang-item{padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;color:var(--t);font-size:13px;cursor:pointer;text-align:left;transition:all .15s}
+        .lang-item:hover,.lang-item.active{border-color:var(--p);background:rgba(139,92,246,.2)}
+        .lang-item .flag{margin-right:8px}
+        .lang-item .native{font-weight:600}
+        .lang-item .name{color:var(--m);font-size:11px}
+        /* Search Overlay */
+        .search-overlay{position:fixed;inset:0;background:var(--bg);z-index:1500;display:none;flex-direction:column;padding:12px}
+        .search-overlay.active{display:flex}
+        .search-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+        .search-input{flex:1;height:44px;padding:0 14px;background:var(--bs);border:1px solid var(--bd);border-radius:10px;color:var(--t);font-size:15px;outline:none}
+        .search-close{width:44px;height:44px;background:var(--bs);border:1px solid var(--bd);border-radius:10px;color:var(--t);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .search-results{overflow-y:auto;flex:1;padding-top:8px}
+        /* Main Content */
+        main{padding-top:var(--navH);padding-bottom:calc(var(--bottomNav) + 12px)}
+        /* Hero */
+        .hero{background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(6,182,212,.15));padding:20px 14px;text-align:center;margin-bottom:20px}
+        .hero h1{font-size:24px;font-weight:900;margin-bottom:10px;line-height:1.2}
+        .hero h1 span{display:block;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:20px;margin-top:4px}
+        .hero p{font-size:13px;color:var(--m);max-width:100%;margin:0 auto 14px;line-height:1.5}
+        .badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+        .badge{padding:5px 10px;border-radius:14px;font-size:10px;font-weight:600}
+        .badge.g{background:rgba(16,185,129,.2);border:1px solid var(--g);color:var(--g)}
+        .badge.p{background:rgba(139,92,246,.2);border:1px solid var(--p);color:var(--p)}
+        .badge.c{background:rgba(6,182,212,.2);border:1px solid var(--a);color:var(--a)}
+        /* Stats */
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:100%;margin:-24px auto 24px;padding:0 14px;position:relative;z-index:10}
+        .sc{background:var(--bs);border:1px solid var(--bd);border-radius:12px;padding:14px;text-align:center}
+        .si{font-size:20px;margin-bottom:2px}
+        .sv{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .sl{color:var(--m);font-size:10px}
+        /* Content */
+        .c{padding:0 14px 70px}
+        .cats{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+        .cats::-webkit-scrollbar{display:none}
+        .cb{min-width:fit-content;padding:8px 14px;border-radius:18px;border:1px solid var(--bd);background:transparent;color:var(--m);cursor:pointer;text-transform:capitalize;font-size:12px;font-weight:500;transition:all .15s}
+        .cb:active{border-color:var(--p);color:var(--t)}
+        .cb.active{background:rgba(139,92,246,.3);border-color:var(--p);color:var(--t)}
+        .st{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+        .ld{color:#ef4444;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        /* Video Grid */
+        .vg{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
+        .vc{background:var(--bs);border-radius:12px;overflow:hidden;border:1px solid var(--bd);cursor:pointer;transition:transform .15s}
+        .vc:active{transform:scale(.98)}
+        .vt{position:relative;aspect-ratio:16/9;background-size:cover;background-position:center}
+        .vd{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.9);padding:3px 6px;border-radius:3px;font-size:10px;font-weight:500}
+        .vcat{position:absolute;top:6px;left:6px;padding:3px 6px;border-radius:3px;font-size:9px;font-weight:600;background:var(--p)}
+        .lb{position:absolute;top:6px;right:6px;padding:3px 6px;border-radius:3px;font-size:9px;font-weight:700;background:#ef4444;color:var(--t);display:flex;align-items:center;gap:4px}
+        .lb::before{content:'';width:5px;height:5px;background:var(--t);border-radius:50%;animation:pulse 1s infinite}
+        .vi{padding:10px}
+        .vt2{font-size:13px;font-weight:600;margin-bottom:6px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .vm{display:flex;align-items:center;gap:6px;color:var(--m);font-size:11px}
+        .vch{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)}
+        .ca{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s))}
+        .cn{color:var(--m);font-size:11px}
+        .vr{margin-top:8px;padding:6px 10px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);border-radius:6px;color:var(--g);font-size:11px;font-weight:600;text-align:center}
+        /* Staking */
+        .ss{background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(6,182,212,.15));border:1px solid var(--bd);border-radius:16px;padding:20px 14px;text-align:center;margin-top:20px}
+        .ss h2{font-size:18px;font-weight:800;margin-bottom:6px}
+        .ss p{color:var(--m);font-size:12px;max-width:100%;margin:0 auto 14px;line-height:1.4}
+        .sf{flex-direction:column;align-items:stretch;gap:10px}
+        .si2{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;color:var(--t);font-size:15px;text-align:center}
+        .ss .btn{width:100%;padding:14px}
+        /* Bottom Nav */
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--bottomNav);background:rgba(15,15,15,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-around;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
+        .bn-item{width:60px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--m);cursor:pointer;transition:all .15s;border:none;background:transparent}
+        .bn-item:active{color:var(--p);transform:scale(.95)}
+        .bn-item.active{color:var(--p)}
+        .bn-icon{font-size:20px}
+        .bn-label{font-size:9px;font-weight:500}
+        .bn-upload{width:46px;height:46px;background:linear-gradient(135deg,var(--p),var(--s));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-18px;box-shadow:0 4px 16px rgba(139,92,246,.4)}
+        /* Modal */
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:2000;display:none;align-items:flex-end;justify-content:center}
+        .modal.active{display:flex}
+        .mc{background:var(--bs);border:1px solid var(--bd);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:100%;max-height:85vh;overflow-y:auto}
+        .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .mh h2{font-size:18px;font-weight:700}
+        .mc2{width:36px;height:36px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .mw{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+        .wa{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700}
+        .wi{font-weight:600;font-size:15px}
+        .wa2{color:var(--m);font-size:11px;font-family:monospace}
+        .bc{background:var(--bg);border-radius:14px;padding:14px;margin-bottom:14px}
+        .bl{color:var(--m);font-size:12px;margin-bottom:3px}
+        .bv{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .bu{color:var(--g);font-size:12px}
+        .ma{display:flex;gap:10px}
+        .ma .btn{flex:1}
+        .btn-o{background:var(--bg);border:1px solid var(--bd)}
+        .btn-disconnect{width:100%;margin-top:14px;padding:12px;background:rgba(239,68,68,.1);border:1px solid #ef4444;color:#ef4444;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px}
+        /* Toast */
+        .toast{position:fixed;bottom:80px;left:14px;right:14px;background:rgba(16,185,129,.2);border:1px solid var(--g);border-radius:10px;padding:12px 16px;z-index:3000;text-align:center;font-size:13px;font-weight:500;color:var(--g);display:none;animation:slideUp .3s}
+        @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+        /* Video Modal */
+        .video-modal{position:fixed;inset:0;background:#000;z-index:2500;display:none;flex-direction:column}
+        .video-modal.active{display:flex}
+        .video-header{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:rgba(0,0,0,.9)}
+        .video-back{width:40px;height:40px;background:transparent;border:none;color:var(--t);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .video-content{flex:1;display:flex;align-items:center;justify-content:center}
+        .video-placeholder{text-align:center;color:var(--m)}
+        .video-placeholder .icon{font-size:64px;margin-bottom:16px}
+        .video-placeholder p{font-size:14px}
+        .current-lang{display:flex;align-items:center;gap:4px;font-size:11px}
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="li">📺</div>
+            <span class="lt">NexaStream</span>
+        </div>
+        <div class="ha">
+            <button class="lang-btn" onclick="openLang()">🌐 <span class="current-lang" id="currentLang">EN</span></button>
+            <button class="search-toggle" onclick="openSearch()">🔍</button>
+            <div id="walletArea"><button class="wallet-btn" onclick="connectWallet()">🔗 <span data-i18n="connect">Connect</span></button></div>
+        </div>
+    </header>
+    <!-- Language Modal -->
+    <div id="langModal" class="lang-modal">
+        <div class="lang-content">
+            <div class="lang-header">
+                <h2>🌐 <span data-i18n="selectLanguage">Select Language</span></h2>
+                <button class="lang-close" onclick="closeLang()">✕</button>
+            </div>
+            <input type="text" class="lang-search" placeholder="Search language..." id="langSearch" oninput="filterLanguages()">
+            <div class="lang-list" id="langList"></div>
+        </div>
+    </div>
+    <!-- Search Overlay -->
+    <div id="searchOverlay" class="search-overlay">
+        <div class="search-header">
+            <input type="text" class="search-input" placeholder="Search videos..." id="searchInput" autofocus>
+            <button class="search-close" onclick="closeSearch()">✕</button>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+    </div>
+    <!-- Main -->
+    <main>
+        <section class="hero">
+            <h1 data-i18n="heroTitle">Decentralized Video<br><span>Platform</span></h1>
+            <p data-i18n="heroDesc">Watch videos, support creators and earn $NEXA rewards. Blockchain technology with 50% revenue share for creators.</p>
+            <div class="badges">
+                <span class="badge g">💰 <span data-i18n="badge50">50% Revenue</span></span>
+                <span class="badge p">⛓️ NexaChain</span>
+                <span class="badge c">🔐 Web3</span>
+            </div>
+        </section>
+        <section class="stats">
+            <div class="sc"><div class="si">📹</div><div class="sv">2,847</div><div class="sl" data-i18n="videos">Videos</div></div>
+            <div class="sc"><div class="si">👁️</div><div class="sv">12.5M</div><div class="sl" data-i18n="views">Views</div></div>
+            <div class="sc"><div class="si">🎬</div><div class="sv">1,234</div><div class="sl" data-i18n="creators">Creators</div></div>
+            <div class="sc"><div class="si">💎</div><div class="sv">45,230</div><div class="sl" data-i18n="staked">NEXA Staked</div></div>
+        </section>
+        <div class="c">
+            <div class="cats">
+                <button class="cb active" onclick="setCat('all')" data-i18n="all">All</button>
+                <button class="cb" onclick="setCat('Crypto')">Crypto</button>
+                <button class="cb" onclick="setCat('DeFi')">DeFi</button>
+                <button class="cb" onclick="setCat('NFT')">NFT</button>
+                <button class="cb" onclick="setCat('Tutorial')">Tutorial</button>
+                <button class="cb" onclick="setCat('Security')" data-i18n="security">Security</button>
+            </div>
+            <div id="ls"><h2 class="st"><span class="ld">●</span> <span data-i18n="liveNow">Live Now</span></h2><div class="vg" id="lv"></div></div>
+            <h2 class="st">🔥 <span data-i18n="trending">Trending</span></h2>
+            <div class="vg" id="vg"></div>
+        </div>
+        <div class="c">
+            <div class="ss">
+                <h2>💎 <span data-i18n="stakingTitle">Staking 12% APY</span></h2>
+                <p data-i18n="stakingDesc">Stake your NEXA tokens to support the network and earn passive rewards.</p>
+                <div class="sf">
+                    <input type="number" class="si2" placeholder="Amount">
+                    <button class="btn" onclick="toast('Staking coming soon!')" data-i18n="stakeNow">Stake Now</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <button class="bn-item active" onclick="setActiveNav(this)">
+            <span class="bn-icon">🏠</span>
+            <span class="bn-label" data-i18n="home">Home</span>
+        </button>
+        <button class="bn-item" onclick="setActiveNav(this);toast('Explore coming soon!')">
+            <span class="bn-icon">🔍</span>
+            <span class="bn-label" data-i18n="explore">Explore</span>
+        </button>
+        <button class="bn-item" onclick="toast('Upload coming soon!')">
+            <span class="bn-icon bn-upload">➕</span>
+        </button>
+        <button class="bn-item" onclick="setActiveNav(this);toast('Subscriptions coming soon!')">
+            <span class="bn-icon">📺</span>
+            <span class="bn-label" data-i18n="subs">Subs</span>
+        </button>
+        <button class="bn-item" onclick="setActiveNav(this);openW()">
+            <span class="bn-icon">👤</span>
+            <span class="bn-label" data-i18n="profile">Profile</span>
+        </button>
+    </nav>
+    <!-- Wallet Modal -->
+    <div id="wm" class="modal">
+        <div class="mc">
+            <div class="mh"><h2 data-i18n="wallet">Wallet</h2><button class="mc2" onclick="closeW()">✕</button></div>
+            <div class="mw">
+                <div class="wa" id="wa">NS</div>
+                <div><div class="wi" id="wn">Web3User</div><div class="wa2" id="wad">0x0000...0000</div></div>
+            </div>
+            <div class="bc"><div class="bl" data-i18n="balance">Balance</div><div class="bv">1,234.56 NEXA</div><div class="bu">~$4,567.89 USD</div></div>
+            <div class="ma"><button class="btn" data-i18n="send">Send</button><button class="btn btn-o" data-i18n="receive">Receive</button></div>
+            <button class="btn-disconnect" onclick="disconnect()" data-i18n="disconnect">Disconnect</button>
+        </div>
+    </div>
+    <!-- Video Modal -->
+    <div id="videoModal" class="video-modal">
+        <div class="video-header">
+            <button class="video-back" onclick="closeVideo()">←</button>
+            <span id="videoTitle" style="color:#fff;font-weight:600"></span>
+            <div style="width:40px"></div>
+        </div>
+        <div class="video-content">
+            <div class="video-placeholder">
+                <div class="icon">▶️</div>
+                <p data-i18n="playing">Playing video...</p>
+            </div>
+        </div>
+    </div>
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+    <script>
+        // Languages Database - All Countries
+        const languages = [
+            {code:'en',name:'English',native:'English',flag:'🇺🇸',trans:{heroTitle:'Decentralized Video<br><span>Platform</span>',heroDesc:'Watch videos, support creators and earn $NEXA rewards. Blockchain technology with 50% revenue share for creators.',badge50:'50% Revenue',videos:'Videos',views:'Views',creators:'Creators',staked:'NEXA Staked',all:'All',security:'Security',liveNow:'Live Now',trending:'Trending',stakingTitle:'Staking 12% APY',stakingDesc:'Stake your NEXA tokens to support the network and earn passive rewards.',stakeNow:'Stake Now',home:'Home',explore:'Explore',subs:'Subs',profile:'Profile',wallet:'Wallet',balance:'Balance',send:'Send',receive:'Receive',disconnect:'Disconnect',playing:'Playing video...',connect:'Connect',selectLanguage:'Select Language'}},
+            {code:'pt',name:'Portuguese',native:'Português',flag:'🇧🇷',trans:{heroTitle:'Plataforma de Vídeo<br><span>Descentralizada</span>',heroDesc:'Assista vídeos, apoie criadores e ganhe recompensas em $NEXA. Tecnologia blockchain com 50% de receita para criadores.',badge50:'50% Receita',videos:'Vídeos',views:'Visualizações',creators:'Criadores',staked:'NEXA Staked',all:'Todos',security:'Segurança',liveNow:'Ao Vivo',trending:'Em Alta',stakingTitle:'Staking 12% APY',stakingDesc:'Staque seus tokens NEXA para apoiar a rede e ganhar recompensas passivas.',stakeNow:'Stakear',home:'Início',explore:'Explorar',subs:'Inscritos',profile:'Perfil',wallet:'Carteira',balance:'Saldo',send:'Enviar',receive:'Receber',disconnect:'Desconectar',playing:'Reproduzindo...',connect:'Conectar',selectLanguage:'Selecionar Idioma'}},
+            {code:'es',name:'Spanish',native:'Español',flag:'🇪🇸',trans:{heroTitle:'Plataforma de Video<br><span>Descentralizado</span>',heroDesc:'Mira videos, apoya creadores y gana recompensas $NEXA. Tecnologia blockchain con 50% de ingresos para creadores.',badge50:'50% Ingresos',videos:'Videos',views:'Vistas',creators:'Creadores',staked:'NEXA Staked',all:'Todos',security:'Seguridad',liveNow:'En Vivo',trending:'Tendencias',stakingTitle:'Staking 12% APY',stakingDesc:'Stakear tus tokens NEXA para apoyar la red y ganar recompensas pasivas.',stakeNow:'Stakear',home:'Inicio',explore:'Explorar',subs:'Subs',profile:'Perfil',wallet:'Billetera',balance:'Saldo',send:'Enviar',receive:'Recibir',disconnect:'Desconectar',playing:'Reproduciendo...',connect:'Conectar',selectLanguage:'Seleccionar Idioma'}},
+            {code:'fr',name:'French',native:'Français',flag:'🇫🇷',trans:{heroTitle:'Plateforme Vidéo<br><span>Décentralisée</span>',heroDesc:'Regardez des vidéos, soutenez les créateurs et gagnez des récompenses $NEXA. Technologie blockchain avec 50% de revenus pour les créateurs.',badge50:'50% Revenus',videos:'Vidéos',views:'Vues',creators:'Créateurs',staked:'NEXA Staked',all:'Tous',security:'Sécurité',liveNow:'En Direct',trending:'Tendances',stakingTitle:'Staking 12% APY',stakingDesc:'Stakez vos tokens NEXA pour soutenir le réseau et gagner des récompenses passives.',stakeNow:'Stakez',home:'Accueil',explore:'Explorer',subs:'Abonnements',profile:'Profil',wallet:'Portefeuille',balance:'Solde',send:'Envoyer',receive:'Recevoir',disconnect:'Déconnecter',playing:'Lecture...',connect:'Connecter',selectLanguage:'Sélectionner Langue'}},
+            {code:'de',name:'German',native:'Deutsch',flag:'🇩🇪',trans:{heroTitle:'Dezentralisierte<br><span>Videoplattform</span>',heroDesc:'Videos ansehen, Creator unterstützen und $NEXA Belohnungen verdienen. Blockchain-Technologie mit 50% Einnahmen für Creator.',badge50:'50% Einnahmen',videos:'Videos',views:'Aufrufe',creators:'Creator',staked:'NEXA Staked',all:'Alle',security:'Sicherheit',liveNow:'Live',trending:'Trends',stakingTitle:'Staking 12% APY',stakingDesc:'Stake deine NEXA Token um das Netzwerk zu unterstützen und passive Belohnungen zu verdienen.',stakeNow:'Stake',home:'Start',explore:'Entdecken',subs:'Abonniert',profile:'Profil',wallet:'Wallet',balance:'Guthaben',send:'Senden',receive:'Empfangen',disconnect:'Trennen',playing:'Wiedergabe...',connect:'Verbinden',selectLanguage:'Sprache Wählen'}},
+            {code:'it',name:'Italian',native:'Italiano',flag:'🇮🇹',trans:{heroTitle:'Piattaforma Video<br><span>Decentralizzata</span>',heroDesc:'Guarda video, supporta i creatori e guadagna ricompense $NEXA. Tecnologia blockchain con 50% di entrate per i creatori.',badge50:'50% Entrate',videos:'Video',views:'Visualizzazioni',creators:'Creatori',staked:'NEXA Staked',all:'Tutti',security:'Sicurezza',liveNow:'In Diretta',trending:'Tendenze',stakingTitle:'Staking 12% APY',stakingDesc:'Metti in stake i tuoi token NEXA per supportare la rete e guadagnare ricompense passive.',stakeNow:'Stake',home:'Home',explore:'Esplora',subs:'Iscrizioni',profile:'Profilo',wallet:'Wallet',balance:'Saldo',send:'Invia',receive:'Ricevi',disconnect:'Disconnetti',playing:'Riproduzione...',connect:'Connetti',selectLanguage:'Seleziona Lingua'}},
+            {code:'ru',name:'Russian',native:'Русский',flag:'🇷🇺',trans:{heroTitle:'Децентрализованная<br><span>Видеоплатформа</span>',heroDesc:'Смотрите видео, поддерживайте авторов и зарабатывайте $NEXA. Блокчейн технология с 50% дохода для авторов.',badge50:'50% Доход',videos:'Видео',views:'Просмотры',creators:'Авторы',staked:'NEXA Staked',all:'Все',security:'Безопасность',liveNow:'Прямо сейчас',trending:'В тренде',stakingTitle:'Стейкинг 12% APY',stakingDesc:'Стейкайте токены NEXA для поддержки сети и заработка пассивных наград.',stakeNow:'Стейк',home:'Главная',explore:'Обзор',subs:'Подписки',profile:'Профиль',wallet:'Кошелёк',balance:'Баланс',send:'Отправить',receive:'Получить',disconnect:'Отключить',playing:'Воспроизведение...',connect:'Подключить',selectLanguage:'Выбрать Язык'}},
+            {code:'zh',name:'Chinese',native:'中文',flag:'🇨🇳',trans:{heroTitle:'去中心化视频<br><span>平台</span>',heroDesc:'观看视频，支持创作者，赚取$NEXA奖励。区块链技术，创作者获得50%收益分成。',badge50:'50%收益',videos:'视频',views:'观看',creators:'创作者',staked:'NEXA已质押',all:'全部',security:'安全',liveNow:'直播中',trending:'热门',stakingTitle:'质押 12% APY',stakingDesc:'质押您的NEXA代币以支持网络并赚取被动奖励。',stakeNow:'立即质押',home:'首页',explore:'发现',subs:'订阅',profile:'我的',wallet:'钱包',balance:'余额',send:'发送',receive:'接收',disconnect:'断开',playing:'播放中...',connect:'连接',selectLanguage:'选择语言'}},
+            {code:'ja',name:'Japanese',native:'日本語',flag:'🇯🇵',trans:{heroTitle:'分散型動画<br><span>プラットフォーム</span>',heroDesc:'動画を視聴し、クリエイターを支援して$NEXA報酬を獲得。クリエイターに50%の収益分配を行うブロックチェーン技術。',badge50:'50%収益',videos:'動画',views:'視聴回数',creators:'クリエイター',staked:'NEXAステーク中',all:'すべて',security:'セキュリティ',liveNow:'ライブ',trending:'トレンド',stakingTitle:'ステーキング 12% APY',stakingDesc:'NEXAトークンをステークしてネットワークを支援し、受動的報酬を獲得。',stakeNow:'ステーク',home:'ホーム',explore:'探索',subs:'登録',profile:'プロフィール',wallet:'ウォレット',balance:'残高',send:'送信',receive:'受信',disconnect:'切断',playing:'再生中...',connect:'接続',selectLanguage:'言語を選択'}},
+            {code:'ko',name:'Korean',native:'한국어',flag:'🇰🇷',trans:{heroTitle:'분산형 영상<br><span>플랫폼</span>',heroDesc:'동영상을 시청하고 창작자를 지원하며 $NEXA 보상을 획득하세요. 창작자에게 50% 수익을 제공하는 블록체인 기술.',badge50:'50% 수익',videos:'동영상',views:'조회수',creators:'창작자',staked:'NEXA 스테이킹',all:'전체',security:'보안',liveNow:'라이브',trending:'인기',stakingTitle:'스테이킹 12% APY',stakingDesc:'NEXA 토큰을 스테이킹하여 네트워크를 지원하고 수동 보상을 획득하세요.',stakeNow:'스테이크',home:'홈',explore:'탐색',subs:'구독',profile:'프로필',wallet:'지갑',balance:'잔액',send:'보내기',receive:'받기',disconnect:'연결 해제',playing:'재생 중...',connect:'연결',selectLanguage:'언어 선택'}},
+            {code:'ar',name:'Arabic',native:'العربية',flag:'🇸🇦',trans:{heroTitle:'منصة فيديو<br><span>لامركزية</span>',heroDesc:'شاهد videos، ادعم صناع المحتوى واكسب مكافآت $NEXA. تقنية البلوكتشين مع 50% حصة أرباح للمنشئين.',badge50:'50% أرباح',videos:'فيديوهات',views:'مشاهدات',creators:'صناع المحتوى',staked:'NEXA مرهونة',all:'الكل',security:'الأمان',liveNow:'البث المباشر',trending:'الرائج',stakingTitle:'تثبيت 12% APY',stakingDesc:'ثبّت عملات NEXA لدعم الشبكة وكسب مكافآت سلبية.',stakeNow:'ثبّت الآن',home:'الرئيسية',explore:'استكشف',subs:'الاشتراكات',profile:'الملف',wallet:'المحفظة',balance:'الرصيد',send:'إرسال',receive:'استقبال',disconnect:'قطع الاتصال',playing:'جاري التشغيل...',connect:'اتصال',selectLanguage:'اختر اللغة'}},
+            {code:'hi',name:'Hindi',native:'हिन्दी',flag:'🇮🇳',trans:{heroTitle:'विकेंद्रीकृत<br><span>वीडियो प्लेटफॉर्म</span>',heroDesc:'वीडियो देखें, क्रिएटर्स का समर्थन करें और $NEXA इनाम कमाएं। क्रिएटर्स के लिए 50% राजस्व हिस्से के साथ ब्लॉकचेन तकनीक।',badge50:'50% राजस्व',videos:'वीडियो',views:'व्यूज',creators:'क्रिएटर्स',staked:'NEXA स्टेक्ड',all:'सभी',security:'सुरक्षा',liveNow:'लाइव',trending:'ट्रेंडिंग',stakingTitle:'स्टेकिंग 12% APY',stakingDesc:'नेटवर्क का समर्थन करने और निष्क्रिय इनाम कमाने के लिए अपने NEXA टोकन स्टेक करें।',stakeNow:'अभी स्टेक करें',home:'होम',explore:'खोजें',subs:'सब्सक्रिप्शन',profile:'प्रोफाइल',wallet:'वॉलेट',balance:'बैलेंस',send:'भेजें',receive:'प्राप्त करें',disconnect:'डिस्कनेक्ट',playing:'चल रहा है...',connect:'कनेक्ट',selectLanguage:'भाषा चुनें'}},
+            {code:'tr',name:'Turkish',native:'Türkçe',flag:'🇹🇷',trans:{heroTitle:'Merkeziyetsiz<br><span>Video Platformu</span>',heroDesc:'Videoları izleyin, içerik üreticilerini destekleyin ve $NEXA ödülleri kazanın. İçerik üreticilerine %50 gelir payı sunan blokzincir teknolojisi.',badge50:'%50 Gelir',videos:'Videolar',views:'Görüntülenme',creators:'Yaratıcılar',staked:'NEXA Stake',all:'Tümü',security:'Güvenlik',liveNow:'Canlı',trending:'Trendler',stakingTitle:'Stake 12% APY',stakingDesc:'Ağı desteklemek ve pasif ödüller kazanmak için NEXA tokenlarınızı stake edin.',stakeNow:'Stake Et',home:'Ana Sayfa',explore:'Keşfet',subs:'Abonelikler',profile:'Profil',wallet:'Cüzdan',balance:'Bakiye',send:'Gönder',receive:'Al',disconnect:'Bağlantıyı Kes',playing:'Oynatılıyor...',connect:'Bağlan',selectLanguage:'Dil Seç'}},
+            {code:'vi',name:'Vietnamese',native:'Tiếng Việt',flag:'🇻🇳',trans:{heroTitle:'Nền tảng Video<br><span>Phi tập trung</span>',heroDesc:'Xem video, hỗ trợ nhà sáng tạo và kiếm phần thưởng $NEXA. Công nghệ blockchain với 50% doanh thu cho nhà sáng tạo.',badge50:'50% Doanh thu',videos:'Video',views:'Lượt xem',creators:'Nhà sáng tạo',staked:'NEXA Đã stake',all:'Tất cả',security:'Bảo mật',liveNow:'Đang live',trending:'Xu hướng',stakingTitle:'Stake 12% APY',stakingDesc:'Stake token NEXA của bạn để hỗ trợ mạng và kiếm phần thưởng thụ động.',stakeNow:'Stake Ngay',home:'Trang chủ',explore:'Khám phá',subs:'Đăng ký',profile:'Hồ sơ',wallet:'Ví',balance:'Số dư',send:'Gửi',receive:'Nhận',disconnect:'Ngắt kết nối',playing:'Đang phát...',connect:'Kết nối',selectLanguage:'Chọn Ngôn ngữ'}},
+            {code:'th',name:'Thai',native:'ไทย',flag:'🇹🇭',trans:{heroTitle:'แพลตฟอร์มวิดีโอ<br><span>กระจายศูนย์</span>',heroDesc:'ดูวิดีโอ สนับสนุนครีเอเตอร์ และรับรางวัล $NEXA เทคโนโลยีบล็อกเชนพร้อมส่วนแบ่งรายได้ 50% ให้ครีเอเตอร์',badge50:'50% รายได้',videos:'วิดีโอ',views:'ยอดดู',creators:'ครีเอเตอร์',staked:'NEXA Staked',all:'ทั้งหมด',security:'ความปลอดภัย',liveNow:'ไลฟ์',trending:'มาแรง',stakingTitle:'Staking 12% APY',stakingDesc:'Stake โทเค็น NEXA ของคุณเพื่อสนับสนุนเครือข่ายและรับรางวัลแบบ Passive',stakeNow:'Stake ตอนนี้',home:'หน้าแรก',explore:'สำรวจ',subs:'สมัครสมาชิก',profile:'โปรไฟล์',wallet:'กระเป๋า',balance:'ยอดเงิน',send:'ส่ง',receive:'รับ',disconnect:'ตัดการเชื่อมต่อ',playing:'กำลังเล่น...',connect:'เชื่อมต่อ',selectLanguage:'เลือกภาษา'}},
+            {code:'id',name:'Indonesian',native:'Bahasa Indonesia',flag:'🇮🇩',trans:{heroTitle:'Platform Video<br><span>Terdesentralisasi</span>',heroDesc:'Tonton video, dukung kreator dan dapatkan hadiah $NEXA. Teknologi blockchain dengan 50% pembagian pendapatan untuk kreator.',badge50:'50% Pendapatan',videos:'Video',views:'Dilihat',creators:'Kreator',staked:'NEXA Staked',all:'Semua',security:'Keamanan',liveNow:'Live',trending:'Trending',stakingTitle:'Staking 12% APY',stakingDesc:'Stake token NEXA Anda untuk mendukung jaringan dan mendapatkan hadiah pasif.',stakeNow:'Stake Sekarang',home:'Beranda',explore:'Jelajahi',subs:'Langganan',profile:'Profil',wallet:'Wallet',balance:'Saldo',send:'Kirim',receive:'Terima',disconnect:'Putuskan',playing:'Memutar...',connect:'Sambungkan',selectLanguage:'Pilih Bahasa'}},
+            {code:'ms',name:'Malay',native:'Bahasa Melayu',flag:'🇲🇾',trans:{heroTitle:'Platform Video<br><span>Terdesentralisasi</span>',heroDesc:'Tonton video, sokong pencipta dan dapatkan ganjaran $NEXA. Teknologi blockchain dengan 50% bahagian hasil untuk pencipta.',badge50:'50% Hasil',videos:'Video',views:'Tontonan',creators:'Pencipta',staked:'NEXA Staked',all:'Semua',security:'Keselamatan',liveNow:'Langsung',trending:'Trend',stakingTitle:'Staking 12% APY',stakingDesc:'Stake token NEXA anda untuk menyokong rangkaian dan mendapat ganjaran pasif.',stakeNow:'Stake Sekarang',home:'Laman Utama',explore:'Terokai',subs:'Langganan',profile:'Profil',wallet:'Wallet',balance:'Baki',send:'Hantar',receive:'Terima',disconnect:'Putuskan',playing:'Memutar...',connect:'Sambung',selectLanguage:'Pilih Bahasa'}},
+            {code:'pl',name:'Polish',native:'Polski',flag:'🇵🇱',trans:{heroTitle:'Zdecentralizowana<br><span>Platforma Wideo</span>',heroDesc:'Oglądaj filmy, wspieraj twórców i zarabiaj nagrody $NEXA. Technologia blockchain z 50% udziałem w przychodach dla twórców.',badge50:'50% Przychodów',videos:'Filmy',views:'Wyświetlenia',creators:'Twórcy',staked:'NEXA Stake',all:'Wszystkie',security:'Bezpieczeństwo',liveNow:'Na żywo',trending:'Trendujące',stakingTitle:'Staking 12% APY',stakingDesc:'Stakuj swoje tokeny NEXA, aby wspierać sieć i zarabiać bierne nagrody.',stakeNow:'Stakuj',home:'Strona główna',explore:'Odkrywaj',subs:'Subskrypcje',profile:'Profil',wallet:'Portfel',balance:'Saldo',send:'Wyślij',receive:'Odbierz',disconnect:'Rozłącz',playing:'Odtwarzanie...',connect:'Połącz',selectLanguage:'Wybierz język'}},
+            {code:'nl',name:'Dutch',native:'Nederlands',flag:'🇳🇱',trans:{heroTitle:'Gedecentraliseerd<br><span>Videoplatform</span>',heroDesc:'Bekijk video\'s, ondersteun creators en verdien $NEXA beloningen. Blockchain technologie met 50% omzetdeling voor creators.',badge50:'50% Omzet',videos:'Video\'s',views:'Weergaven',creators:'Creators',staked:'NEXA Staked',all:'Alle',security:'Beveiliging',liveNow:'Live',trending:'Trending',stakingTitle:'Staking 12% APY',stakingDesc:'Stake je NEXA tokens om het netwerk te ondersteunen en passieve beloningen te verdienen.',stakeNow:'Stake Nu',home:'Start',explore:'Ontdekken',subs:'Abonnementen',profile:'Profiel',wallet:'Wallet',balance:'Saldo',send:'Versturen',receive:'Ontvangen',disconnect:'Verbreken',playing:'Afspelen...',connect:'Verbinden',selectLanguage:'Taal Kiezen'}},
+            {code:'sv',name:'Swedish',native:'Svenska',flag:'🇸🇪',trans:{heroTitle:'Decentraliserad<br><span>Videoplattform</span>',heroDesc:'Titta på videor, stöd skapare och tjäna $NEXA belöningar. Blockchain teknologi med 50% intäktsdelning för skapare.',badge50:'50% Intäkter',videos:'Videor',views:'Visningar',creators:'Skapare',staked:'NEXA Staked',all:'Alla',security:'Säkerhet',liveNow:'Live',trending:'Trendande',stakingTitle:'Staking 12% APY',stakingDesc:'Stake dina NEXA tokens för att stödja nätverket och tjäna passiva belöningar.',stakeNow:'Stake Nu',home:'Hem',explore:'Utforska',subs:'Prenumerationer',profile:'Profil',wallet:'Plånbok',balance:'Saldo',send:'Skicka',receive:'Ta emot',disconnect:'Koppla ifrån',playing:'Spelar...',connect:'Anslut',selectLanguage:'Välj Språk'}},
+            {code:'no',name:'Norwegian',native:'Norsk',flag:'🇳🇴',trans:{heroTitle:'Desentralisert<br><span>Videoplattform</span>',heroDesc:'Se videoer, støtt skapere og tjen $NEXA belønninger. Blockchain teknologi med 50% inntektsdeling for skapere.',badge50:'50% Inntekter',videos:'Videoer',views:'Visninger',creators:'Skapere',staked:'NEXA Staked',all:'Alle',security:'Sikkerhet',liveNow:'Live',trending:'Trender',stakingTitle:'Staking 12% APY',stakingDesc:'Stake dine NEXA tokens for å støtte nettverket og tjene passive belønninger.',stakeNow:'Stake Nå',home:'Hjem',explore:'Utforsk',subs:'Abonnementer',profile:'Profil',wallet:'Lommebok',balance:'Saldo',send:'Send',receive:'Motta',disconnect:'Koble fra',playing:'Spiller...',connect:'Koble til',selectLanguage:'Velg Språk'}},
+            {code:'da',name:'Danish',native:'Dansk',flag:'🇩🇰',trans:{heroTitle:'Decentraliseret<br><span>Videoplatform</span>',heroDesc:'Se videoer, støt skabere og tjen $NEXA belønninger. Blockchain teknologi med 50% indtægtsdeling til skabere.',badge50:'50% Indtægter',videos:'Videoer',views:'Visninger',creators:'Skabere',staked:'NEXA Staked',all:'Alle',security:'Sikkerhed',liveNow:'Live',trending:'Trending',stakingTitle:'Staking 12% APY',stakingDesc:'Stake dine NEXA tokens for at støtte netværket og tjene passive belønninger.',stakeNow:'Stake Nu',home:'Hjem',explore:'Udforsk',subs:'Abonnementer',profile:'Profil',wallet:'Wallet',balance:'Saldo',send:'Send',receive:'Modtag',disconnect:'Afbryd',playing:'Afspiller...',connect:'Forbind',selectLanguage:'Vælg Sprog'}},
+            {code:'fi',name:'Finnish',native:'Suomi',flag:'🇫🇮',trans:{heroTitle:'Hajautettu<br><span>Videopalvelu</span>',heroDesc:'Katso videoita, tue luojia ja ansaitse $NEXA palkintoja. Blockchain teknologia 50% tulojenjaolla luojille.',badge50:'50% Tulot',videos:'Videot',views:'Katselukerrat',creators:'Luojat',staked:'NEXA Staked',all:'Kaikki',security:'Turvallisuus',liveNow:'Livenä',trending:'Trendaavat',stakingTitle:'Staking 12% APY',stakingDesc:'Stakaa NEXA tokeninne tukeaksenne verkostoa ja ansaitaksenne passiivisia palkintoja.',stakeNow:'Stakaa Nyt',home:'Koti',explore:'Tutki',subs:'Tilaukset',profile:'Profiili',wallet:'Lompakko',balance:'Saldo',send:'Lähetä',receive:'Vastaanota',disconnect:'Katkaise',playing:'Toistaa...',connect:'Yhdistä',selectLanguage:'Valitse Kieli'}},
+            {code:'cs',name:'Czech',native:'Čeština',flag:'🇨🇿',trans:{heroTitle:'Decentralizovaná<br><span>Video Platforma</span>',heroDesc:'Sledujte videa, podporujte tvůrce a vydělávejte $NEXA odměny. Blockchain technologie s 50% podílem na příjmech pro tvůrce.',badge50:'50% Příjmy',videos:'Videa',views:'Zobrazení',creators:'Tvůrci',staked:'NEXA Staked',all:'Všechny',security:'Bezpečnost',liveNow:'Live',trending:'Trendy',stakingTitle:'Staking 12% APY',stakingDesc:'Stake své NEXA tokeny pro podporu sítě a vydělávejte pasivní odměny.',stakeNow:'Stake Nyní',home:'Domů',explore:'Prozkoumat',subs:'Odběry',profile:'Profil',wallet:'Peněženka',balance:'Zůstatek',send:'Odeslat',receive:'Přijmout',disconnect:'Odpojit',playing:'Přehrávání...',connect:'Připojit',selectLanguage:'Vybrat Jazyk'}},
+            {code:'el',name:'Greek',native:'Ελληνικά',flag:'🇬🇷',trans:{heroTitle:'Αποκεντρωμένη<br><span>Πλατφόρμα Βίντεο</span>',heroDesc:'Παρακολουθήστε βίντεο, υποστηρίξτε δημιουργούς και κερδίστε ανταμοιβές $NEXA. Τεχνολογία blockchain με 50% μερίδιο εσόδων για τους δημιουργούς.',badge50:'50% Έσοδα',videos:'Βίντεο',views:'Προβολές',creators:'Δημιουργοί',staked:'NEXA Staked',all:'Όλα',security:'Ασφάλεια',liveNow:'Live',trending:'Τρέχον',stakingTitle:'Staking 12% APY',stakingDesc:'Κάντε stake τα NEXA tokens σας για να υποστηρίξετε το δίκτυο και να κερδίσετε παθητικές ανταμοιβές.',stakeNow:'Stake Τώρα',home:'Αρχική',explore:'Εξερευνήστε',subs:'Συνδρομές',profile:'Προφίλ',wallet:'Πορτοφόλι',balance:'Υπόλοιπο',send:'Αποστολή',receive:'Λήψη',disconnect:'Αποσύνδεση',playing:'Αναπαραγωγή...',connect:'Σύνδεση',selectLanguage:'Επιλογή Γλώσσας'}},
+            {code:'he',name:'Hebrew',native:'עברית',flag:'🇮🇱',trans:{heroTitle:'פלטפורמת וידאו<br><span>מבוזרת</span>',heroDesc:'צפו בסרטונים, תמכו ביוצרים והרוויחו פרסי $NEXA. טכנולוגיית בלוקצ\'יין עם 50% חלוקת הכנסות ליוצרים.',badge50:'50% הכנסות',videos:'סרטונים',views:'צפיות',creators:'יוצרים',staked:'NEXA ב-stake',all:'הכל',security:'אבטחה',liveNow:'שידור חי',trending:'מתפרסם',stakingTitle:'Stake 12% APY',stakingDesc:'שימו את הטוקנים שלכם ב-stake כדי לתמוך ברשת ולהרוויח פרסים פסיביים.',stakeNow:'Stake עכשיו',home:'בית',explore:'גלו',subs:'מנויים',profile:'פרופיל',wallet:'ארנק',balance:'יתרה',send:'שליחה',receive:'קבלה',disconnect:'התנתקות',playing:'מנגן...',connect:'התחבר',selectLanguage:'בחר שפה'}},
+            {code:'ro',name:'Romanian',native:'Română',flag:'🇷🇴',trans:{heroTitle:'Platformă Video<br><span>Descentralizată</span>',heroDesc:'Vizionează video, susține creatorii și câștigă recompense $NEXA. Tehnologie blockchain cu 50% partajare a veniturilor pentru creatori.',badge50:'50% Venituri',videos:'Video',views:'Vizualizări',creators:'Creatori',staked:'NEXA Staked',all:'Toate',security:'Securitate',liveNow:'Live',trending:'Trend',stakingTitle:'Staking 12% APY',stakingDesc:'Faceți stake la tokenurile NEXA pentru a susține rețeaua și a câștiga recompense pasive.',stakeNow:'Stake Acum',home:'Acasă',explore:'Explorează',subs:'Abonamente',profile:'Profil',wallet:'Portofel',balance:'Sold',send:'Trimite',receive:'Primește',disconnect:'Deconectare',playing:'Se redă...',connect:'Conectare',selectLanguage:'Selectează Limba'}},
+            {code:'hu',name:'Hungarian',native:'Magyar',flag:'🇭🇺',trans:{heroTitle:'Decentralizált<br><span>Videó Platform</span>',heroDesc:'Nézz videókat, támogasd a tartalomgyártókat és keress $NEXA jutalmakat. Blockchain technológia 50%-os bevételmegosztással a tartalomgyártóknak.',badge50:'50% Bevétel',videos:'Videók',views:'Megtekintések',creators:'Tartalomgyártók',staked:'NEXA Staked',all:'Minden',security:'Biztonság',liveNow:'Élő',trending:'Trendek',stakingTitle:'Staking 12% APY',stakingDesc:'Stake-old NEXA tokenjeidet a hálózat támogatásához és passzív jutalmak kereséséhez.',stakeNow:'Stake Most',home:'Főoldal',explore:'Felfedezés',subs:'Feliratkozások',profile:'Profil',wallet:'Tárca',balance:'Egyenleg',send:'Küldés',receive:'Fogadás',disconnect:'Leválasztás',playing:'Lejátszás...',connect:'Csatlakozás',selectLanguage:'Nyelv Választása'}},
+            {code:'uk',name:'Ukrainian',native:'Українська',flag:'🇺🇦',trans:{heroTitle:'Децентралізована<br><span>Відеоплатформа</span>',heroDesc:'Дивіться відео, підтримуйте авторів і заробляйте нагороди $NEXA. Технологія блокчейн з 50% часткою доходу для авторів.',badge50:'50% Дохід',videos:'Відео',views:'Перегляди',creators:'Автори',staked:'NEXA Staked',all:'Всі',security:'Безпека',liveNow:'Наживо',trending:'Популярне',stakingTitle:'Стейкінг 12% APY',stakingDesc:'Стейкайте свої токени NEXA для підтримки мережі та заробітку пасивних нагород.',stakeNow:'Стейкнути',home:'Головна',explore:'Огляд',subs:'Підписки',profile:'Профіль',wallet:'Гаманець',balance:'Баланс',send:'Надіслати',receive:'Отримати',disconnect:'Відключити',playing:'Відтворення...',connect:'Підключити',selectLanguage:'Вибрати Мову'}},
+            {code:'bg',name:'Bulgarian',native:'Български',flag:'🇧🇬',trans:{heroTitle:'Децентрализирана<br><span>Видео Платформа</span>',heroDesc:'Гледайте видеоклипове, подкрепяйте създатели и печелете $NEXA награди. Блокчейн технология с 50% разпределение на приходи за създатели.',badge50:'50% Приходи',videos:'Видеа',views:'Гледания',creators:'Създатели',staked:'NEXA Staked',all:'Всички',security:'Сигурност',liveNow:'На живо',trending:'Тенденции',stakingTitle:'Staking 12% APY',stakingDesc:'Залагайте вашите NEXA токени, за да подкрепите мрежата и да печелите пасивни награди.',stakeNow:'Залагай Сега',home:'Начало',explore:'Разгледай',subs:'Абонаменти',profile:'Профил',wallet:'Портфейл',balance:'Баланс',send:'Изпрати',receive:'Получи',disconnect:'Изключи',playing:'Възпроизвеждане...',connect:'Свържи',selectLanguage:'Избери Език'}},
+            {code:'hr',name:'Croatian',native:'Hrvatski',flag:'🇭🇷',trans:{heroTitle:'Decentralizirana<br><span>Video Platforma</span>',heroDesc:'Gledajte videozapise, podržite kreatore i zaradite $NEXA nagrade. Blockchain tehnologija s 50% udjelom u prihodima za kreatore.',badge50:'50% Prihodi',videos:'Videozapisi',views:'Pregledi',creators:'Kreatori',staked:'NEXA Staked',all:'Svi',security:'Sigurnost',liveNow:'Uživo',trending:'Trendovi',stakingTitle:'Staking 12% APY',stakingDesc:'Uložite svoje NEXA tokene za podršku mreže i zarađivanje pasivnih nagrada.',stakeNow:'Uloži Sada',home:'Početna',explore:'Istraži',subs:'Pretplate',profile:'Profil',wallet:'Novčanik',balance:'Saldo',send:'Pošalji',receive:'Primaj',disconnect:'Prekini',playing:'Reprodukcija...',connect:'Poveži',selectLanguage:'Odaberi Jezik'}},
+            {code:'sk',name:'Slovak',native:'Slovenčina',flag:'🇸🇰',trans:{heroTitle:'Decentralizovaná<br><span>Video Platforma</span>',heroDesc:'Sledujte videá, podporujte tvorcov a zarábajte $NEXA odmeny. Blockchain technológia s 50% zdieľaním príjmov pre tvorcov.',badge50:'50% Príjmy',videos:'Videá',views:'Zobrazenia',creators:'Tvorcovia',staked:'NEXA Staked',all:'Všetky',security:'Bezpečnosť',liveNow:'Naživo',trending:'Trendy',stakingTitle:'Staking 12% APY',stakingDesc:'Stakujte svoje NEXA tokeny na podporu siete a zarábanie pasívnych odmien.',stakeNow:'Stake Teraz',home:'Domov',explore:'Preskúmať',subs:'Odbery',profile:'Profil',wallet:'Peňaženka',balance:'Zostatok',send:'Odoslať',receive:'Prijať',disconnect:'Odpojiť',playing:'Prehrávanie...',connect:'Pripojiť',selectLanguage:'Vybrať Jazyk'}},
+            {code:'sl',name:'Slovenian',native:'Slovenščina',flag:'🇸🇮',trans:{heroTitle:'Decentralizirana<br><span>Video Platforma</span>',heroDesc:'Glejte videoposnetke, podprite ustvarjalce in zaslužite $NEXA nagrade. Blockchain tehnologija s 50% deležem prihodkov za ustvarjalce.',badge50:'50% Prihodki',videos:'Videoposnetki',views:'Ogledi',creators:'Ustvarjalci',staked:'NEXA Staked',all:'Vsi',security:'Varnost',liveNow:'V živo',trending:'Trendi',stakingTitle:'Staking 12% APY',stakingDesc:'Stake-ajte svoje NEXA žetone za podporo omrežja in zaslužek pasivnih nagrad.',stakeNow:'Stake Zdaj',home:'Domov',explore:'Razišči',subs:'Naročnine',profile:'Profil',wallet:'Denarnica',balance:'Stanje',send:'Pošlji',receive:'Prejmi',disconnect:'Prekini',playing:'Predvajanje...',connect:'Poveži',selectLanguage:'Izberi Jezik'}},
+            {code:'sr',name:'Serbian',native:'Српски',flag:'🇷🇸',trans:{heroTitle:'Децентрализована<br><span>Видео Платформа</span>',heroDesc:'Гледајте видео, подржите креаторе и зарадите $NEXA награде. Блоцкцхаин технологија са 50% учешћем у приходима за креаторе.',badge50:'50% Приходи',videos:'Видео',views:'Прегледи',creators:'Креатори',staked:'NEXA Staked',all:'Све',security:'Безбедност',liveNow:'Уживо',trending:'Трендови',stakingTitle:'Staking 12% APY',stakingDesc:'Стакеујте своје NEXA токене да подржите мрежу и зарадите пасивне награде.',stakeNow:'Стакеуј Сада',home:'Почетна',explore:'Истражи',subs:'Претплате',profile:'Профил',wallet:'Новчаник',balance:'Стање',send:'Пошаљи',receive:'Прими',disconnect:'Искључи',playing:'Репродукција...',connect:'Повежи',selectLanguage:'Изабери Језик'}},
+            {code:'ca',name:'Catalan',native:'Català',flag:'🇪🇸',trans:{heroTitle:'Plataforma de Video<br><span>Descentralitzada</span>',heroDesc:'Mira vídeos, dona suport als creadors i guanya recompenses $NEXA. Tecnologia blockchain amb 50% de compartició d\'ingressos per als creadors.',badge50:'50% Ingressos',videos:'Vídeos',views:'Visualitzacions',creators:'Creadors',staked:'NEXA Staked',all:'Tots',security:'Seguretat',liveNow:'En Directe',trending:'Tendències',stakingTitle:'Staking 12% APY',stakingDesc:'Fes stake dels teus tokens NEXA per donar suport a la xarxa i guanyar recompenses passives.',stakeNow:'Stake Ara',home:'Inici',explore:'Explorar',subs:'Subscripcions',profile:'Perfil',wallet:'Cartera',balance:'Saldo',send:'Enviar',receive:'Rebre',disconnect:'Desconnectar',playing:'Reproduint...',connect:'Connectar',selectLanguage:'Seleccionar Idioma'}},
+            {code:'fa',name:'Persian',native:'فارسی',flag:'🇮🇷',trans:{heroTitle:'پلتفرم ویدیویی<br><span>غیرمتمرکز</span>',heroDesc:'ویدیوها را تماشا کنید، سازندگان را حمایت کنید و پاداش $NEXA کسب کنید. فناوری بلاکچین با 50% سهم درآمد برای سازندگان.',badge50:'50% درآمد',videos:'ویدیوها',views:'بازدیدها',creators:'سازندگان',staked:'NEXA Staked',all:'همه',security:'امنیت',liveNow:'زنده',trending:'ترند',stakingTitle:'استیکینگ 12% APY',stakingDesc:'توکن‌های NEXA خود را استیک کنید تا از شبکه حمایت کرده و پاداش‌های غیرفعال کسب کنید.',stakeNow:'استیک کنید',home:'خانه',explore:'کاوش',subs:'اشتراک‌ها',profile:'پروفایل',wallet:'کیف پول',balance:'موجودی',send:'ارسال',receive:'دریافت',disconnect:'قطع اتصال',playing:'در حال پخش...',connect:'اتصال',selectLanguage:'انتخاب زبان'}},
+            {code:'ur',name:'Urdu',native:'اردو',flag:'🇵🇰',trans:{heroTitle:'غیر مرکزی<br><span>ویڈیو پلیٹ فارم</span>',heroDesc:'ویڈیوز دیکھیں، تخلیق کاروں کی مدد کریں اور $NEXA انعامات کمائیں۔ بلاکچین ٹیکنالوجی کے ساتھ تخلیق کاروں کے لیے 50% ریونیو شیئر۔',badge50:'50% آمدنی',videos:'ویڈیوز',views:'مناظر',creators:'تخلیق کار',staked:'NEXA Staked',all:'سب',security:'سیکیورٹی',liveNow:'لائیو',trending:'ٹرینڈنگ',stakingTitle:'اسٹیکنگ 12% APY',stakingDesc:'نیٹ ورک کی مدد کے لیے اپنے NEXA ٹوکنز اسٹیک کریں اور پیسہ کمانے والے انعامات حاصل کریں۔',stakeNow:'ابھی اسٹیک کریں',home:'ہوم',explore:'دریافت',subs:'سبسکرپشنز',profile:'پروفائل',wallet:'والت',balance:'بیلنس',send:'بھیجیں',receive:'وصول کریں',disconnect:'ڈسکنیکٹ',playing:'چل رہا ہے...',connect:'جڑیں',selectLanguage:'زبان منتخب کریں'}},
+            {code:'bn',name:'Bengali',native:'বাংলা',flag:'🇧🇩',trans:{heroTitle:'বিকেন্দ্রীকৃত<br><span>ভিডিও প্ল্যাটফর্ম</span>',heroDesc:'ভিডিও দেখুন, কনটেন্ট ক্রিয়েটরদের সমর্থন করুন এবং $NEXA পুরস্কার অর্জন করুন। কনটেন্ট ক্রিয়েটরদের জন্য 50% রাজস্ব ভাগাভাগি সহ ব্লকচেইন প্রযুক্তি।',badge50:'50% রাজস্ব',videos:'ভিডিও',views:'ভিউ',creators:'ক্রিয়েটর',staked:'NEXA স্টেকড',all:'সব',security:'নিরাপত্তা',liveNow:'লাইভ',trending:'ট্রেন্ডিং',stakingTitle:'স্টেকিং 12% APY',stakingDesc:'নেটওয়ার্ক সমর্থন করতে এবং নিষ্ক্রিয় পুরস্কার অর্জন করতে আপনার NEXA টোকেন স্টেক করুন।',stakeNow:'এখন স্টেক করুন',home:'হোম',explore:'এক্সপ্লোর',subs:'সাবস্ক্রিপশন',profile:'প্রোফাইল',wallet:'ওয়ালেট',balance:'ব্যালেন্স',send:'পাঠান',receive:'গ্রহণ',disconnect:'ডিসকানেক্ট',playing:'চলছে...',connect:'সংযুক্ত',selectLanguage:'ভাষা নির্বাচন করুন'}},
+            {code:'ta',name:'Tamil',native:'தமிழ்',flag:'🇮🇳',trans:{heroTitle:'மையமகற்ற<br><span>வீடியோ தளம்</span>',heroDesc:'வீடியோக்களைப் பாருங்கள், உள்ளடக்க ஆசிரியர்களை ஆதரித்து $NEXA பரிசுகளைப் பெறுங்கள். உள்ளடக்க ஆசிரியர்களுக்கு 50% வருவாய் பகிர்வுடன் கூடிய பிளாக்செயின் தொழில்நுட்பம்.',badge50:'50% வருவாய்',videos:'வீடியோக்கள்',views:'பார்வைகள்',creators:'உள்ளடக்க ஆசிரியர்கள்',staked:'NEXA Stake',all:'எல்லா',security:'பாதுகாப்பு',liveNow:'நேரடி',trending:'ஹாட்',stakingTitle:'Stake 12% APY',stakingDesc:'நெட்வொர்க்கை ஆதரிக்கவும், செயலற்ற பரிசுகளைப் பெறவும் உங்கள் NEXA டோக்கன்களை Stake செய்யுங்கள்.',stakeNow:'இப்போது Stake',home:'முகப்பு',explore:'ஆராய்',subs:'சந்தாக்கள்',profile:'சுயவிவரம்',wallet:'பணப்பை',balance:'இருப்பு',send:'அனுப்பு',receive:'பெறு',disconnect:'துண்டி',playing:'இயங்குகிறது...',connect:'இணை',selectLanguage:'மொழியைத் தேர்ந்தெடுக்கவும்'}},
+            {code:'te',name:'Telugu',native:'తెలుగు',flag:'🇮🇳',trans:{heroTitle:'వికేంద్రీకృత<br><span>వీడియో ప్లాట్‌ఫారమ్</span>',heroDesc:'వీడియోలను చూడండి, కంటెంట్ క్రియేటర్లను సపోర్ట్ చేయండి మరియు $NEXA రివార్డులను సంపాదించండి. కంటెంట్ క్రియేటర్లకు 50% రెవెన్యూ షేర్‌తో కూడిన బ్లాక్‌చెయిన్ టెక్నాలజీ.',badge50:'50% రెవెన్యూ',videos:'వీడియోలు',views:'వ్యూస్',creators:'క్రియేటర్లు',staked:'NEXA Stake',all:'అన్నీ',security:'భద్రత',liveNow:'లైవ్',trending:'ట్రెండింగ్',stakingTitle:'Stake 12% APY',stakingDesc:'నెట్‌వర్క్‌ను సపోర్ట్ చేయడానికి మరియు ప్యాసివ్ రివార్డులను సంపాదించడానికి మీ NEXA టోకెన్లను Stake చేయండి.',stakeNow:'ఇప్పుడే Stake',home:'హోమ్',explore:'ఎక్స్‌ప్లోర్',subs:'సబ్‌స్క్రిప్షన్లు',profile:'ప్రొఫైల్',wallet:'వాలెట్',balance:'బ్యాలెన్స్',send:'పంపండి',receive:'పొందండి',disconnect:'డిస్‌కనెక్ట్',playing:'ప్లే అవుతోంది...',connect:'కనెక్ట్',selectLanguage:'భాషను ఎంచుకోండి'}},
+            {code:'ml',name:'Malayalam',native:'മലയാളം',flag:'🇮🇳',trans:{heroTitle:'വികേന്ദ്രീകൃത<br><span>വീഡിയോ പ്ലാറ്റ്‌ഫോം</span>',heroDesc:'വീഡിയോകൾ കാണുക, സംഭാവന നൽകുകയും $NEXA റിവാർഡുകൾ നേടുകയും ചെയ്യുക. സംഭാവനക്കാർക്ക് 50% വരുമാന വിഭജനമുള്ള ബ്ലോക്ക്‌ചെയിൻ സാങ്കേതികവിദ്യ.',badge50:'50% വരുമാനം',videos:'വീഡിയോകൾ',views:'കാഴ്ചകൾ',creators:'സംഭാവനക്കാർ',staked:'NEXA Stake',all:'എല്ലാ',security:'സുരക്ഷ',liveNow:'തത്സമയം',trending:'ട്രെൻഡിങ്',stakingTitle:'Stake 12% APY',stakingDesc:'നെറ്റ്‌വർക്കിനെ പിന്തുണയ്ക്കാനും പാസിവ് റിവാർഡുകൾ നേടാനും നിങ്ങളുടെ NEXA ടോക്കണുകൾ Stake ചെയ്യുക.',stakeNow:'ഇപ്പോൾ Stake',home:'ഹോം',explore:'കണ്ടെത്തുക',subs:'സബ്‌സ്ക്രിപ്ഷനുകൾ',profile:'പ്രൊഫൈൽ',wallet:'വാലറ്റ്',balance:'ബാലൻസ്',send:'അയയ്ക്കുക',receive:'സ്വീകരിക്കുക',disconnect:'വിച്ഛേദിക്കുക',playing:'പ്ലേ ആകുന്നു...',connect:'കണക്റ്റ്',selectLanguage:'ഭാഷ തിരഞ്ഞെടുക്കുക'}},
+            {code:'fil',name:'Filipino',native:'Filipino',flag:'🇵🇭',trans:{heroTitle:'Desentralisadong<br><span>Video Platform</span>',heroDesc:'Manood ng video, suportahan ang creators at kumita ng $NEXA rewards. Blockchain technology na may 50% revenue share para sa creators.',badge50:'50% Kita',videos:'Video',views:'Views',creators:'Creators',staked:'NEXA Staked',all:'Lahat',security:'Seguridad',liveNow:'Live',trending:'Trending',stakingTitle:'Staking 12% APY',stakingDesc:'I-stake ang iyong NEXA tokens para suportahan ang network at kumita ng passive rewards.',stakeNow:'I-stake Ngayon',home:'Home',explore:'Explore',subs:'Subs',profile:'Profile',wallet:'Wallet',balance:'Balance',send:'Ipadala',receive:'Tumanggap',disconnect:'I-disconnect',playing:'Nilalaro...',connect:'Kumonekta',selectLanguage:'Pumili ng Wika'}},
+            {code:'sw',name:'Swahili',native:'Kiswahili',flag:'🇰🇪',trans:{heroTitle:'Jukwaa la Video<br><span>Isiyokuwa na Kituo</span>',heroDesc:'Tazama video, saidia watengenezaji na upate tunu za $NEXA. Teknolojia ya blockchain na mgawanyo wa mapato 50% kwa watengenezaji.',badge50:'50% Mapato',videos:'Video',views:'Maoni',creators:'Watengenezaji',staked:'NEXA Imeshikiliwa',all:'Zote',security:'Usalama',liveNow:'Moja kwa Moja',trending:'Maendeleo',stakingTitle:'Kushikilia 12% APY',stakingDesc:'Shikilia tokeni zako za NEXA kusaidia mtandao na kupata tunu za kawaida.',stakeNow:'Shikilia Sasa',home:'Nyumbani',explore:'Gundua',subs:'Usajili',profile:'Wasifu',wallet:'Pochi',balance:'Salio',send:'Tuma',receive:'Pokea',disconnect:'Ondoa',playing:'Inacheza...',connect:'Unganisha',selectLanguage:'Chagua Lugha'}},
+            {code:'af',name:'Afrikaans',native:'Afrikaans',flag:'🇿🇦',trans:{heroTitle:'Gedesentraliseerde<br><span>Video Platform</span>',heroDesc:'Kyk video\'s, ondersteun skeppers en verdien $NEXA belonings. Blockchain tegnologie met 50% inkomste-delering vir skeppers.',badge50:'50% Inkomste',videos:'Video\'s',views:'Kyke',creators:'Skeppers',staked:'NEXA Gestakeer',all:'Alle',security:'Sekuriteit',liveNow:'Regstreeks',trending:'Neigings',stakingTitle:'Staking 12% APY',stakingDesc:'Stake jou NEXA tokens om die netwerk te ondersteun en passiewe belonings te verdien.',stakeNow:'Stake Nou',home:'Tuis',explore:'Verken',subs:'Intekeninge',profile:'Profiel',wallet:'Beursie',balance:'Balans',send:'Stuur',receive:'Ontvang',disconnect:'Ontkoppel',playing:'Speel...',connect:'Verbind',selectLanguage:'Kies Taal'}},
+            {code:'et',name:'Estonian',native:'Eesti',flag:'🇪🇪',trans:{heroTitle:'Detsentraliseeritud<br><span>Video Platvorm</span>',heroDesc:'Vaata videoid, toeta loojaid ja teeni $NEXA preemiaid. Blockchain tehnoloogia 50% tulude jagamisega loojatele.',badge50:'50% Tulud',videos:'Videod',views:'Vaatamised',creators:'Loojad',staked:'NEXA Staked',all:'Kõik',security:'Turbevus',liveNow:'Otse',trending:'Populaarsed',stakingTitle:'Staking 12% APY',stakingDesc:'Stake'i oma NEXA tokeneid võrgu toetamiseks ja passiivsete preemiate teenimiseks.',stakeNow:'Stake'i Kohe',home:'Avaleht',explore:'Avasta',subs:'Tellimused',profile:'Profiil',wallet:'Rahakott',balance:'Saldo',send:'Saada',receive:'Võta vastu',disconnect:'Lahuta',playing:'Taasesitamine...',connect:'Ühenda',selectLanguage:'Vali Keel'}},
+            {code:'lv',name:'Latvian',native:'Latviešu',flag:'🇱🇻',trans:{heroTitle:'Decentralizēta<br><span>Video Platforma</span>',heroDesc:'Skatieties video, atbalstiet veidotājus un nopelniet $NEXA balvas. Blockchain tehnoloģija ar 50% ieņēmumu sadali veidotājiem.',badge50:'50% Ieņēmumi',videos:'Video',views:'Skatījumi',creators:'Veidotāji',staked:'NEXA Staked',all:'Visi',security:'Drošība',liveNow:'Tiešraidē',trending:'Tendences',stakingTitle:'Staking 12% APY',stakingDesc:'Ielieke savus NEXA tokenus, lai atbalstītu tīklu un nopelnītu pasīvos ienākumus.',stakeNow:'Ieliek Tagad',home:'Sākums',explore:'Izpētīt',subs:'Abonementi',profile:'Profils',wallet:'Maciņš',balance:'Atlikums',send:'Sūtīt',receive:'Saņemt',disconnect:'Atvienot',playing:'Atskaņo...',connect:'Savienot',selectLanguage:'Izvēlies Valodu'}},
+            {code:'lt',name:'Lithuanian',native:'Lietuvių',flag:'🇱🇹',trans:{heroTitle:'Decentralizuota<br><span>Video Platforma</span>',heroDesc:'Žiūrėkite vaizdo įrašus, palaikykite kūrėjus ir uždirbkite $NEXA atlygį. „Blockchain" technologija su 50% pajamų dalijimu kūrėjams.',badge50:'50% Pajamos',videos:'Video',views:'Peržiūros',creators:'Kūrėjai',staked:'NEXA Statoma',all:'Visi',security:'Saugumas',liveNow:'Tiesiogiai',trending:'Tendencijos',stakingTitle:'Staking 12% APY',stakingDesc:'Statekite savo NEXA žetonus, kad paremtumėte tinklą ir uždirbtumėte pasyvias pajamas.',stakeNow:'Statek Dabar',home:'Pagrindinis',explore:'Naršyti',subs:'Prenumeratos',profile:'Profilis',wallet:'Piniginė',balance:'Balansas',send:'Siųsti',receive:'Gauti',disconnect:'Atsijungti',playing:'Grojama...',connect:'Prisijungti',selectLanguage:'Pasirinkti Kalbą'}}
+        ];
+
+        // State
+        let currentLang = localStorage.getItem('nexastream_lang') || 'en';
+        let user = null;
+        let cat = 'all';
+
+        // Initialize
+        function init() {
+            detectLanguage();
+            renderLanguages();
+            applyLanguage(currentLang);
+            rV();
+        }
+
+        // Detect browser language
+        function detectLanguage() {
+            const saved = localStorage.getItem('nexastream_lang');
+            if (saved) {
+                currentLang = saved;
+                return;
+            }
+            const browserLang = navigator.language || navigator.userLanguage;
+            const langCode = browserLang.split('-')[0].toLowerCase();
+            const match = languages.find(l => l.code === langCode);
+            if (match) currentLang = match.code;
+        }
+
+        // Render language list
+        function renderLanguages(filter = '') {
+            const list = document.getElementById('langList');
+            const filtered = languages.filter(l => 
+                l.name.toLowerCase().includes(filter.toLowerCase()) ||
+                l.native.toLowerCase().includes(filter.toLowerCase()) ||
+                l.code.toLowerCase().includes(filter.toLowerCase())
+            );
+            list.innerHTML = filtered.map(l => `
+                <button class="lang-item ${l.code === currentLang ? 'active' : ''}" onclick="setLanguage('${l.code}')">
+                    <span class="flag">${l.flag}</span>
+                    <span class="native">${l.native}</span>
+                    <span class="name">${l.name}</span>
+                </button>
+            `).join('');
+        }
+
+        // Filter languages
+        function filterLanguages() {
+            const search = document.getElementById('langSearch').value;
+            renderLanguages(search);
+        }
+
+        // Set language
+        function setLanguage(code) {
+            currentLang = code;
+            localStorage.setItem('nexastream_lang', code);
+            applyLanguage(code);
+            renderLanguages();
+            closeLang();
+            toast(getTrans('languageChanged') || 'Language changed!');
+        }
+
+        // Apply translations
+        function applyLanguage(code) {
+            const lang = languages.find(l => l.code === code) || languages[0];
+            document.documentElement.lang = code;
+            
+            // Update current lang display
+            document.getElementById('currentLang').textContent = lang.code.toUpperCase();
+            
+            // Translate all elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (lang.trans[key]) {
+                    if (el.tagName === 'INPUT') {
+                        el.placeholder = lang.trans[key];
+                    } else if (key === 'heroTitle') {
+                        el.innerHTML = lang.trans[key];
+                    } else {
+                        el.textContent = lang.trans[key];
+                    }
+                }
+            });
+        }
+
+        // Get translation helper
+        function getTrans(key) {
+            const lang = languages.find(l => l.code === currentLang) || languages[0];
+            return lang.trans[key];
+        }
+
+        // Language modal
+        function openLang() { document.getElementById('langModal').classList.add('active'); document.getElementById('langSearch').focus(); }
+        function closeLang() { document.getElementById('langModal').classList.remove('active'); document.getElementById('langSearch').value = ''; renderLanguages(); }
+
+        // Videos
+        const v = [
+            {id:1,t:'Bitcoin Halving 2024',t2:'https://picsum.photos/seed/btc/640/360',v:1250000,d:'23:45',c:'Crypto',ch:'Crypto Master',r:.01,l:false},
+            {id:2,t:'Build Your First DeFi App',t2:'https://picsum.photos/seed/defi/640/360',v:890000,d:'45:30',c:'DeFi',ch:'DeFi Pro',r:.01,l:false},
+            {id:3,t:'NFT Minting Tutorial',t2:'https://picsum.photos/seed/nft/640/360',v:670000,d:'18:20',c:'NFT',ch:'NFT Artist',r:.01,l:false},
+            {id:4,t:'Smart Contract Security',t2:'https://picsum.photos/seed/sec/640/360',v:456000,d:'32:15',c:'Security',ch:'Blockchain Dev',r:.01,l:false},
+            {id:5,t:'Layer 2 Solutions',t2:'https://picsum.photos/seed/l2/640/360',v:345000,d:'25:40',c:'Crypto',ch:'Web3 Guru',r:.01,l:false},
+            {id:6,t:'Web3 Development Setup',t2:'https://picsum.photos/seed/web3/640/360',v:789000,d:'15:30',c:'Tutorial',ch:'Crypto Master',r:.01,l:false},
+            {id:7,t:'Yield Farming Strategies',t2:'https://picsum.photos/seed/yield/640/360',v:234000,d:'28:45',c:'DeFi',ch:'DeFi Pro',r:.01,l:false},
+            {id:8,t:'Crypto Market Analysis LIVE',t2:'https://picsum.photos/seed/live/640/360',v:1560000,d:'LIVE',c:'Crypto',ch:'Web3 Guru',r:.01,l:true,vs:3421}
+        ];
+
+        function fv(v){return v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?(v/1000).toFixed(1)+'K':v}
+        function ga(){return'0x'+Array.from({length:40},()=>Math.floor(Math.random()*16).toString(16)).join('')}
+        function rV(){
+            const lv = v.filter(x => (cat==='all'||x.c===cat) && x.l),
+                  rv = v.filter(x => (cat==='all'||x.c===cat) && !x.l);
+            document.getElementById('lv').innerHTML = lv.map(x => `<div class="vc" onclick="play(${x.id})"><div class="vt" style="background-image:url('${x.t2}')"><div class="lb">● ${x.vs?.toLocaleString()}</div><div class="vd">${x.d}</div></div><div class="vi"><h3 class="vt2">${x.t}</h3><div class="vm"><span>👁️ ${fv(x.v)}</span></div><div class="vch"><div class="ca"></div><span class="cn">${x.ch}</span></div><div class="vr">💰 +50 NEXA/hr</div></div></div>`).join('');
+            document.getElementById('vg').innerHTML = rv.map(x => `<div class="vc" onclick="play(${x.id})"><div class="vt" style="background-image:url('${x.t2}')"><div class="vd">${x.d}</div><div class="vcat">${x.c}</div></div><div class="vi"><h3 class="vt2">${x.t}</h3><div class="vm"><span>👁️ ${fv(x.v)}</span></div><div class="vch"><div class="ca"></div><span class="cn">${x.ch}</span></div><div class="vr">💰 +${x.r.toFixed(2)} NEXA/view</div></div></div>`).join('');
+            document.getElementById('ls').style.display = lv.length ? 'block' : 'none'
+        }
+
+        function setCat(c) {
+            cat = c;
+            document.querySelectorAll('.cb').forEach(b => {
+                const text = b.textContent.trim().toLowerCase();
+                const catText = c.toLowerCase();
+                b.classList.toggle('active', 
+                    (c === 'all' && (text === 'all' || text === 'todos' || text === 'todos')) ||
+                    (c !== 'all' && text === catText)
+                );
+            });
+            rV();
+        }
+
+        function setActiveNav(el) {
+            document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        // Wallet
+        function connectWallet() {
+            user = {n:'Web3User', a: ga()};
+            updateUI();
+            toast(getTrans('walletConnected') || 'Wallet connected!');
+            openW();
+        }
+
+        function disconnect() {
+            user = null;
+            updateUI();
+            closeW();
+            toast(getTrans('walletDisconnected') || 'Wallet disconnected');
+        }
+
+        function updateUI() {
+            const btn = user 
+                ? `<button class="wallet-btn" onclick="openW()">💎 1,234</button>`
+                : `<button class="wallet-btn" onclick="connectWallet()">🔗 <span data-i18n="connect">${getTrans('connect') || 'Connect'}</span></button>`;
+            document.getElementById('walletArea').innerHTML = btn;
+        }
+
+        function openW() {
+            if (!user) return;
+            document.getElementById('wa').textContent = user.a.slice(2,4).toUpperCase();
+            document.getElementById('wn').textContent = user.n;
+            document.getElementById('wad').textContent = user.a.slice(0,10)+'...'+user.a.slice(-6);
+            document.getElementById('wm').classList.add('active');
+        }
+
+        function closeW() { document.getElementById('wm').classList.remove('active'); }
+
+        function play(id) {
+            const vd = v.find(x => x.id === id);
+            document.getElementById('videoTitle').textContent = vd.t;
+            document.getElementById('videoModal').classList.add('active');
+            if (user) toast(`+${vd.r} NEXA earned!`);
+        }
+
+        function closeVideo() { document.getElementById('videoModal').classList.remove('active'); }
+
+        function toast(m) {
+            const t = document.getElementById('toast');
+            t.textContent = m;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2500);
+        }
+
+        // Search
+        function openSearch() {
+            document.getElementById('searchOverlay').classList.add('active');
+            document.getElementById('searchInput').focus();
+        }
+        function closeSearch() {
+            document.getElementById('searchOverlay').classList.remove('active');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+        }
+
+        document.getElementById('searchInput').addEventListener('input', e => {
+            const q = e.target.value.toLowerCase();
+            if (q.length > 0) {
+                const results = v.filter(x => x.t.toLowerCase().includes(q));
+                document.getElementById('searchResults').innerHTML = results.map(x => `
+                    <div class="vc" onclick="play(${x.id});closeSearch()" style="margin-bottom:10px">
+                        <div class="vt" style="background-image:url('${x.t2}')"><div class="vd">${x.d}</div></div>
+                        <div class="vi">
+                            <h3 class="vt2">${x.t}</h3>
+                            <div class="cn">${x.ch}</div>
+                        </div>
+                    </div>
+                `).join('') || '<p style="text-align:center;color:var(--m);padding:20px">No results found</p>';
+            } else {
+                document.getElementById('searchResults').innerHTML = '';
+            }
+        });
+
+        // Add translations for wallet messages
+        languages.forEach(lang => {
+            lang.trans.walletConnected = lang.code === 'en' ? 'Wallet connected!' : lang.trans.connect + '!';
+            lang.trans.walletDisconnected = lang.code === 'en' ? 'Wallet disconnected' : (lang.trans.disconnect || 'Disconnected');
+        });
+
+        // Init on load
+        init();
+    </script>
+</body>
+</html>
