@@ -7,17 +7,14 @@ on:
     types: [published]
   workflow_dispatch:
 
+env:
+  NEXT_PUBLIC_APP_URL: https://nexastream.org
+  NEXT_PUBLIC_DOMAIN: nexastream.org
+
 jobs:
-  # Deploy frontend to GitHub Pages
-  deploy-frontend:
+  # Build frontend
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
       - name: Checkout
@@ -38,53 +35,44 @@ jobs:
       - name: Build Next.js
         run: |
           cd frontend
-          npm run build || echo "Build skipped - running next export"
-        env:
-          NEXT_PUBLIC_APP_URL: ${{ vars.APP_URL || 'https://nexastream.org' }}
-      
-      - name: Generate static export
-        run: |
-          cd frontend
           npm run build
-          echo "Build completed - output in out/ folder"
-          ls -la out/ 2>/dev/null || ls -la .next 2>/dev/null || echo "Checking build output..."
+        env:
+          NEXT_PUBLIC_APP_URL: https://nexastream.org
+          NEXT_PUBLIC_DOMAIN: nexastream.org
+          NEXT_PUBLIC_API_URL: https://api.nexastream.org
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexastream-frontend
+          path: frontend/out
+          retention-days: 5
+
+  # Deploy to GitHub Pages (if enabled)
+  deploy-pages:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nexastream-frontend
+          path: out
       
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'frontend/out'
+          path: 'out'
           retention-days: 5
       
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  # Deploy to Vercel (optional)
-  deploy-vercel:
-    runs-on: ubuntu-latest
-    if: vars.VERCEL_TOKEN != ''
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install and Build
-        run: |
-          cd frontend
-          npm ci
-          npm run build
-        env:
-          VERCEL_TOKEN: ${{ vars.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-      
-      - name: Deploy to Vercel Preview
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ vars.VERCEL_TOKEN }}
-          vercel-org-id: ${{ vars.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID }}
-          working-directory: frontend
