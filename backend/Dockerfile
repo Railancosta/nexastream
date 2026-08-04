@@ -3,11 +3,15 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci --only=production
 
-COPY src ./src
-COPY .env .
+COPY . .
+
+RUN mkdir -p /app/uploads/videos /app/uploads/thumbnails /app/uploads/avatars /app/data
 
 EXPOSE 3001
 
-CMD ["node", "src/server.js"]
+ENV NODE_ENV=production
+ENV PORT=3001
+
+CMD ["node", "src/main.js"]
