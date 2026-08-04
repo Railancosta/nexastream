@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build step required'",
+    "db:setup": "node src/db/setup.js",
+    "db:sync": "node -e \"const {syncModels} = require('./src/db/sequelize'); syncModels()\"",
+    "db:seed": "node src/db/setup.js"
   },
   "engines": {
     "node": ">=18.0.0"
