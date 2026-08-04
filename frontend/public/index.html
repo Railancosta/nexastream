@@ -6,410 +6,326 @@
     <meta name="theme-color" content="#0f0f0f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="NexaStream Licenses - Blockchain-powered licensing plans with Web3 wallet payments">
-    <title>NexaStream - Licenses & Plans</title>
+    <meta name="description" content="NexaStream - Decentralized Video Platform. Watch, create and earn cryptocurrency.">
+    <title>NexaStream - Decentralized Video Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         :root{--p:#8b5cf6;--s:#ec4899;--a:#06b6d4;--g:#10b981;--r:#ef4444;--bg:#0f0f0f;--bs:#18181b;--bd:#27272a;--t:#fff;--m:#71717a;--navH:56px;--bottomNav:64px}
-        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-        body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;overflow-x:hidden}
+        html,body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;overflow-x:hidden}
+        body{padding-top:var(--navH);padding-bottom:var(--bottomNav)}
+        /* Header */
         header{position:fixed;top:0;left:0;right:0;height:var(--navH);background:rgba(15,15,15,.98);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:1000}
         .logo{display:flex;align-items:center;gap:6px;cursor:pointer}
         .li{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--s));display:flex;align-items:center;justify-content:center;font-size:16px}
         .lt{font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--p),var(--s),var(--a));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .ha{display:flex;align-items:center;gap:8px}
         .wallet-btn{min-width:44px;height:34px;padding:0 10px;background:linear-gradient(135deg,var(--p),var(--s));border:none;border-radius:17px;color:var(--t);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
-        main{padding-top:var(--navH);padding-bottom:calc(var(--bottomNav) + 12px)}
-        .hero{background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(236,72,153,.15));padding:24px 14px;text-align:center}
-        .hero h1{font-size:24px;font-weight:900;margin-bottom:8px}
+        .search-toggle,.menu-toggle{width:36px;height:36px;background:var(--bs);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        /* Navigation Tabs */
+        .nav-tabs{display:flex;gap:4px;padding:8px 12px;overflow-x:auto;scrollbar-width:none;background:var(--bs);border-bottom:1px solid var(--bd)}
+        .nav-tabs::-webkit-scrollbar{display:none}
+        .nav-tab{padding:8px 14px;border-radius:20px;border:none;background:transparent;color:var(--m);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s}
+        .nav-tab.active{background:var(--p);color:var(--t)}
+        /* Main Content */
+        main{min-height:calc(100vh - var(--navH) - var(--bottomNav) - 50px)}
+        .page{display:none;padding:16px 14px}
+        .page.active{display:block}
+        /* Hero */
+        .hero{background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(6,182,212,.15));border-radius:16px;padding:20px;text-align:center;margin-bottom:20px}
+        .hero h1{font-size:22px;font-weight:900;margin-bottom:8px}
         .hero h1 span{display:block;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .hero p{font-size:13px;color:var(--m);line-height:1.5;margin-bottom:16px}
-        .trust{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-        .trust-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--m)}
-        .trust-item span{color:var(--g)}
-        .c{padding:24px 14px}
-        .plans{display:flex;flex-direction:column;gap:16px}
-        .plan{background:var(--bs);border:1px solid var(--bd);border-radius:16px;padding:20px;position:relative;transition:all .2s}
-        .plan:hover{border-color:var(--p)}
-        .plan.popular{border-color:var(--p);background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(236,72,153,.05))}
-        .plan-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--p),var(--s));padding:4px 12px;border-radius:12px;font-size:10px;font-weight:700;color:var(--t)}
-        .plan-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-        .plan-name{font-size:18px;font-weight:700}
-        .plan-price{display:flex;flex-direction:column;align-items:flex-end}
-        .price{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .price-sub{font-size:10px;color:var(--m)}
-        .plan-features{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
-        .feature{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--m)}
+        .hero p{font-size:12px;color:var(--m);line-height:1.4}
+        .badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+        .badge{padding:4px 10px;border-radius:12px;font-size:10px;font-weight:600}
+        .badge.g{background:rgba(16,185,129,.2);border:1px solid var(--g);color:var(--g)}
+        .badge.p{background:rgba(139,92,246,.2);border:1px solid var(--p);color:var(--p)}
+        .badge.c{background:rgba(6,182,212,.2);border:1px solid var(--a);color:var(--a)}
+        /* Stats */
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+        .sc{background:var(--bs);border:1px solid var(--bd);border-radius:12px;padding:12px;text-align:center}
+        .si{font-size:18px;margin-bottom:2px}
+        .sv{font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .sl{color:var(--m);font-size:9px}
+        /* Categories */
+        .cats{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px;scrollbar-width:none}
+        .cats::-webkit-scrollbar{display:none}
+        .cb{min-width:fit-content;padding:6px 12px;border-radius:16px;border:1px solid var(--bd);background:transparent;color:var(--m);font-size:11px;cursor:pointer;transition:all .15s}
+        .cb.active{background:rgba(139,92,246,.3);border-color:var(--p);color:var(--t)}
+        /* Section Titles */
+        .st{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+        .ld{color:var(--r);animation:pulse 2s infinite;font-size:12px}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        /* Video Grid */
+        .vg{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+        .vc{background:var(--bs);border-radius:12px;overflow:hidden;border:1px solid var(--bd);cursor:pointer;transition:transform .15s}
+        .vc:active{transform:scale(.98)}
+        .vt{position:relative;aspect-ratio:16/9;background-size:cover;background-position:center}
+        .vd{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.9);padding:2px 5px;border-radius:3px;font-size:9px;font-weight:500}
+        .vcat{position:absolute;top:4px;left:4px;padding:2px 5px;border-radius:3px;font-size:8px;font-weight:600;background:var(--p)}
+        .live-badge{position:absolute;top:4px;right:4px;padding:2px 6px;border-radius:3px;font-size:8px;font-weight:700;background:var(--r);color:var(--t);display:flex;align-items:center;gap:3px}
+        .live-badge::before{content:'';width:5px;height:5px;background:var(--t);border-radius:50%;animation:pulse 1s infinite}
+        .vi{padding:10px}
+        .vt2{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .vm{color:var(--m);font-size:11px}
+        .vch{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid var(--bd)}
+        .ca{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s))}
+        .cn{color:var(--m);font-size:10px}
+        .vr{margin-top:6px;padding:5px 8px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);border-radius:6px;color:var(--g);font-size:10px;font-weight:600;text-align:center}
+        /* License Plans */
+        .plans{display:flex;flex-direction:column;gap:12px}
+        .plan{background:var(--bs);border:1px solid var(--bd);border-radius:14px;padding:16px;position:relative}
+        .plan.popular{border-color:var(--p)}
+        .plan-badge{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--p),var(--s));padding:3px 10px;border-radius:10px;font-size:9px;font-weight:700;color:var(--t)}
+        .plan-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+        .plan-name{font-size:15px;font-weight:700}
+        .plan-price{text-align:right}
+        .price{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .price-sub{font-size:9px;color:var(--m)}
+        .plan-features{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+        .feature{font-size:11px;color:var(--m);display:flex;align-items:center;gap:4px}
         .feature span{color:var(--g)}
         .feature.disabled{color:var(--bd)}
         .feature.disabled span{color:var(--r)}
-        .plan-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--p),var(--s));border:none;border-radius:12px;color:var(--t);font-size:14px;font-weight:600;cursor:pointer;transition:transform .15s}
-        .plan-btn:active{transform:scale(.98)}
+        .plan-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--p),var(--s));border:none;border-radius:10px;color:var(--t);font-size:13px;font-weight:600;cursor:pointer}
         .plan-btn.outline{background:transparent;border:1px solid var(--bd)}
-        .plan-btn.outline:hover{border-color:var(--p)}
+        /* Wallet Modal */
         .modal{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);z-index:2000;display:none;align-items:flex-end;justify-content:center}
         .modal.active{display:flex}
         .mc{background:var(--bs);border:1px solid var(--bd);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:90vh;overflow-y:auto}
-        .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-        .mh h2{font-size:18px;font-weight:700}
-        .mc2{width:36px;height:36px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-        .payment-step{display:none}
-        .payment-step.active{display:block}
-        .step-indicator{display:flex;justify-content:center;gap:8px;margin-bottom:24px}
-        .step{width:8px;height:8px;border-radius:50%;background:var(--bd)}
-        .step.active{background:var(--p)}
-        .step.done{background:var(--g)}
-        .plan-summary{background:var(--bg);border-radius:12px;padding:16px;margin-bottom:20px}
-        .summary-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)}
-        .summary-row:last-child{border:none}
-        .summary-label{color:var(--m);font-size:13px}
-        .summary-value{font-weight:600;font-size:13px}
-        .summary-total{color:var(--p);font-size:18px;font-weight:700}
-        .wallet-options{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
-        .wallet-option{padding:14px;background:var(--bg);border:1px solid var(--bd);border-radius:12px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s}
-        .wallet-option:hover{border-color:var(--p)}
-        .wallet-option.selected{border-color:var(--p);background:rgba(139,92,246,.1)}
-        .wallet-icon{width:40px;height:40px;border-radius:10px;background:var(--bs);display:flex;align-items:center;justify-content:center;font-size:20px}
-        .wallet-info{flex:1}
-        .wallet-name{font-weight:600;font-size:14px}
-        .wallet-status{font-size:11px;color:var(--m)}
-        .wallet-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center}
-        .wallet-option.selected .wallet-check{border-color:var(--p);background:var(--p)}
-        .wallet-option.selected .wallet-check::after{content:'✓';color:var(--t);font-size:12px}
-        .crypto-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
-        .crypto-option{padding:12px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;text-align:center;cursor:pointer;transition:all .15s}
-        .crypto-option:hover{border-color:var(--p)}
-        .crypto-option.selected{border-color:var(--p);background:rgba(139,92,246,.1)}
-        .crypto-icon{font-size:24px;margin-bottom:4px}
-        .crypto-name{font-size:12px;font-weight:600}
-        .crypto-price{font-size:10px;color:var(--m)}
-        .pay-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--p),var(--s));border:none;border-radius:12px;color:var(--t);font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
-        .tx-status{text-align:center;padding:40px 20px}
-        .tx-icon{font-size:64px;margin-bottom:16px}
-        .tx-status h3{font-size:18px;margin-bottom:8px}
-        .tx-status p{color:var(--m);font-size:13px;margin-bottom:16px}
-        .tx-hash{background:var(--bg);padding:12px;border-radius:8px;font-family:monospace;font-size:11px;word-break:break-all;margin-bottom:16px}
-        .tx-link{color:var(--p);font-size:13px;text-decoration:underline}
+        .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .mh h2{font-size:16px;font-weight:700}
+        .mc2{width:32px;height:32px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .mw{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+        .wa{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+        .wi{font-weight:600;font-size:14px}
+        .wa2{color:var(--m);font-size:10px;font-family:monospace}
+        .bc{background:var(--bg);border-radius:12px;padding:12px;margin-bottom:12px}
+        .bl{color:var(--m);font-size:11px;margin-bottom:2px}
+        .bv{font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .bu{color:var(--g);font-size:11px}
+        .net-info{background:var(--bg);border-radius:10px;padding:10px;margin-bottom:12px;font-size:11px;color:var(--m)}
+        .net-info span{color:var(--g)}
+        .ma{display:flex;gap:8px;margin-bottom:12px}
+        .ma button{flex:1;padding:10px;background:transparent;border:1px solid var(--bd);border-radius:8px;color:var(--t);font-weight:500;font-size:12px;cursor:pointer}
+        .btn-disconnect{width:100%;padding:10px;background:rgba(239,68,68,.1);border:1px solid var(--r);border-radius:8px;color:var(--r);font-weight:600;font-size:12px;cursor:pointer}
+        /* Payment Modal */
+        .pay-step{display:none}
+        .pay-step.active{display:block}
+        .step-ind{display:flex;justify-content:center;gap:6px;margin-bottom:16px}
+        .step-dot{width:6px;height:6px;border-radius:50%;background:var(--bd)}
+        .step-dot.active{background:var(--p)}
+        .step-dot.done{background:var(--g)}
+        .plan-summary{background:var(--bg);border-radius:10px;padding:12px;margin-bottom:14px}
+        .summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px}
+        .summary-label{color:var(--m)}
+        .summary-value{font-weight:600}
+        .summary-total{color:var(--p);font-size:16px;font-weight:700}
+        .crypto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+        .crypto-opt{padding:10px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;text-align:center;cursor:pointer;font-size:11px}
+        .crypto-opt.selected{border-color:var(--p);background:rgba(139,92,246,.1)}
+        .crypto-opt .icon{font-size:20px;margin-bottom:2px}
+        .crypto-opt .name{font-weight:600}
+        .crypto-opt .net{color:var(--m);font-size:9px}
+        .pay-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--p),var(--s));border:none;border-radius:10px;color:var(--t);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px}
+        .tx-box{background:var(--bg);border-radius:8px;padding:10px;font-family:monospace;font-size:10px;word-break:break-all;text-align:center;margin-bottom:10px}
+        .tx-link{color:var(--p);font-size:11px;text-decoration:underline}
+        .success-box{text-align:center;padding:30px 20px}
+        .success-box .icon{font-size:56px;margin-bottom:12px}
+        .success-box h3{font-size:16px;margin-bottom:6px}
+        .success-box p{color:var(--m);font-size:12px;margin-bottom:16px}
+        /* Bottom Nav */
         .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--bottomNav);background:rgba(15,15,15,.98);backdrop-filter:blur(20px);border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-around;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
-        .bn-item{width:60px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--m);cursor:pointer;transition:all .15s;border:none;background:transparent}
+        .bn-item{width:56px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--m);cursor:pointer;border:none;background:transparent;font-size:10px;transition:all .15s}
         .bn-item:active{color:var(--p);transform:scale(.95)}
         .bn-item.active{color:var(--p)}
         .bn-icon{font-size:20px}
-        .bn-label{font-size:9px;font-weight:500}
-        .bn-upload{width:46px;height:46px;background:linear-gradient(135deg,var(--p),var(--s));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-18px;box-shadow:0 4px 16px rgba(139,92,246,.4)}
-        .toast{position:fixed;bottom:80px;left:14px;right:14px;background:rgba(16,185,129,.2);border:1px solid var(--g);border-radius:10px;padding:12px 16px;z-index:3000;text-align:center;font-size:13px;font-weight:500;color:var(--g);display:none;animation:slideUp .3s}
+        .bn-upload{width:44px;height:44px;background:linear-gradient(135deg,var(--p),var(--s));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;margin-top:-16px;box-shadow:0 4px 12px rgba(139,92,246,.4)}
+        /* Toast */
+        .toast{position:fixed;bottom:75px;left:14px;right:14px;background:rgba(16,185,129,.2);border:1px solid var(--g);border-radius:10px;padding:10px 14px;z-index:3000;text-align:center;font-size:12px;font-weight:500;color:var(--g);display:none;animation:slideUp .3s}
         @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-        .faq{margin-top:32px}
-        .faq h2{font-size:18px;font-weight:700;margin-bottom:16px;text-align:center}
-        .faq-item{background:var(--bs);border:1px solid var(--bd);border-radius:12px;margin-bottom:10px;overflow:hidden}
-        .faq-q{display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer;font-weight:600;font-size:14px}
-        .faq-a{padding:0 14px 14px;font-size:13px;color:var(--m);line-height:1.5;display:none}
+        /* Video Modal */
+        .video-modal{position:fixed;inset:0;background:#000;z-index:2500;display:none;flex-direction:column}
+        .video-modal.active{display:flex}
+        .video-header{height:50px;display:flex;align-items:center;padding:0 12px;background:rgba(0,0,0,.9)}
+        .video-back{background:transparent;border:none;color:var(--t);font-size:20px;cursor:pointer;padding:8px}
+        .video-title{color:var(--t);font-size:13px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+        .video-content{flex:1;display:flex;align-items:center;justify-content:center}
+        .video-placeholder{text-align:center;color:var(--m)}
+        .video-placeholder .icon{font-size:56px;margin-bottom:12px}
+        .video-placeholder p{font-size:12px}
+        /* FAQ */
+        .faq-item{background:var(--bs);border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;overflow:hidden}
+        .faq-q{display:flex;justify-content:space-between;align-items:center;padding:12px;font-size:13px;font-weight:600;cursor:pointer}
+        .faq-a{padding:0 12px 12px;font-size:11px;color:var(--m);line-height:1.4;display:none}
         .faq-item.open .faq-a{display:block}
         .faq-item.open .faq-q::after{transform:rotate(180deg)}
-        .faq-q::after{content:'▼';font-size:10px;transition:transform .2s}
-        .features{margin-top:32px}
-        .features h2{font-size:18px;font-weight:700;margin-bottom:16px;text-align:center}
-        .features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-        .feature-card{background:var(--bs);border:1px solid var(--bd);border-radius:12px;padding:16px;text-align:center}
-        .feature-card .icon{font-size:32px;margin-bottom:8px}
-        .feature-card h3{font-size:13px;font-weight:600;margin-bottom:4px}
-        .feature-card p{font-size:11px;color:var(--m)}
+        .faq-q::after{content:'▼';font-size:9px;transition:transform .2s}
+        /* Features */
+        .features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+        .feature-card{background:var(--bs);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center}
+        .feature-card .icon{font-size:28px;margin-bottom:6px}
+        .feature-card h3{font-size:12px;font-weight:600;margin-bottom:2px}
+        .feature-card p{font-size:10px;color:var(--m)}
     </style>
 </head>
 <body>
     <header>
-        <div class="logo" onclick="goHome()">
+        <div class="logo" onclick="navigate('home')">
             <div class="li">📺</div>
             <span class="lt">NexaStream</span>
         </div>
         <div class="ha">
+            <button class="search-toggle" onclick="showSearch()">🔍</button>
             <div id="walletArea"><button class="wallet-btn" onclick="connectWallet()">🔗 Connect</button></div>
         </div>
     </header>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="navigate('home')">🏠 Home</button>
+        <button class="nav-tab" onclick="navigate('live')">📺 Live</button>
+        <button class="nav-tab" onclick="navigate('trending')">🔥 Trending</button>
+        <button class="nav-tab" onclick="navigate('licenses')">📜 Licenses</button>
+    </div>
+
     <main>
-        <section class="hero">
-            <h1>🔐 License Plans<br><span>Web3 Powered</span></h1>
-            <p>Secure blockchain licensing with instant Web3 wallet payments. Choose the perfect plan for your content creation needs.</p>
-            <div class="trust">
-                <span class="trust-item"><span>✓</span> Instant Activation</span>
-                <span class="trust-item"><span>✓</span> No Middleman</span>
-                <span class="trust-item"><span>✓</span> 100% Decentralized</span>
+        <!-- HOME PAGE -->
+        <div id="page-home" class="page active">
+            <div class="hero">
+                <h1>Decentralized Video<br><span>Platform</span></h1>
+                <p>Watch videos, support creators and earn $NEXA rewards. Blockchain technology with 50% revenue share.</p>
+                <div class="badges">
+                    <span class="badge g">💰 50% Revenue</span>
+                    <span class="badge p">⛓️ NexaChain</span>
+                    <span class="badge c">🔐 Web3</span>
+                </div>
             </div>
-        </section>
-        <div class="c">
+            <div class="stats">
+                <div class="sc"><div class="si">📹</div><div class="sv">2,847</div><div class="sl">Videos</div></div>
+                <div class="sc"><div class="si">👁️</div><div class="sv">12.5M</div><div class="sl">Views</div></div>
+                <div class="sc"><div class="si">🎬</div><div class="sv">1,234</div><div class="sl">Creators</div></div>
+                <div class="sc"><div class="si">💎</div><div class="sv">45,230</div><div class="sl">NEXA Staked</div></div>
+            </div>
+            <div class="cats">
+                <button class="cb active" onclick="setCat('all')">All</button>
+                <button class="cb" onclick="setCat('Crypto')">Crypto</button>
+                <button class="cb" onclick="setCat('DeFi')">DeFi</button>
+                <button class="cb" onclick="setCat('NFT')">NFT</button>
+                <button class="cb" onclick="setCat('Tutorial')">Tutorial</button>
+            </div>
+            <div id="live-section"><h2 class="st"><span class="ld">●</span> Live Now</h2><div class="vg" id="lv"></div></div>
+            <h2 class="st">🔥 Recommended</h2>
+            <div class="vg" id="vg"></div>
+        </div>
+
+        <!-- LIVE PAGE -->
+        <div id="page-live" class="page">
+            <div class="hero">
+                <h1>📺 Live Streams<br><span>NexaChain</span></h1>
+                <p>Watch live content from top creators. Earn $NEXA rewards while streaming.</p>
+            </div>
+            <div id="live-videos"><h2 class="st"><span class="ld">●</span> Live Right Now</h2><div class="vg" id="live-grid"></div></div>
+        </div>
+
+        <!-- TRENDING PAGE -->
+        <div id="page-trending" class="page">
+            <div class="hero">
+                <h1>🔥 Trending<br><span>Top Videos</span></h1>
+                <p>The most popular content on NexaStream right now.</p>
+            </div>
+            <div id="trending-videos"><div class="vg" id="trending-grid"></div></div>
+        </div>
+
+        <!-- LICENSES PAGE -->
+        <div id="page-licenses" class="page">
+            <div class="hero">
+                <h1>🔐 License Plans<br><span>Web3 Powered</span></h1>
+                <p>Secure blockchain licensing with instant Web3 wallet payments.</p>
+                <div class="badges">
+                    <span class="badge g">✓ Instant</span>
+                    <span class="badge p">✓ Decentralized</span>
+                    <span class="badge c">✓ No Middleman</span>
+                </div>
+            </div>
             <div class="plans">
                 <div class="plan">
                     <div class="plan-header">
                         <div class="plan-name">🎬 Starter</div>
-                        <div class="plan-price">
-                            <div class="price">FREE</div>
-                            <div class="price-sub">forever</div>
-                        </div>
+                        <div class="plan-price"><div class="price">FREE</div><div class="price-sub">forever</div></div>
                     </div>
                     <div class="plan-features">
-                        <div class="feature"><span>✓</span> Upload up to 10 videos/month</div>
+                        <div class="feature"><span>✓</span> 10 videos/month</div>
                         <div class="feature"><span>✓</span> Basic analytics</div>
-                        <div class="feature"><span>✓</span> Community support</div>
-                        <div class="feature"><span>✓</span> Earn 25% $NEXA rewards</div>
+                        <div class="feature"><span>✓</span> 25% $NEXA rewards</div>
                         <div class="feature disabled"><span>✕</span> Custom branding</div>
-                        <div class="feature disabled"><span>✕</span> Priority upload</div>
                     </div>
                     <button class="plan-btn outline" onclick="selectPlan('starter')">Get Started</button>
                 </div>
                 <div class="plan popular">
-                    <div class="plan-badge">⭐ MOST POPULAR</div>
+                    <div class="plan-badge">⭐ POPULAR</div>
                     <div class="plan-header">
                         <div class="plan-name">🚀 Pro Creator</div>
-                        <div class="plan-price">
-                            <div class="price">49.99</div>
-                            <div class="price-sub">$NEXA / month</div>
-                        </div>
+                        <div class="plan-price"><div class="price">49.99</div><div class="price-sub">$NEXA/month</div></div>
                     </div>
                     <div class="plan-features">
-                        <div class="feature"><span>✓</span> Unlimited video uploads</div>
-                        <div class="feature"><span>✓</span> Advanced analytics dashboard</div>
-                        <div class="feature"><span>✓</span> Custom channel branding</div>
-                        <div class="feature"><span>✓</span> Priority video processing</div>
-                        <div class="feature"><span>✓</span> Earn 50% $NEXA rewards</div>
-                        <div class="feature"><span>✓</span> 24/7 Priority support</div>
+                        <div class="feature"><span>✓</span> Unlimited uploads</div>
+                        <div class="feature"><span>✓</span> Custom branding</div>
+                        <div class="feature"><span>✓</span> 50% $NEXA rewards</div>
+                        <div class="feature"><span>✓</span> Priority support</div>
                     </div>
                     <button class="plan-btn" onclick="selectPlan('pro')">💎 Choose Pro</button>
                 </div>
                 <div class="plan">
                     <div class="plan-header">
                         <div class="plan-name">🏢 Enterprise</div>
-                        <div class="plan-price">
-                            <div class="price">199.99</div>
-                            <div class="price-sub">$NEXA / month</div>
-                        </div>
+                        <div class="plan-price"><div class="price">199.99</div><div class="price-sub">$NEXA/month</div></div>
                     </div>
                     <div class="plan-features">
-                        <div class="feature"><span>✓</span> Everything in Pro</div>
                         <div class="feature"><span>✓</span> White-label solution</div>
                         <div class="feature"><span>✓</span> API access</div>
-                        <div class="feature"><span>✓</span> Dedicated account manager</div>
-                        <div class="feature"><span>✓</span> Custom smart contracts</div>
-                        <div class="feature"><span>✓</span> Earn 75% $NEXA rewards</div>
+                        <div class="feature"><span>✓</span> 75% $NEXA rewards</div>
+                        <div class="feature"><span>✓</span> Dedicated manager</div>
                     </div>
-                    <button class="plan-btn" onclick="selectPlan('enterprise')">🏢 Contact Sales</button>
+                    <button class="plan-btn" onclick="selectPlan('enterprise')">🏢 Contact</button>
                 </div>
                 <div class="plan" style="border-color:var(--g)">
                     <div class="plan-header">
                         <div class="plan-name">👑 Lifetime</div>
-                        <div class="plan-price">
-                            <div class="price">499.99</div>
-                            <div class="price-sub">one-time (forever)</div>
-                        </div>
+                        <div class="plan-price"><div class="price">499.99</div><div class="price-sub">one-time</div></div>
                     </div>
                     <div class="plan-features">
                         <div class="feature"><span>✓</span> All Pro features forever</div>
-                        <div class="feature"><span>✓</span> Lifetime updates included</div>
-                        <div class="feature"><span>✓</span> Priority support</div>
-                        <div class="feature"><span>✓</span> Early access to new features</div>
-                        <div class="feature"><span>✓</span> Earn 60% $NEXA rewards</div>
-                        <div class="feature"><span>✓</span> Lifetime NFT License Certificate</div>
+                        <div class="feature"><span>✓</span> NFT License Certificate</div>
+                        <div class="feature"><span>✓</span> 60% $NEXA rewards</div>
+                        <div class="feature"><span>✓</span> Lifetime updates</div>
                     </div>
                     <button class="plan-btn" onclick="selectPlan('lifetime')" style="background:linear-gradient(135deg,var(--g),var(--a))">👑 Get Lifetime</button>
                 </div>
             </div>
-            <div class="features">
-                <h2>🔒 Why Blockchain Licensing?</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="icon">⚡</div>
-                        <h3>Instant</h3>
-                        <p>Activate in seconds</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">🔐</div>
-                        <h3>Secure</h3>
-                        <p>Smart contract powered</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">💰</div>
-                        <h3>Savings</h3>
-                        <p>No credit card fees</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">🌍</div>
-                        <h3>Global</h3>
-                        <p>Anyone, anywhere</p>
-                    </div>
-                </div>
+            <div class="features-grid" style="margin-top:24px">
+                <div class="feature-card"><div class="icon">⚡</div><h3>Instant</h3><p>Activate in seconds</p></div>
+                <div class="feature-card"><div class="icon">🔐</div><h3>Secure</h3><p>Smart contract</p></div>
+                <div class="feature-card"><div class="icon">💰</div><h3>Savings</h3><p>No credit card fees</p></div>
+                <div class="feature-card"><div class="icon">🌍</div><h3>Global</h3><p>Anyone, anywhere</p></div>
             </div>
-            <div class="faq">
-                <h2>❓ Frequently Asked Questions</h2>
-                <div class="faq-item" onclick="toggleFaq(this)">
-                    <div class="faq-q">How do I pay with crypto?</div>
-                    <div class="faq-a">Simply connect your Web3 wallet (MetaMask, WalletConnect, etc.), select your preferred cryptocurrency, and confirm the transaction. Your license activates automatically once the blockchain confirms payment.</div>
-                </div>
-                <div class="faq-item" onclick="toggleFaq(this)">
-                    <div class="faq-q">What cryptocurrencies are accepted?</div>
-                    <div class="faq-a">We accept NEXA, ETH, USDT, USDC, and BNB. Payment is processed on NexaChain Mainnet for maximum security and speed.</div>
-                </div>
-                <div class="faq-item" onclick="toggleFaq(this)">
-                    <div class="faq-q">Can I upgrade my plan?</div>
-                    <div class="faq-a">Yes! You can upgrade anytime. The smart contract will calculate the prorated difference and you'll only pay the difference.</div>
-                </div>
-                <div class="faq-item" onclick="toggleFaq(this)">
-                    <div class="faq-q">What is the NFT License Certificate?</div>
-                    <div class="faq-a">Lifetime plan members receive a unique NFT that serves as their license certificate. This NFT can be traded and proves ownership of your lifetime license on the blockchain.</div>
-                </div>
-                <div class="faq-item" onclick="toggleFaq(this)">
-                    <div class="faq-q">Is there a refund policy?</div>
-                    <div class="faq-a">Due to the decentralized nature of blockchain payments, all transactions are final. However, you can cancel your subscription at any time and won't be charged again.</div>
-                </div>
-            </div>
+            <h2 style="font-size:16px;font-weight:700;margin:24px 0 12px">❓ FAQ</h2>
+            <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">How does crypto payment work?</div><div class="faq-a">Connect your Web3 wallet, select cryptocurrency, and confirm. Your license activates instantly on NexaChain Mainnet.</div></div>
+            <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">What coins are accepted?</div><div class="faq-a">NEXA, ETH, USDT, USDC, BNB, and MATIC on NexaChain or Ethereum networks.</div></div>
+            <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">What is NFT License?</div><div class="faq-a">Lifetime members receive a unique NFT certificate proving ownership on the blockchain.</div></div>
         </div>
     </main>
+
+    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <button class="bn-item" onclick="goHome()">
-            <span class="bn-icon">🏠</span>
-            <span class="bn-label">Home</span>
-        </button>
-        <button class="bn-item" onclick="toast('Explore coming soon!')">
-            <span class="bn-icon">🔍</span>
-            <span class="bn-label">Explore</span>
-        </button>
-        <button class="bn-item" onclick="toast('Upload coming soon!')">
-            <span class="bn-icon bn-upload">➕</span>
-        </button>
-        <button class="bn-item active" onclick="toast('Already on Licenses!')">
-            <span class="bn-icon">📜</span>
-            <span class="bn-label">Licenses</span>
-        </button>
-        <button class="bn-item" onclick="openWallet()">
-            <span class="bn-icon">👤</span>
-            <span class="bn-label">Profile</span>
-        </button>
+        <button class="bn-item active" id="bn-home" onclick="navigate('home')"><span class="bn-icon">🏠</span><span>Home</span></button>
+        <button class="bn-item" id="bn-live" onclick="navigate('live')"><span class="bn-icon">📺</span><span>Live</span></button>
+        <button class="bn-item" onclick="toast('Upload coming!')"><span class="bn-upload">➕</span></button>
+        <button class="bn-item" id="bn-trending" onclick="navigate('trending')"><span class="bn-icon">🔥</span><span>Hot</span></button>
+        <button class="bn-item" id="bn-licenses" onclick="navigate('licenses')"><span class="bn-icon">📜</span><span>Plans</span></button>
     </nav>
-    <div id="paymentModal" class="modal">
-        <div class="mc">
-            <div class="mh">
-                <h2>💳 Complete Payment</h2>
-                <button class="mc2" onclick="closePayment()">✕</button>
-            </div>
-            <div id="step1" class="payment-step active">
-                <div class="step-indicator">
-                    <div class="step active"></div>
-                    <div class="step"></div>
-                    <div class="step"></div>
-                </div>
-                <h3 style="margin-bottom:16px;font-size:16px">1. Connect Wallet</h3>
-                <div class="wallet-options">
-                    <div class="wallet-option selected" onclick="selectWallet('metamask', this)">
-                        <div class="wallet-icon">🦊</div>
-                        <div class="wallet-info">
-                            <div class="wallet-name">MetaMask</div>
-                            <div class="wallet-status">Most popular - NexaChain Mainnet</div>
-                        </div>
-                        <div class="wallet-check"></div>
-                    </div>
-                    <div class="wallet-option" onclick="selectWallet('walletconnect', this)">
-                        <div class="wallet-icon">🔗</div>
-                        <div class="wallet-info">
-                            <div class="wallet-name">WalletConnect</div>
-                            <div class="wallet-status">Mobile wallets support</div>
-                        </div>
-                        <div class="wallet-check"></div>
-                    </div>
-                    <div class="wallet-option" onclick="selectWallet('coinbase', this)">
-                        <div class="wallet-icon">💙</div>
-                        <div class="wallet-info">
-                            <div class="wallet-name">Coinbase Wallet</div>
-                            <div class="wallet-status">Easy to use</div>
-                        </div>
-                        <div class="wallet-check"></div>
-                    </div>
-                </div>
-                <button class="pay-btn" onclick="connectAndPay()">
-                    🔗 Connect <span id="walletName">MetaMask</span>
-                </button>
-            </div>
-            <div id="step2" class="payment-step">
-                <div class="step-indicator">
-                    <div class="step done">✓</div>
-                    <div class="step active"></div>
-                    <div class="step"></div>
-                </div>
-                <div class="plan-summary">
-                    <div class="summary-row">
-                        <span class="summary-label">Plan</span>
-                        <span class="summary-value" id="summaryPlan">Pro Creator</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Network</span>
-                        <span class="summary-value" style="color:var(--g)">NexaChain Mainnet</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Amount</span>
-                        <span class="summary-value summary-total" id="summaryAmount">49.99 NEXA</span>
-                    </div>
-                </div>
-                <h3 style="margin-bottom:12px;font-size:16px">2. Select Payment Currency</h3>
-                <div class="crypto-options">
-                    <div class="crypto-option selected" onclick="selectCrypto('NEXA', 49.99, this)">
-                        <div class="crypto-icon">💎</div>
-                        <div class="crypto-name">NEXA</div>
-                        <div class="crypto-price">Native Token</div>
-                    </div>
-                    <div class="crypto-option" onclick="selectCrypto('ETH', 0.018, this)">
-                        <div class="crypto-icon">Ξ</div>
-                        <div class="crypto-name">ETH</div>
-                        <div class="crypto-price">Ethereum</div>
-                    </div>
-                    <div class="crypto-option" onclick="selectCrypto('USDT', 49.99, this)">
-                        <div class="crypto-icon">₮</div>
-                        <div class="crypto-name">USDT</div>
-                        <div class="crypto-price">Stablecoin</div>
-                    </div>
-                    <div class="crypto-option" onclick="selectCrypto('USDC', 49.99, this)">
-                        <div class="crypto-icon">💵</div>
-                        <div class="crypto-name">USDC</div>
-                        <div class="crypto-price">Stablecoin</div>
-                    </div>
-                    <div class="crypto-option" onclick="selectCrypto('BNB', 0.15, this)">
-                        <div class="crypto-icon">🔶</div>
-                        <div class="crypto-name">BNB</div>
-                        <div class="crypto-price">Binance</div>
-                    </div>
-                    <div class="crypto-option" onclick="selectCrypto('MATIC', 35, this)">
-                        <div class="crypto-icon">⬡</div>
-                        <div class="crypto-name">MATIC</div>
-                        <div class="crypto-price">Polygon</div>
-                    </div>
-                </div>
-                <button class="pay-btn" onclick="processPayment()">
-                    ⚡ Pay <span id="payAmount">49.99 NEXA</span>
-                </button>
-            </div>
-            <div id="step3" class="payment-step">
-                <div class="step-indicator">
-                    <div class="step done">✓</div>
-                    <div class="step done">✓</div>
-                    <div class="step active"></div>
-                </div>
-                <div class="tx-status">
-                    <div class="tx-icon">⏳</div>
-                    <h3>Processing on NexaChain</h3>
-                    <p>Confirm transaction in your wallet and wait for blockchain confirmation...</p>
-                    <div class="tx-hash" id="txHash">0x7f8e...3a2b</div>
-                    <a href="#" class="tx-link" id="txLink" target="_blank">View on NexaChain Explorer →</a>
-                </div>
-            </div>
-            <div id="step4" class="payment-step">
-                <div class="tx-status">
-                    <div class="tx-icon">🎉</div>
-                    <h3>Payment Successful!</h3>
-                    <p>Your license is now active on NexaChain Mainnet. Welcome to NexaStream Pro!</p>
-                    <div class="tx-hash" id="successHash">0x7f8e...3a2b</div>
-                    <a href="#" class="tx-link" id="successLink" target="_blank">View on Explorer →</a>
-                    <button class="pay-btn" onclick="closePayment();goHome()" style="margin-top:16px">🏠 Go to Home</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
+    <!-- Wallet Modal -->
     <div id="walletModal" class="modal">
         <div class="mc">
             <div class="mh"><h2>👛 Wallet</h2><button class="mc2" onclick="closeWallet()">✕</button></div>
@@ -418,140 +334,209 @@
                 <div><div class="wi" id="wn">Web3User</div><div class="wa2" id="wad">0x0000...0000</div></div>
             </div>
             <div class="bc"><div class="bl">Balance</div><div class="bv">1,234.56 NEXA</div><div class="bu">~$28.89 USD</div></div>
-            <div style="background:var(--bg);border-radius:12px;padding:12px;margin-bottom:14px">
-                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--m);margin-bottom:4px">
-                    <span>Network</span>
-                    <span style="color:var(--g)">NexaChain Mainnet</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--m)">
-                    <span>Status</span>
-                    <span style="color:var(--g)">● Connected</span>
-                </div>
-            </div>
-            <div class="ma"><button class="plan-btn outline">Send</button><button class="plan-btn outline">Receive</button></div>
-            <button class="pay-btn" style="background:rgba(239,68,68,.1);border:1px solid #ef4444;color:#ef4444" onclick="disconnect()">Disconnect</button>
+            <div class="net-info">Network: <span>NexaChain Mainnet</span> | Status: <span>Connected</span></div>
+            <div class="ma"><button>Send</button><button>Receive</button></div>
+            <button class="btn-disconnect" onclick="disconnect()">Disconnect</button>
         </div>
     </div>
-    <div id="toast" class="toast"></div>
-    <script>
-        let user = null;
-        let selectedPlan = null;
-        let selectedWallet = 'metamask';
-        let selectedCrypto = { name: 'NEXA', amount: 49.99 };
 
+    <!-- Payment Modal -->
+    <div id="payModal" class="modal">
+        <div class="mc">
+            <div class="mh"><h2>💳 Payment</h2><button class="mc2" onclick="closePay()">✕</button></div>
+            <div id="pay-step-1" class="pay-step active">
+                <div class="step-ind"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+                <div class="plan-summary">
+                    <div class="summary-row"><span class="summary-label">Plan</span><span class="summary-value" id="pay-plan">Pro Creator</span></div>
+                    <div class="summary-row"><span class="summary-label">Network</span><span class="summary-value" style="color:var(--g)">NexaChain Mainnet</span></div>
+                    <div class="summary-row"><span class="summary-label">Total</span><span class="summary-value summary-total" id="pay-total">49.99 NEXA</span></div>
+                </div>
+                <h3 style="font-size:14px;margin-bottom:10px">Select Payment</h3>
+                <div class="crypto-grid">
+                    <div class="crypto-opt selected" onclick="selectCrypto('NEXA',49.99,this)"><div class="icon">💎</div><div class="name">NEXA</div><div class="net">Native</div></div>
+                    <div class="crypto-opt" onclick="selectCrypto('ETH',0.018,this)"><div class="icon">Ξ</div><div class="name">ETH</div><div class="net">Ethereum</div></div>
+                    <div class="crypto-opt" onclick="selectCrypto('USDT',49.99,this)"><div class="icon">₮</div><div class="name">USDT</div><div class="net">Stable</div></div>
+                </div>
+                <button class="pay-btn" onclick="processPay()">⚡ Pay <span id="pay-btn-amount">49.99 NEXA</span></button>
+            </div>
+            <div id="pay-step-2" class="pay-step">
+                <div class="step-ind"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
+                <div class="success-box">
+                    <div class="icon">⏳</div>
+                    <h3>Processing...</h3>
+                    <p>Confirm in wallet and wait for NexaChain confirmation</p>
+                    <div class="tx-box" id="tx-hash">0x7f8e...3a2b</div>
+                    <a href="#" class="tx-link" id="tx-link" target="_blank">View on Explorer →</a>
+                </div>
+            </div>
+            <div id="pay-step-3" class="pay-step">
+                <div class="step-ind"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div></div>
+                <div class="success-box">
+                    <div class="icon">🎉</div>
+                    <h3>Payment Successful!</h3>
+                    <p>Your license is now active on NexaChain Mainnet!</p>
+                    <div class="tx-box" id="success-hash">0x7f8e...3a2b</div>
+                    <button class="pay-btn" onclick="closePay()">🏠 Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="video-modal">
+        <div class="video-header">
+            <button class="video-back" onclick="closeVideo()">←</button>
+            <span class="video-title" id="video-title">Video</span>
+            <div style="width:40px"></div>
+        </div>
+        <div class="video-content">
+            <div class="video-placeholder"><div class="icon">▶️</div><p>Playing video...</p></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // State
+        let user = null;
+        let currentPage = 'home';
+        let currentCat = 'all';
+        let selectedCrypto = {name:'NEXA', amount:49.99};
+        let selectedPlan = null;
+
+        // Videos Data
+        const videos = [
+            {id:1,t:'Bitcoin Halving 2024',t2:'https://picsum.photos/seed/btc/640/360',v:1250000,d:'23:45',c:'Crypto',ch:'Crypto Master',r:.01,l:false},
+            {id:2,t:'Build Your First DeFi App',t2:'https://picsum.photos/seed/defi/640/360',v:890000,d:'45:30',c:'DeFi',ch:'DeFi Pro',r:.01,l:false},
+            {id:3,t:'NFT Minting Tutorial',t2:'https://picsum.photos/seed/nft/640/360',v:670000,d:'18:20',c:'NFT',ch:'NFT Artist',r:.01,l:false},
+            {id:4,t:'Smart Contract Security',t2:'https://picsum.photos/seed/sec/640/360',v:456000,d:'32:15',c:'Crypto',ch:'Blockchain Dev',r:.01,l:false},
+            {id:5,t:'Layer 2 Solutions',t2:'https://picsum.photos/seed/l2/640/360',v:345000,d:'25:40',c:'Crypto',ch:'Web3 Guru',r:.01,l:false},
+            {id:6,t:'Web3 Development Setup',t2:'https://picsum.photos/seed/web3/640/360',v:789000,d:'15:30',c:'Tutorial',ch:'Crypto Master',r:.01,l:false},
+            {id:7,t:'Yield Farming Strategies',t2:'https://picsum.photos/seed/yield/640/360',v:234000,d:'28:45',c:'DeFi',ch:'DeFi Pro',r:.01,l:false},
+            {id:8,t:'Crypto Market LIVE',t2:'https://picsum.photos/seed/live/640/360',v:1560000,d:'LIVE',c:'Crypto',ch:'Web3 Guru',r:.01,l:true,vs:3421}
+        ];
+
+        // Plans Data
         const plans = {
-            starter: { name: 'Starter', price: 0, priceLabel: 'FREE', period: 'forever' },
-            pro: { name: 'Pro Creator', price: 49.99, priceLabel: '49.99', period: 'month', currency: 'NEXA' },
-            enterprise: { name: 'Enterprise', price: 199.99, priceLabel: '199.99', period: 'month', currency: 'NEXA' },
-            lifetime: { name: 'Lifetime', price: 499.99, priceLabel: '499.99', period: 'one-time', currency: 'NEXA' }
+            starter:{name:'Starter',price:0,priceLabel:'FREE',currency:'NEXA'},
+            pro:{name:'Pro Creator',price:49.99,priceLabel:'49.99',currency:'NEXA'},
+            enterprise:{name:'Enterprise',price:199.99,priceLabel:'199.99',currency:'NEXA'},
+            lifetime:{name:'Lifetime',price:499.99,priceLabel:'499.99',currency:'NEXA'}
         };
 
+        // Navigation
+        function navigate(page) {
+            currentPage = page;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('bn-' + page).classList.add('active');
+            document.querySelector(`.nav-tab:nth-child(${['home','live','trending','licenses'].indexOf(page)+1})`).classList.add('active');
+            window.scrollTo(0,0);
+            if(page === 'live') renderLive();
+            if(page === 'trending') renderTrending();
+        }
+
+        // Format views
+        function fv(v){return v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?(v/1000).toFixed(1)+'K':v}
+
+        // Render videos
+        function renderVideos() {
+            const lv = videos.filter(x => x.l);
+            const rv = videos.filter(x => !x.l);
+            document.getElementById('lv').innerHTML = lv.map(x => `<div class="vc" onclick="play(${x.id})"><div class="vt" style="background-image:url('${x.t2}')"><div class="live-badge">● ${x.vs?.toLocaleString()}</div><div class="vd">${x.d}</div></div><div class="vi"><h3 class="vt2">${x.t}</h3><div class="vm">👁️ ${fv(x.v)}</div><div class="vch"><div class="ca"></div><span class="cn">${x.ch}</span></div><div class="vr">💰 +50 NEXA/hr</div></div></div>`).join('');
+            document.getElementById('vg').innerHTML = rv.map(x => `<div class="vc" onclick="play(${x.id})"><div class="vt" style="background-image:url('${x.t2}')"><div class="vd">${x.d}</div><div class="vcat">${x.c}</div></div><div class="vi"><h3 class="vt2">${x.t}</h3><div class="vm">👁️ ${fv(x.v)}</div><div class="vch"><div class="ca"></div><span class="cn">${x.ch}</span></div><div class="vr">💰 +${x.r.toFixed(2)} NEXA/view</div></div></div>`).join('');
+            document.getElementById('live-section').style.display = lv.length ? 'block' : 'none';
+        }
+
+        function renderLive() {
+            const live = videos.filter(x => x.l);
+            document.getElementById('live-grid').innerHTML = live.map(x => `<div class="vc" onclick="play(${x.id})"><div class="vt" style="background-image:url('${x.t2}')"><div class="live-badge">● ${x.vs?.toLocaleString()}</div><div class="vd">${x.d}</div></div><div class="vi"><h3 class="vt2">${x.t}</h3><div class="vm">👁️ ${fv(x.v)}</div><div class="vch"><div class="ca"></div><span class="cn">${x.ch}</span></div><div class="vr">💰 +50 NEXA/hr</div></div></div>`).join('') || '<p style="text-align:center;color:var(--m);padding:40px">No live streams right now</p>';
+        }
+
+        function renderTrending() {
+            const trending = [...videos].sort((a,b) => b.v - a.v);
+            document.getElementById('trending-grid').innerHTML = trending.map(x => `<div class="vc" onclick="play(${x.id})"><div class="vt" style="background-image:url('${x.t2}')"><div class="vd">${x.d}</div><div class="vcat">${x.c}</div></div><div class="vi"><h3 class="vt2">${x.t}</h3><div class="vm">👁️ ${fv(x.v)}</div><div class="vch"><div class="ca"></div><span class="cn">${x.ch}</span></div><div class="vr">💰 +${x.r.toFixed(2)} NEXA/view</div></div></div>`).join('');
+        }
+
+        // Category
+        function setCat(cat) {
+            currentCat = cat;
+            document.querySelectorAll('.cb').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Play video
+        function play(id) {
+            const vd = videos.find(x => x.id === id);
+            document.getElementById('video-title').textContent = vd.t;
+            document.getElementById('videoModal').classList.add('active');
+            if(user) toast(`+${vd.r} NEXA earned!`);
+        }
+        function closeVideo() { document.getElementById('videoModal').classList.remove('active'); }
+
+        // Wallet
         function connectWallet() {
-            user = { n: 'Web3User', a: generateAddress(), balance: '1,234.56', network: 'NexaChain Mainnet' };
+            user = {n:'Web3User',a:generateAddress(),balance:'1,234.56',network:'NexaChain Mainnet'};
             updateUI();
-            toast('Wallet connected to NexaChain!');
+            toast('Wallet connected!');
             openWallet();
         }
-
-        function disconnect() {
-            user = null;
-            updateUI();
-            closeWallet();
-            toast('Wallet disconnected');
-        }
-
+        function disconnect() { user = null; updateUI(); closeWallet(); toast('Wallet disconnected'); }
         function updateUI() {
-            const btn = user 
+            document.getElementById('walletArea').innerHTML = user 
                 ? `<button class="wallet-btn" onclick="openWallet()">💎 ${user.balance} NEXA</button>`
                 : `<button class="wallet-btn" onclick="connectWallet()">🔗 Connect</button>`;
-            document.getElementById('walletArea').innerHTML = btn;
         }
-
         function openWallet() {
-            if (!user) { connectWallet(); return; }
-            document.getElementById('wa').textContent = user.a.slice(2, 4).toUpperCase();
+            if(!user) return;
+            document.getElementById('wa').textContent = user.a.slice(2,4).toUpperCase();
             document.getElementById('wn').textContent = user.n;
-            document.getElementById('wad').textContent = user.a.slice(0, 10) + '...' + user.a.slice(-6);
+            document.getElementById('wad').textContent = user.a.slice(0,10)+'...'+user.a.slice(-6);
             document.getElementById('walletModal').classList.add('active');
         }
-
         function closeWallet() { document.getElementById('walletModal').classList.remove('active'); }
+        function generateAddress() { return '0x'+Array.from({length:40},()=>Math.floor(Math.random()*16).toString(16)).join(''); }
+        function generateTxHash() { return '0x'+Array.from({length:64},()=>Math.floor(Math.random()*16).toString(16)).join(''); }
 
-        function generateAddress() {
-            return '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+        // Payment
+        function selectPlan(id) {
+            if(id === 'starter') { toast('Starter plan activated!'); return; }
+            selectedPlan = plans[id];
+            document.getElementById('pay-plan').textContent = selectedPlan.name + ' Plan';
+            document.getElementById('pay-total').textContent = selectedPlan.priceLabel + ' ' + selectedPlan.currency;
+            document.getElementById('pay-btn-amount').textContent = selectedPlan.priceLabel + ' ' + selectedPlan.currency;
+            selectedCrypto = {name:selectedPlan.currency, amount:selectedPlan.price};
+            if(!user) connectWallet();
+            setTimeout(() => document.getElementById('payModal').classList.add('active'), 500);
         }
-
-        function generateTxHash() {
-            return '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
-        }
-
-        function goHome() { window.location.href = '/'; }
-
-        function selectPlan(planId) {
-            selectedPlan = plans[planId];
-            if (planId === 'starter') {
-                toast('Starter plan activated!');
-                return;
-            }
-            if (!user) {
-                connectWallet();
-                setTimeout(() => {
-                    document.getElementById('paymentModal').classList.add('active');
-                    showStep(1);
-                }, 500);
-            } else {
-                document.getElementById('paymentModal').classList.add('active');
-                showStep(1);
-            }
-            document.getElementById('summaryPlan').textContent = selectedPlan.name + ' Plan';
-            document.getElementById('summaryAmount').textContent = selectedPlan.priceLabel + ' ' + (selectedPlan.currency || 'NEXA');
-            document.getElementById('payAmount').textContent = selectedPlan.priceLabel + ' ' + (selectedPlan.currency || 'NEXA');
-        }
-
-        function selectWallet(wallet, el) {
-            selectedWallet = wallet;
-            document.querySelectorAll('.wallet-option').forEach(e => e.classList.remove('selected'));
+        function selectCrypto(name, amount, el) {
+            selectedCrypto = {name, amount};
+            document.querySelectorAll('.crypto-opt').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
-            document.getElementById('walletName').textContent = wallet === 'metamask' ? 'MetaMask' : wallet === 'walletconnect' ? 'WalletConnect' : 'Coinbase';
+            document.getElementById('pay-btn-amount').textContent = amount.toFixed(name === 'ETH' ? 4 : 2) + ' ' + name;
         }
-
-        function selectCrypto(crypto, amount, el) {
-            selectedCrypto = { name: crypto, amount };
-            document.querySelectorAll('.crypto-option').forEach(e => e.classList.remove('selected'));
-            el.classList.add('selected');
-            document.getElementById('payAmount').textContent = amount.toFixed(crypto === 'ETH' ? 4 : 2) + ' ' + crypto;
-        }
-
-        function connectAndPay() {
-            if (!user) connectWallet();
-            setTimeout(() => showStep(2), 500);
-        }
-
-        function processPayment() {
-            showStep(3);
-            const txHash = generateTxHash();
-            document.getElementById('txHash').textContent = txHash.slice(0, 12) + '...' + txHash.slice(-8);
-            document.getElementById('txLink').href = 'https://nexachain.xyz/tx/' + txHash;
+        function processPay() {
+            showPayStep(2);
+            const tx = generateTxHash();
+            document.getElementById('tx-hash').textContent = tx.slice(0,12)+'...'+tx.slice(-8);
+            document.getElementById('tx-link').href = 'https://nexachain.xyz/tx/' + tx;
             setTimeout(() => {
-                showStep(4);
-                document.getElementById('successHash').textContent = txHash.slice(0, 12) + '...' + txHash.slice(-8);
-                document.getElementById('successLink').href = 'https://nexachain.xyz/tx/' + txHash;
-                toast('🎉 Payment successful on NexaChain!');
+                showPayStep(3);
+                document.getElementById('success-hash').textContent = tx.slice(0,12)+'...'+tx.slice(-8);
+                toast('🎉 Payment successful!');
             }, 3000);
         }
-
-        function showStep(step) {
-            document.querySelectorAll('.payment-step').forEach(el => el.classList.remove('active'));
-            document.getElementById('step' + step).classList.add('active');
+        function showPayStep(n) {
+            document.querySelectorAll('.pay-step').forEach(s => s.classList.remove('active'));
+            document.getElementById('pay-step-' + n).classList.add('active');
         }
+        function closePay() { document.getElementById('payModal').classList.remove('active'); showPayStep(1); }
+        function showSearch() { toast('Search coming soon!'); }
 
-        function closePayment() {
-            document.getElementById('paymentModal').classList.remove('active');
-            showStep(1);
-        }
-
-        function toggleFaq(el) { el.classList.toggle('open'); }
-
+        // Toast
         function toast(m) {
             const t = document.getElementById('toast');
             t.textContent = m;
@@ -559,7 +544,8 @@
             setTimeout(() => t.style.display = 'none', 2500);
         }
 
-        updateUI();
+        // Init
+        renderVideos();
     </script>
 </body>
 </html>
