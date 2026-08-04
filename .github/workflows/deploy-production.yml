@@ -47,12 +47,12 @@ jobs:
           NEXT_PUBLIC_DOMAIN: nexastream.org
           NEXT_PUBLIC_API_URL: https://api.nexastream.org
 
-      - name: Copy index.html to out
+      - name: Copy static files to out
         run: |
-          cp public/index.html frontend/out/ 2>/dev/null || true
-          cp public/_redirects frontend/out/ 2>/dev/null || true
-          cp public/404.html frontend/out/ 2>/dev/null || true
-        working-directory: /workspace/project/nexastream
+          mkdir -p frontend/out
+          cp frontend/public/index.html frontend/out/ 2>/dev/null || true
+          cp frontend/public/_redirects frontend/out/ 2>/dev/null || true
+          cp frontend/public/404.html frontend/out/ 2>/dev/null || true
 
       - name: Add CNAME for nexastream.org
         run: echo "nexastream.org" > frontend/out/CNAME
@@ -66,7 +66,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./frontend/out
+          path: frontend/out
 
       - name: Deploy to GitHub Pages
         id: deployment
