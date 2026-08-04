@@ -16,7 +16,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
@@ -31,10 +32,10 @@ jobs:
       - name: Add Capacitor
         run: |
           cd frontend
-          npm install @capacitor/core@5 @capacitor/cli@5 @capacitor/android@5
-          rm -rf capacitor.config.ts android
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          rm -rf capacitor.config.ts android 2>/dev/null || true
           npx cap init NexaStream com.nexastream.app --web-dir=out
-          npx cap add android
+          npx cap add android || echo "Android platform may already exist"
 
       - name: Sync Capacitor
         run: |
