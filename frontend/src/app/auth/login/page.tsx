@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { PlaySquare, Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { PlaySquare, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nexastream.org'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nexastream.org'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,7 +34,6 @@ export default function LoginPage() {
       const res = await fetch(API_URL + endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(body)
       })
 
@@ -49,7 +48,7 @@ export default function LoginPage() {
         localStorage.setItem('user', JSON.stringify(data.user))
       }
 
-      router.push('/')
+      window.location.href = '/'
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -58,19 +57,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-dark flex items-center justify-center p-4">
+    <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center">
               <PlaySquare className="w-7 h-7 text-white" />
             </div>
           </Link>
-          <h1 className="text-2xl font-bold text-white mb-2">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+          <h1 className="text-2xl font-bold">
+            {isLogin ? 'Sign in' : 'Create account'}
           </h1>
-          <p className="text-slate-400 text-sm">
-            {isLogin ? 'Sign in to your account' : 'Join NexaStream today'}
+          <p className="text-neutral-400 mt-2 text-sm">
+            {isLogin ? 'to continue to NexaStream' : 'to get started'}
           </p>
         </div>
 
@@ -78,27 +77,27 @@ export default function LoginPage() {
           {!isLogin && (
             <>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
+                <label className="block text-sm font-medium mb-1.5">Username</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
                   <input
                     type="text"
                     value={formData.username}
                     onChange={(e) => setFormData({...formData, username: e.target.value})}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
-                    placeholder="username"
+                    className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2.5 pl-11 pr-4 text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
+                    placeholder="Username"
                     required={!isLogin}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Display Name</label>
+                <label className="block text-sm font-medium mb-1.5">Display name</label>
                 <input
                   type="text"
                   value={formData.display_name}
                   onChange={(e) => setFormData({...formData, display_name: e.target.value})}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
-                  placeholder="Your Name"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2.5 px-4 text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
+                  placeholder="Your name"
                   required={!isLogin}
                 />
               </div>
@@ -106,37 +105,37 @@ export default function LoginPage() {
           )}
           
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+            <label className="block text-sm font-medium mb-1.5">Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
-                placeholder="you@example.com"
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2.5 pl-11 pr-4 text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
+                placeholder="Email"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+            <label className="block text-sm font-medium mb-1.5">Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-11 pr-12 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
-                placeholder="Min 6 characters"
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2.5 pl-11 pr-12 text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
+                placeholder="Password"
                 required
                 minLength={6}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -144,7 +143,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm">
+            <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
               {error}
             </div>
           )}
@@ -152,34 +151,21 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-neutral-700 rounded-lg font-medium transition-colors"
           >
-            {loading ? (
-              <span className="animate-spin">⏳</span>
-            ) : (
-              <>
-                {isLogin ? 'Sign In' : 'Create Account'}
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
+            {loading ? 'Loading...' : (isLogin ? 'Sign in' : 'Create account')}
           </button>
         </form>
 
-        <p className="text-center text-slate-400 mt-6 text-sm">
+        <p className="text-center text-neutral-400 mt-6 text-sm">
           {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-primary font-medium hover:underline"
+            className="text-red-500 font-medium hover:underline"
           >
             {isLogin ? 'Sign up' : 'Sign in'}
           </button>
         </p>
-
-        <div className="mt-8 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-          <p className="text-xs text-slate-500 text-center">
-            By continuing, you agree to NexaStream's Terms of Service and Privacy Policy.
-          </p>
-        </div>
       </div>
     </div>
   )
