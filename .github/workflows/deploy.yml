@@ -13,8 +13,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     
     steps:
       - name: Checkout
@@ -42,17 +40,18 @@ jobs:
       - name: Upload static site
         uses: actions/upload-artifact@v4
         with:
-          name: nexastream-static-site
+          name: nexastream-static-site-v${{ github.run_number }}
           path: frontend/out
           retention-days: 30
       
-      - name: Create Release
-        if: github.event_name == 'workflow_dispatch'
-        uses: softprops/action-gh-release@v1
+      - name: Zip for download
+        run: |
+          cd frontend
+          zip -r ../nexastream-v${{ github.run_number }}.zip out
+      
+      - name: Upload zip
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: release-${{ github.run_number }}
-          name: NexaStream v${{ github.run_number }}
-          draft: false
-          files: frontend/out/**/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: nexastream-zip-v${{ github.run_number }}
+          path: nexastream-v${{ github.run_number }}.zip
+          retention-days: 30
