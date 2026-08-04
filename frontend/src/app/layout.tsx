@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import WagmiProvider from '@/components/Providers/WagmiProvider'
 
 export const metadata: Metadata = {
   title: 'NexaStream - Decentralized Video Platform',
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-dark text-white min-h-screen">
-        {children}
+        <WagmiProvider>
+          {children}
+        </WagmiProvider>
       </body>
     </html>
   )

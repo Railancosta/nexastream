@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useState, useEffect } from 'react';
 
 const PLANS = {
   monthly: {
@@ -78,12 +77,19 @@ const PLANS = {
 };
 
 export default function Pricing() {
-  const { address, isConnected } = useAccount();
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [copied, setCopied] = useState(false);
+  const [walletAddress, setWalletAddress] = useState(null);
+
+  useEffect(() => {
+    // Mock wallet connection for demo
+    if (typeof window !== 'undefined') {
+      setWalletAddress('0x1234567890abcdef1234567890abcdef12345678');
+    }
+  }, []);
 
   const copyLicenseKey = () => {
-    const licenseKey = `NEXA-${address?.slice(2, 10).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+    const licenseKey = `NEXA-${walletAddress?.slice(2, 10).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
     navigator.clipboard.writeText(licenseKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -217,10 +223,10 @@ export default function Pricing() {
         <div className="license-key-section">
           <h3>Generate License Key</h3>
           <p>Your license key is generated based on your connected wallet address.</p>
-          {isConnected ? (
+          {walletAddress ? (
             <div className="license-key-box">
               <code className="license-key">
-                NEXA-{address?.slice(2, 10).toUpperCase()}-LIFETIME
+                NEXA-{walletAddress?.slice(2, 10).toUpperCase()}-LIFETIME
               </code>
               <button onClick={copyLicenseKey} className="copy-btn">
                 {copied ? 'Copied!' : 'Copy Key'}
