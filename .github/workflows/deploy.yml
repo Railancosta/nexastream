@@ -37,12 +37,24 @@ jobs:
           NEXT_PUBLIC_DOMAIN: nexastream.org
           NEXT_PUBLIC_API_URL: https://api.nexastream.org
       
+      - name: Add CNAME for custom domain
+        run: echo "nexastream.org" > frontend/out/CNAME
+      
       - name: Upload static site
         uses: actions/upload-artifact@v4
         with:
           name: nexastream-static-site-v${{ github.run_number }}
           path: frontend/out
           retention-days: 30
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/out
+          publish_branch: gh-pages
+          user_name: 'NexaStream Deploy'
+          user_email: 'deploy@nexastream.org'
       
       - name: Zip for download
         run: |
