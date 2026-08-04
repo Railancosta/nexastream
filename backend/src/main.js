@@ -111,6 +111,8 @@ app.use('/api/feed', require('./routes/feed'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/recommendations', require('./routes/recommendations'));
 app.use('/api/blockchain', require('./routes/blockchain'));
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/algo', require('./routes/algorithms'));
 
 // Health check
 app.get('/api/health', (req, res) => {

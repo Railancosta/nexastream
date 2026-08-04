@@ -1,6 +1,6 @@
 /**
  * Database Initialization Script
- * Creates all tables for NexaStream
+ * NexaStream v3.0 - With Advanced Algorithms
  */
 
 const db = require('../config/database');
@@ -9,7 +9,7 @@ const initDatabase = () => {
   return new Promise((resolve, reject) => {
     try {
       console.log('📊 Initializing database...');
-      
+
       // Users table
       db.exec(`
         CREATE TABLE IF NOT EXISTS users (
@@ -65,12 +65,17 @@ const initDatabase = () => {
           likes INTEGER DEFAULT 0,
           dislikes INTEGER DEFAULT 0,
           comments_count INTEGER DEFAULT 0,
+          shares INTEGER DEFAULT 0,
+          saves INTEGER DEFAULT 0,
           category TEXT DEFAULT 'general',
           tags TEXT,
           status TEXT DEFAULT 'published',
           is_premium INTEGER DEFAULT 0,
+          is_featured INTEGER DEFAULT 0,
           price REAL DEFAULT 0,
           reward_amount REAL DEFAULT 0,
+          avg_watch_time REAL DEFAULT 0,
+          views_last_24h INTEGER DEFAULT 0,
           watch_time INTEGER DEFAULT 0,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -137,17 +142,63 @@ const initDatabase = () => {
         )
       `);
 
-      // Video views table (for analytics)
+      // Video views table (for analytics - TikTok/YouTube style)
       db.exec(`
         CREATE TABLE IF NOT EXISTS video_views (
           id TEXT PRIMARY KEY,
           video_id TEXT NOT NULL,
           viewer_id TEXT,
           watch_duration INTEGER DEFAULT 0,
+          completion_rate REAL DEFAULT 0,
           device_type TEXT,
+          referrer TEXT,
           country TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (video_id) REFERENCES videos(id)
+        )
+      `);
+
+      // Video engagements table (likes, shares, saves)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS video_engagements (
+          id TEXT PRIMARY KEY,
+          video_id TEXT NOT NULL,
+          user_id TEXT,
+          type TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (video_id) REFERENCES videos(id)
+        )
+      `);
+
+      // User interest profiles (for personalization)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS user_interest_profiles (
+          user_id TEXT PRIMARY KEY,
+          favorite_categories TEXT,
+          favorite_creators TEXT,
+          recently_watched TEXT,
+          engagement_patterns TEXT,
+          watch_history_categories TEXT,
+          watch_history_creators TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `);
+
+      // Creator relationships (Instagram-style)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS creator_relationships (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          channel_id TEXT NOT NULL,
+          interaction_count INTEGER DEFAULT 0,
+          last_interaction DATETIME,
+          is_subscribed INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(user_id, channel_id),
+          FOREIGN KEY (user_id) REFERENCES users(id),
+          FOREIGN KEY (channel_id) REFERENCES channels(id)
         )
       `);
 
@@ -166,7 +217,7 @@ const initDatabase = () => {
         )
       `);
 
-      // Sessions table (for JWT refresh tokens)
+      // Sessions table
       db.exec(`
         CREATE TABLE IF NOT EXISTS sessions (
           id TEXT PRIMARY KEY,
@@ -180,16 +231,20 @@ const initDatabase = () => {
         )
       `);
 
-      // Indexes for better performance
+      // Indexes for better performance (scaled for millions of users)
       db.exec(`CREATE INDEX IF NOT EXISTS idx_videos_channel ON videos(channel_id)`);
       db.exec(`CREATE INDEX IF NOT EXISTS idx_videos_created ON videos(created_at DESC)`);
       db.exec(`CREATE INDEX IF NOT EXISTS idx_videos_views ON videos(views DESC)`);
       db.exec(`CREATE INDEX IF NOT EXISTS idx_videos_likes ON videos(likes DESC)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_videos_score ON videos(likes + comments_count * 2 + shares * 3)`);
       db.exec(`CREATE INDEX IF NOT EXISTS idx_comments_video ON comments(video_id)`);
       db.exec(`CREATE INDEX IF NOT EXISTS idx_watch_history_user ON watch_history(user_id)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_video_views_video ON video_views(video_id)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_video_engagements_video ON video_engagements(video_id)`);
       db.exec(`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id)`);
       db.exec(`CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id)`);
       db.exec(`CREATE INDEX IF NOT EXISTS idx_subscriptions_channel ON subscriptions(channel_id)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_creator_relationships_user ON creator_relationships(user_id)`);
 
       console.log('✅ Database tables created successfully');
       resolve();
