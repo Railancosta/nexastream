@@ -110,6 +110,7 @@ app.use('/api/likes', require('./routes/likes'));
 app.use('/api/feed', require('./routes/feed'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/recommendations', require('./routes/recommendations'));
+app.use('/api/blockchain', require('./routes/blockchain'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -179,6 +180,7 @@ async function start() {
 ║   📡 Port: ${PORT}                                          ║
 ║   🔗 URL: http://localhost:${PORT}                          ║
 ║   🌐 Frontend: ${process.env.FRONTEND_URL || 'https://nexastream.org'}  ║
+║   ⛓️ Blockchain: ${process.env.BLOCKCHAIN_NETWORK || 'sepolia'}                          ║
 ║                                                           ║
 ║   📚 Endpoints:                                           ║
 ║   ├── /api/auth          - Authentication                ║
@@ -188,7 +190,8 @@ async function start() {
 ║   ├── /api/comments      - Comments system               ║
 ║   ├── /api/feed          - Personalized feed             ║
 ║   ├── /api/recommendations - AI recommendations          ║
-║   └── /api/search        - Search engine                 ║
+║   ├── /api/search        - Search engine                 ║
+║   └── /api/blockchain    - Ethereum integration          ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
       `);
