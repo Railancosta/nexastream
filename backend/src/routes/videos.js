@@ -1,241 +1,168 @@
-import { Router } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import { getDB } from '../db/database.js';
+/**
+ * Video Routes
+ */
 
-const router = Router();
+const express = require('express');
+const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
+const path = require('path');
+const db = require('../config/database');
 
-// Get all videos (feed)
-router.get('/', (req, res) => {
-  try {
-    const { page = 1, limit = 20, category, sort = 'recent' } = req.query;
-    const offset = (page - 1) * limit;
-    const db = getDB();
-    
-    let query = `
-      SELECT v.*, c.name as channel_name, c.handle as channel_handle, c.avatar_url as channel_avatar, c.verified as channel_verified
-      FROM videos v
-      JOIN channels c ON v.channel_id = c.id
-      WHERE v.status = 'published'
-    `;
-    
-    const params = [];
-    
-    if (category) {
-      query += ' AND v.category = ?';
-      params.push(category);
-    }
-    
-    if (sort === 'popular') {
-      query += ' ORDER BY v.views DESC';
-    } else if (sort === 'trending') {
-      query += ' ORDER BY (v.likes * 2 + v.views) DESC';
+const router = express.Router();
+
+// Configure multer for video uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads/videos'));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${ext}`);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.mp4', '.webm', '.mov', '.avi'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
     } else {
-      query += ' ORDER BY v.created_at DESC';
+      cb(new Error('Invalid file type'));
     }
-    
-    query += ' LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), offset);
-    
-    const videos = db.prepare(query).all(...params);
-    
-    // Get total count
-    let countQuery = 'SELECT COUNT(*) as count FROM videos WHERE status = ?';
-    const countParams = ['published'];
-    if (category) {
-      countQuery += ' AND category = ?';
-      countParams.push(category);
-    }
-    const total = db.prepare(countQuery).get(...countParams).count;
-    
-    res.json({
-      videos: videos.map(formatVideo),
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error) {
-    console.error('Get videos error:', error);
-    res.status(500).json({ error: 'Failed to get videos' });
   }
 });
 
 // Get trending videos
 router.get('/trending', (req, res) => {
   try {
-    const db = getDB();
+    const { limit = 20 } = req.query;
+    
     const videos = db.prepare(`
-      SELECT v.*, c.name as channel_name, c.handle as channel_handle, c.avatar_url as channel_avatar, c.verified as channel_verified
+      SELECT v.*, c.name as channel_name, c.handle as channel_handle, c.avatar_url as channel_avatar,
+             (v.views + v.likes * 2 + v.comments_count * 3) as trending_score
       FROM videos v
       JOIN channels c ON v.channel_id = c.id
       WHERE v.status = 'published'
-      ORDER BY (v.views * 0.3 + v.likes * 2) DESC
-      LIMIT 12
-    `).all();
+      ORDER BY trending_score DESC, v.views DESC
+      LIMIT ?
+    `).all(parseInt(limit));
     
-    res.json({ videos: videos.map(formatVideo) });
+    res.json({ videos });
   } catch (error) {
-    console.error('Trending error:', error);
-    res.status(500).json({ error: 'Failed to get trending' });
+    console.error('Get trending error:', error);
+    res.status(500).json({ error: 'Failed to get trending videos' });
+  }
+});
+
+// Get recent videos
+router.get('/recent', (req, res) => {
+  try {
+    const { limit = 20, page = 1 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    const videos = db.prepare(`
+      SELECT v.*, c.name as channel_name, c.handle as channel_handle, c.avatar_url as channel_avatar
+      FROM videos v
+      JOIN channels c ON v.channel_id = c.id
+      WHERE v.status = 'published'
+      ORDER BY v.created_at DESC
+      LIMIT ? OFFSET ?
+    `).all(parseInt(limit), offset);
+    
+    res.json({ videos });
+  } catch (error) {
+    console.error('Get recent error:', error);
+    res.status(500).json({ error: 'Failed to get recent videos' });
   }
 });
 
 // Get video by ID
-router.get('/:id', (req, res) => {
+router.get('/:videoId', (req, res) => {
   try {
-    const { id } = req.params;
-    const db = getDB();
+    const { videoId } = req.params;
     
     const video = db.prepare(`
-      SELECT v.*, c.name as channel_name, c.handle as channel_handle, c.avatar_url as channel_avatar, c.verified as channel_verified, c.subscribers as channel_subscribers
+      SELECT v.*, c.name as channel_name, c.handle as channel_handle, c.avatar_url as channel_avatar,
+             c.subscriber_count as channel_subscribers, c.user_id as channel_owner
       FROM videos v
       JOIN channels c ON v.channel_id = c.id
       WHERE v.id = ?
-    `).get(id);
+    `).get(videoId);
     
     if (!video) {
       return res.status(404).json({ error: 'Video not found' });
     }
     
     // Increment view count
-    db.prepare('UPDATE videos SET views = views + 1 WHERE id = ?').run(id);
+    db.prepare('UPDATE videos SET views = views + 1 WHERE id = ?').run(videoId);
     
-    // Get related videos
-    const related = db.prepare(`
-      SELECT v.*, c.name as channel_name, c.handle as channel_handle
-      FROM videos v
-      JOIN channels c ON v.channel_id = c.id
-      WHERE v.id != ? AND v.category = ? AND v.status = 'published'
-      LIMIT 6
-    `).all(id, video.category);
-    
-    res.json({
-      video: formatVideo(video),
-      related: related.map(formatVideo)
-    });
+    res.json({ video });
   } catch (error) {
     console.error('Get video error:', error);
     res.status(500).json({ error: 'Failed to get video' });
   }
 });
 
-// Search videos
-router.get('/search/:query', (req, res) => {
+// Upload video (requires auth)
+router.post('/upload', upload.single('video'), (req, res) => {
   try {
-    const { query } = req.params;
-    const { page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
-    const db = getDB();
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
     
-    const searchTerm = `%${query}%`;
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
     
-    const videos = db.prepare(`
-      SELECT v.*, c.name as channel_name, c.handle as channel_handle, c.avatar_url as channel_avatar
-      FROM videos v
-      JOIN channels c ON v.channel_id = c.id
-      WHERE v.status = 'published' AND (v.title LIKE ? OR v.description LIKE ?)
-      ORDER BY v.views DESC
-      LIMIT ? OFFSET ?
-    `).all(searchTerm, searchTerm, parseInt(limit), offset);
+    const channel = db.prepare('SELECT * FROM channels WHERE user_id = ?').get(decoded.userId);
+    if (!channel) return res.status(400).json({ error: 'No channel found' });
     
-    const total = db.prepare(`
-      SELECT COUNT(*) as count FROM videos
-      WHERE status = 'published' AND (title LIKE ? OR description LIKE ?)
-    `).get(searchTerm, searchTerm).count;
+    const { title, description, category, tags } = req.body;
+    const videoId = uuidv4();
     
-    res.json({
-      videos: videos.map(formatVideo),
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / limit)
-      }
+    db.prepare(`
+      INSERT INTO videos (id, channel_id, title, description, video_url, category, tags, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `).run(
+      videoId,
+      channel.id,
+      title || 'Untitled',
+      description || '',
+      `/uploads/videos/${req.file.filename}`,
+      category || 'general',
+      tags || ''
+    );
+    
+    // Update channel video count
+    db.prepare('UPDATE channels SET total_videos = total_videos + 1 WHERE id = ?').run(channel.id);
+    
+    res.status(201).json({ 
+      message: 'Video uploaded successfully',
+      video: { id: videoId, title, video_url: `/uploads/videos/${req.file.filename}` }
     });
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'Search failed' });
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Upload failed' });
   }
 });
 
-// Get videos by channel
-router.get('/channel/:channelId', (req, res) => {
+// Record view
+router.post('/:videoId/view', (req, res) => {
   try {
-    const { channelId } = req.params;
-    const { page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
-    const db = getDB();
+    const { videoId } = req.params;
+    const { duration = 0 } = req.body;
     
-    const videos = db.prepare(`
-      SELECT v.*, c.name as channel_name, c.handle as channel_handle
-      FROM videos v
-      JOIN channels c ON v.channel_id = c.id
-      WHERE v.channel_id = ? AND v.status = 'published'
-      ORDER BY v.created_at DESC
-      LIMIT ? OFFSET ?
-    `).all(channelId, parseInt(limit), offset);
+    db.prepare(`
+      INSERT INTO video_views (id, video_id, watch_duration, created_at)
+      VALUES (?, ?, ?, datetime('now'))
+    `).run(uuidv4(), videoId, duration);
     
-    res.json({ videos: videos.map(formatVideo) });
+    res.json({ success: true });
   } catch (error) {
-    console.error('Channel videos error:', error);
-    res.status(500).json({ error: 'Failed to get channel videos' });
+    console.error('Record view error:', error);
+    res.status(500).json({ error: 'Failed to record view' });
   }
 });
 
-// Like video
-router.post('/:id/like', (req, res) => {
-  try {
-    const { id } = req.params;
-    const db = getDB();
-    
-    db.prepare('UPDATE videos SET likes = likes + 1 WHERE id = ?').run(id);
-    
-    res.json({ message: 'Video liked', likes: db.prepare('SELECT likes FROM videos WHERE id = ?').get(id).likes });
-  } catch (error) {
-    console.error('Like error:', error);
-    res.status(500).json({ error: 'Like failed' });
-  }
-});
-
-// Get categories
-router.get('/meta/categories', (req, res) => {
-  const categories = [
-    { id: 'all', name: 'All', icon: '🎬' },
-    { id: 'crypto', name: 'Crypto', icon: '₿' },
-    { id: 'defi', name: 'DeFi', icon: '💰' },
-    { id: 'nft', name: 'NFT', icon: '🎨' },
-    { id: 'gaming', name: 'Gaming', icon: '🎮' },
-    { id: 'education', name: 'Education', icon: '📚' },
-    { id: 'entertainment', name: 'Entertainment', icon: '🎭' },
-    { id: 'technology', name: 'Technology', icon: '💻' },
-  ];
-  res.json({ categories });
-});
-
-function formatVideo(v) {
-  return {
-    id: v.id,
-    title: v.title,
-    description: v.description,
-    thumbnailUrl: v.thumbnail_url,
-    videoUrl: v.video_url,
-    duration: v.duration,
-    views: v.views,
-    likes: v.likes,
-    category: v.category,
-    rewardAmount: v.reward_amount,
-    createdAt: v.created_at,
-    channel: {
-      id: v.channel_id,
-      name: v.channel_name,
-      handle: v.channel_handle,
-      avatarUrl: v.channel_avatar,
-      verified: v.channel_verified,
-      subscribers: v.channel_subscribers
-    }
-  };
-}
-
-export default router;
+module.exports = router;

@@ -7,28 +7,25 @@ import { StatsBanner } from '@/components/StatsBanner'
 import { LiveSection } from '@/components/LiveSection'
 import { VideoCard } from '@/components/VideoCard'
 
+// API URL - points to backend
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nexastream.org'
 
 interface Video {
   id: string
   title: string
   description: string
-  thumbnailUrl: string
-  videoUrl: string
+  thumbnail_url: string
+  video_url: string
   duration: number
   views: number
   likes: number
   category: string
-  rewardAmount: number
-  createdAt: string
-  channel: {
-    id: string
-    name: string
-    handle: string
-    avatarUrl: string
-    verified: boolean
-    subscribers: number
-  }
+  reward_amount: number
+  created_at: string
+  channel_name: string
+  channel_handle: string
+  channel_avatar: string
+  is_verified?: number
 }
 
 const categories = [
@@ -48,44 +45,68 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     fetchVideos()
+    checkAuth()
   }, [selectedCategory])
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        credentials: 'include'
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setUser(data.user)
+      }
+    } catch (e) {
+      // Not logged in
+    }
+  }
 
   const fetchVideos = async () => {
     try {
       setLoading(true)
-      const url = selectedCategory === 'all'
-        ? `${API_URL}/videos?limit=12`
-        : `${API_URL}/videos?category=${selectedCategory}&limit=12`
-      
-      const res = await fetch(url)
-      const data = await res.json()
-      setVideos(data.videos || [])
+      // Try backend API first
+      const res = await fetch(`${API_URL}/api/feed/home?limit=12`)
+      if (res.ok) {
+        const data = await res.json()
+        setVideos(data.videos || [])
+      } else {
+        // Fallback to recommendations
+        const recRes = await fetch(`${API_URL}/api/recommendations/for-you?limit=12`)
+        if (recRes.ok) {
+          const data = await recRes.json()
+          setVideos(data.videos || [])
+        } else {
+          setVideos([])
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch videos:', error)
-      // Use mock data as fallback
-      setVideos(getMockVideos())
+      setVideos([])
     } finally {
       setLoading(false)
     }
   }
 
-  const getMockVideos = (): Video[] => {
+  const getFallbackVideos = (): Video[] => {
     return [
-      { id: '1', title: 'Bitcoin Halving 2024: Complete Guide', description: 'Everything you need to know', thumbnailUrl: 'https://picsum.photos/seed/v1/640/360', videoUrl: '', duration: 1234, views: 125000, likes: 8500, category: 'crypto', rewardAmount: 25, createdAt: new Date().toISOString(), channel: { id: '1', name: 'Crypto Academy', handle: 'cryptoacademy', avatarUrl: '', verified: true, subscribers: 1200000 } },
-      { id: '2', title: 'Build Your First DeFi App', description: 'Step by step tutorial', thumbnailUrl: 'https://picsum.photos/seed/v2/640/360', videoUrl: '', duration: 2345, views: 89000, likes: 6200, category: 'defi', rewardAmount: 30, createdAt: new Date().toISOString(), channel: { id: '2', name: 'DeFi Masters', handle: 'defimaster', avatarUrl: '', verified: true, subscribers: 890000 } },
-      { id: '3', title: 'NFT Minting Tutorial for Beginners', description: 'Learn how to mint NFTs', thumbnailUrl: 'https://picsum.photos/seed/v3/640/360', videoUrl: '', duration: 1567, views: 67000, likes: 4500, category: 'nft', rewardAmount: 20, createdAt: new Date().toISOString(), channel: { id: '3', name: 'NFT World', handle: 'nftworld', avatarUrl: '', verified: true, subscribers: 650000 } },
-      { id: '4', title: 'Web3 Development Setup Guide', description: 'Complete setup tutorial', thumbnailUrl: 'https://picsum.photos/seed/v4/640/360', videoUrl: '', duration: 1890, views: 54000, likes: 3800, category: 'education', rewardAmount: 15, createdAt: new Date().toISOString(), channel: { id: '4', name: 'Web3 Education', handle: 'web3edu', avatarUrl: '', verified: true, subscribers: 520000 } },
-      { id: '5', title: 'Top 10 Crypto Gains This Week', description: 'Weekly market analysis', thumbnailUrl: 'https://picsum.photos/seed/v5/640/360', videoUrl: '', duration: 980, views: 156000, likes: 12000, category: 'crypto', rewardAmount: 35, createdAt: new Date().toISOString(), channel: { id: '1', name: 'Crypto Academy', handle: 'cryptoacademy', avatarUrl: '', verified: true, subscribers: 1200000 } },
-      { id: '6', title: 'Layer 2 Solutions Explained', description: 'Scaling Ethereum', thumbnailUrl: 'https://picsum.photos/seed/v6/640/360', videoUrl: '', duration: 1456, views: 43000, likes: 2900, category: 'technology', rewardAmount: 18, createdAt: new Date().toISOString(), channel: { id: '4', name: 'Web3 Education', handle: 'web3edu', avatarUrl: '', verified: true, subscribers: 520000 } },
-      { id: '7', title: 'Staking Rewards: Maximize Returns', description: 'Yield optimization strategies', thumbnailUrl: 'https://picsum.photos/seed/v7/640/360', videoUrl: '', duration: 2134, views: 38000, likes: 2600, category: 'defi', rewardAmount: 22, createdAt: new Date().toISOString(), channel: { id: '2', name: 'DeFi Masters', handle: 'defimaster', avatarUrl: '', verified: true, subscribers: 890000 } },
-      { id: '8', title: 'The Future of Gaming on Blockchain', description: 'Play to earn evolution', thumbnailUrl: 'https://picsum.photos/seed/v8/640/360', videoUrl: '', duration: 1678, views: 29000, likes: 2100, category: 'gaming', rewardAmount: 12, createdAt: new Date().toISOString(), channel: { id: '3', name: 'NFT World', handle: 'nftworld', avatarUrl: '', verified: true, subscribers: 650000 } },
+      { id: '1', title: 'Bitcoin Halving 2024: Complete Guide', description: 'Everything you need to know', thumbnail_url: 'https://picsum.photos/seed/v1/640/360', video_url: '', duration: 1234, views: 125000, likes: 8500, category: 'crypto', reward_amount: 25, created_at: new Date().toISOString(), channel_name: 'Crypto Academy', channel_handle: 'cryptoacademy', channel_avatar: '' },
+      { id: '2', title: 'Build Your First DeFi App', description: 'Step by step tutorial', thumbnail_url: 'https://picsum.photos/seed/v2/640/360', video_url: '', duration: 2345, views: 89000, likes: 6200, category: 'defi', reward_amount: 30, created_at: new Date().toISOString(), channel_name: 'DeFi Masters', channel_handle: 'defimaster', channel_avatar: '' },
+      { id: '3', title: 'NFT Minting Tutorial for Beginners', description: 'Learn how to mint NFTs', thumbnail_url: 'https://picsum.photos/seed/v3/640/360', video_url: '', duration: 1567, views: 67000, likes: 4500, category: 'nft', reward_amount: 20, created_at: new Date().toISOString(), channel_name: 'NFT World', channel_handle: 'nftworld', channel_avatar: '' },
+      { id: '4', title: 'Web3 Development Setup Guide', description: 'Complete setup tutorial', thumbnail_url: 'https://picsum.photos/seed/v4/640/360', video_url: '', duration: 1890, views: 54000, likes: 3800, category: 'education', reward_amount: 15, created_at: new Date().toISOString(), channel_name: 'Web3 Education', channel_handle: 'web3edu', channel_avatar: '' },
+      { id: '5', title: 'Top 10 Crypto Gains This Week', description: 'Weekly market analysis', thumbnail_url: 'https://picsum.photos/seed/v5/640/360', video_url: '', duration: 980, views: 156000, likes: 12000, category: 'crypto', reward_amount: 35, created_at: new Date().toISOString(), channel_name: 'Crypto Academy', channel_handle: 'cryptoacademy', channel_avatar: '' },
+      { id: '6', title: 'Layer 2 Solutions Explained', description: 'Scaling Ethereum', thumbnail_url: 'https://picsum.photos/seed/v6/640/360', video_url: '', duration: 1456, views: 43000, likes: 2900, category: 'technology', reward_amount: 18, created_at: new Date().toISOString(), channel_name: 'Web3 Education', channel_handle: 'web3edu', channel_avatar: '' },
+      { id: '7', title: 'Staking Rewards: Maximize Returns', description: 'Yield optimization strategies', thumbnail_url: 'https://picsum.photos/seed/v7/640/360', video_url: '', duration: 2134, views: 38000, likes: 2600, category: 'defi', reward_amount: 22, created_at: new Date().toISOString(), channel_name: 'DeFi Masters', channel_handle: 'defimaster', channel_avatar: '' },
+      { id: '8', title: 'The Future of Gaming on Blockchain', description: 'Play to earn evolution', thumbnail_url: 'https://picsum.photos/seed/v8/640/360', video_url: '', duration: 1678, views: 29000, likes: 2100, category: 'gaming', reward_amount: 12, created_at: new Date().toISOString(), channel_name: 'NFT World', channel_handle: 'nftworld', channel_avatar: '' },
     ]
   }
 
   const formatViews = (views: number) => {
+    if (!views) return '0'
     if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
     if (views >= 1000) return `${(views / 1000).toFixed(1)}K`
     return views.toString()
@@ -269,7 +290,7 @@ export default function HomePage() {
                   <div key={video.id} className="video-card group cursor-pointer">
                     <div className="relative aspect-video rounded-xl overflow-hidden mb-3">
                       <img
-                        src={video.thumbnailUrl}
+                        src={video.thumbnail_url}
                         alt={video.title}
                         className="w-full h-full object-cover"
                       />
@@ -278,7 +299,7 @@ export default function HomePage() {
                       </div>
                       <div className="absolute top-2 left-2 px-2 py-1 bg-gradient-to-r from-primary to-accent rounded-full text-xs font-bold text-white flex items-center gap-1">
                         <span>⭐</span>
-                        {video.rewardAmount} NEXA
+                        {video.reward_amount} NEXA
                       </div>
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <div className="w-14 h-14 bg-primary/90 rounded-full flex items-center justify-center">
@@ -293,8 +314,8 @@ export default function HomePage() {
                           {video.title}
                         </h3>
                         <div className="flex items-center gap-1 text-sm text-slate-400 mt-1">
-                          <span>{video.channel.name}</span>
-                          {video.channel.verified && (
+                          <span>{video.channel_name}</span>
+                          {video.is_verified && (
                             <span className="text-primary">✓</span>
                           )}
                         </div>
