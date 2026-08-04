@@ -1,0 +1,328 @@
+# NexaStream - Complete Docker Infrastructure
+version: '3.9'
+
+services:
+  # ===========================================
+  # FRONTEND
+  # ===========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://api:3001/api
+      - NEXT_PUBLIC_WS_URL=ws://api:3001
+      - NEXT_PUBLIC_APP_URL=http://localhost
+    depends_on:
+      - api
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================
+  # API BACKEND
+  # ===========================================
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/nexastream
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-nexastream-dev-secret}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================
+  # WEBSOCKET SERVER
+  # ===========================================
+  websocket:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.websocket
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # POSTGRESQL DATABASE
+  # ===========================================
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=nexastream
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # REDIS CACHE
+  # ===========================================
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass redis123
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # MONGODB (for logs/analytics)
+  # ===========================================
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=mongo123
+      - MONGO_INITDB_DATABASE=nexastream_logs
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # MINIO (S3-compatible storage)
+  # ===========================================
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # NGINX (Reverse Proxy & Load Balancer)
+  # ===========================================
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # PROMETHEUS (Metrics)
+  # ===========================================
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # GRAFANA (Dashboards)
+  # ===========================================
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # CADVISOR (Container Monitoring)
+  # ===========================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # JAEGER (Distributed Tracing)
+  # ===========================================
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "6831:6831/udp"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # HASHICORP VAULT (Secrets)
+  # ===========================================
+  vault:
+    image: hashicorp/vault:latest
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=nexastream-vault-token
+    volumes:
+      - vault_data:/vault/file
+    cap_add:
+      - IPC_LOCK
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # RABBITMQ (Message Queue)
+  # ===========================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # ELASTICSEARCH (Logs)
+  # ===========================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=elastic123
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+  # ===========================================
+  # KIBANA (Log Dashboard)
+  # ===========================================
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=kibana123
+    depends_on:
+      - elasticsearch
+    networks:
+      - nexastream-network
+    restart: unless-stopped
+
+# Networks
+networks:
+  nexastream-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes
+volumes:
+  postgres_data:
+  redis_data:
+  mongodb_data:
+  minio_data:
+  prometheus_data:
+  grafana_data:
+  vault_data:
+  rabbitmq_data:
+  elasticsearch_data:
