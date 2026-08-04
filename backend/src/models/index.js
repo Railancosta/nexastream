@@ -42,7 +42,7 @@ const Channel = sequelize.define('Channel', {
   banner: { type: DataTypes.STRING(500) },
   category: { type: DataTypes.STRING(100) },
   tags: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
-  subscribers: { type: DataTypes.INTEGER, defaultValue: 0 },
+  subscriberCount: { type: DataTypes.INTEGER, defaultValue: 0 },
   totalViews: { type: DataTypes.BIGINT, defaultValue: 0 },
   totalVideos: { type: DataTypes.INTEGER, defaultValue: 0 },
   totalLivestreams: { type: DataTypes.INTEGER, defaultValue: 0 },
@@ -78,7 +78,7 @@ const Video = sequelize.define('Video', {
   uniqueViews: { type: DataTypes.BIGINT, defaultValue: 0 },
   likes: { type: DataTypes.INTEGER, defaultValue: 0 },
   dislikes: { type: DataTypes.INTEGER, defaultValue: 0 },
-  comments: { type: DataTypes.INTEGER, defaultValue: 0 },
+  commentCount: { type: DataTypes.INTEGER, defaultValue: 0 },
   shares: { type: DataTypes.INTEGER, defaultValue: 0 },
   downloads: { type: DataTypes.INTEGER, defaultValue: 0 },
   saveCount: { type: DataTypes.INTEGER, defaultValue: 0 },
@@ -274,7 +274,7 @@ Channel.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasMany(Subscription, { foreignKey: 'userId', as: 'subscriptions' });
 Subscription.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-Channel.hasMany(Subscription, { foreignKey: 'channelId', as: 'subscribers' });
+Channel.hasMany(Subscription, { foreignKey: 'channelId', as: 'channelSubscriptions' });
 Subscription.belongsTo(Channel, { foreignKey: 'channelId', as: 'channel' });
 
 Channel.hasMany(Video, { foreignKey: 'channelId', as: 'videos' });
@@ -283,7 +283,7 @@ Video.belongsTo(Channel, { foreignKey: 'channelId', as: 'channel' });
 Channel.hasMany(Livestream, { foreignKey: 'channelId', as: 'livestreams' });
 Livestream.belongsTo(Channel, { foreignKey: 'channelId', as: 'channel' });
 
-Video.hasMany(Comment, { foreignKey: 'videoId', as: 'comments' });
+Video.hasMany(Comment, { foreignKey: 'videoId', as: 'videoComments' });
 Comment.belongsTo(Video, { foreignKey: 'videoId', as: 'video' });
 
 User.hasMany(Comment, { foreignKey: 'userId', as: 'comments' });

@@ -2,12 +2,12 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY backend/package*.json ./
+COPY package*.json ./
 RUN npm install --production
 
-COPY backend/src ./src
-COPY backend/.env .
+COPY src ./src
+COPY .env .
 
 EXPOSE 3001
 
-CMD ["node", "src/index.js"]
+CMD ["node", "src/server.js"]
