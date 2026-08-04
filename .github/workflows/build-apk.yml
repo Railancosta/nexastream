@@ -43,7 +43,7 @@ jobs:
         run: |
           cd frontend
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-          rm -rf capacitor.config.json android 2>/dev/null || true
+          rm -rf capacitor.config.json capacitor.config.ts android 2>/dev/null || true
           npx cap init NexaStream com.nexastream.app --web-dir=out
           npx cap add android
 
