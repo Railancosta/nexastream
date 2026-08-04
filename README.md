@@ -176,10 +176,10 @@ Stake NEXA to earn rewards and participate in governance.
 - [x] NexaChain PoW/PoS Consensus
 - [x] $NEXA Token Contracts
 - [x] DAO Governance
+- [x] NFT Marketplace Integration
 - [ ] Mainnet Launch
 - [ ] Mobile Apps (iOS/Android)
 - [ ] Creator Verification Program
-- [ ] NFT Marketplace Integration
 
 ## 🤝 Contributing
 
