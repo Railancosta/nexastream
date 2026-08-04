@@ -3,8 +3,6 @@ name: Deploy to Production
 on:
   push:
     branches: [main]
-  release:
-    types: [published]
   workflow_dispatch:
 
 env:
@@ -13,7 +11,6 @@ env:
   NEXT_PUBLIC_API_URL: https://api.nexastream.org
 
 jobs:
-  # Build frontend
   build:
     runs-on: ubuntu-latest
     
@@ -40,38 +37,19 @@ jobs:
           NEXT_PUBLIC_DOMAIN: nexastream.org
           NEXT_PUBLIC_API_URL: https://api.nexastream.org
       
-      - name: Upload build artifact
+      - name: Upload static site
         uses: actions/upload-artifact@v4
         with:
-          name: nexastream-frontend
+          name: nexastream-static-site
           path: frontend/out
           retention-days: 30
-
-  # Deploy to GitHub Pages (if enabled - requires manual configuration in repo settings)
-  deploy-pages:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: nexastream-frontend
-          path: out
       
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          path: 'out'
-          retention-days: 5
-      
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          tag_name: release-${{ github.run_number }}
+          release_name: NexaStream v${{ github.run_number }}
+          draft: false
+          files: frontend/out/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
