@@ -16,9 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          node-version: '22'
 
       - name: Install dependencies
         run: |
@@ -33,7 +31,7 @@ jobs:
       - name: Add Capacitor
         run: |
           cd frontend
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core@5 @capacitor/cli@5 @capacitor/android@5
           npx cap init NexaStream com.nexastream.app --web-dir=out
           npx cap add android
 
