@@ -1,0 +1,159 @@
+name: Deploy to Zora (Zero Gas Fees)
+
+on:
+  push:
+    tags:
+      - 'zora-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Select Network'
+        required: true
+        default: 'zora'
+        type: choice
+        options:
+          - zora
+          - zoraTestnet
+          - base
+          - baseSepolia
+          - polygonZkEVM
+          - polygonZkEVMTestnet
+
+jobs:
+  deploy-contracts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          cd contracts
+          npm install
+
+      - name: Compile contracts
+        run: |
+          cd contracts
+          npx hardhat compile
+
+      - name: Deploy to Zora Network
+        if: github.event.inputs.network == 'zora' || github.event.inputs.network == ''
+        run: |
+          cd contracts
+          npx hardhat run deploy.js --network zora
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Deploy to Zora Testnet
+        if: github.event.inputs.network == 'zoraTestnet'
+        run: |
+          cd contracts
+          npx hardhat run deploy.js --network zoraTestnet
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Deploy to Base
+        if: github.event.inputs.network == 'base'
+        run: |
+          cd contracts
+          npx hardhat run deploy.js --network base
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Deploy to Base Sepolia
+        if: github.event.inputs.network == 'baseSepolia'
+        run: |
+          cd contracts
+          npx hardhat run deploy.js --network baseSepolia
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Upload deployment addresses
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-addresses
+          path: contracts/deployment-addresses.json
+          retention-days: 30
+
+  setup-github-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/out
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  update-frontend:
+    needs: deploy-contracts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download deployment info
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-addresses
+          path: ./deployment
+
+      - name: Update frontend environment
+        run: |
+          cd frontend
+          
+          # Ler endereços do deployment
+          NFT_ADDRESS=$(cat ../deployment/deployment-addresses.json | jq -r '.contracts.NexaNFT')
+          MARKETPLACE_ADDRESS=$(cat ../deployment/deployment-addresses.json | jq -r '.contracts.NFTMarketplace')
+          TOKEN_ADDRESS=$(cat ../deployment/deployment-addresses.json | jq -r '.contracts.NexaToken')
+          DAO_ADDRESS=$(cat ../deployment/deployment-addresses.json | jq -r '.contracts.NexaDAO')
+          VERIFICATION_ADDRESS=$(cat ../deployment/deployment-addresses.json | jq -r '.contracts.CreatorVerification')
+          NETWORK=$(cat ../deployment/deployment-addresses.json | jq -r '.network')
+          
+          echo "NEXT_PUBLIC_NFT_CONTRACT=$NFT_ADDRESS" >> .env.production
+          echo "NEXT_PUBLIC_MARKETPLACE_CONTRACT=$MARKETPLACE_ADDRESS" >> .env.production
+          echo "NEXT_PUBLIC_TOKEN_CONTRACT=$TOKEN_ADDRESS" >> .env.production
+          echo "NEXT_PUBLIC_DAO_CONTRACT=$DAO_ADDRESS" >> .env.production
+          echo "NEXT_PUBLIC_VERIFICATION_CONTRACT=$VERIFICATION_ADDRESS" >> .env.production
+          echo "NEXT_PUBLIC_NETWORK=$NETWORK" >> .env.production
+          echo "NEXT_PUBLIC_CHAIN_ID=7777777" >> .env.production
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Commit and push
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "chore: Update contracts addresses for ${{ github.event.inputs.network || 'zora' }}" || echo "No changes to commit"
+          git push
