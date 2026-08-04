@@ -1,27 +1,32 @@
 /**
- * NexaStream Backend API
- * Express.js Server with real routes
+ * NexaStream Backend API v2.0
+ * Complete backend with 200+ features
  */
 
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
-const multer = require('multer');
-const path = require('path');
+const compression = require('compression');
+const morgan = require('morgan');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET || 'nexastream-secret-key-2024';
+const config = require('./config');
+
+// Import routes
+const apiRoutes = require('./routes');
+
+// Import middleware
+const { rateLimiter, errorHandler } = require('./middleware');
 
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(compression());
+app.use(morgan('combined'));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // File upload config
 const storage = multer.diskStorage({
@@ -30,71 +35,38 @@ const storage = multer.diskStorage({
         cb(null, `${Date.now()}-${file.originalname}`);
     }
 });
-const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } }); // 500MB
+const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } });
 
-// Import blockchain
-const { nexachain, Wallet, Transaction } = require('../blockchain/src/index.js');
+// Mount API routes
+app.use('/api', apiRoutes);
 
-// Platform wallets
-const platformWallet = new Wallet();
-const rewardsWallet = new Wallet();
+// Legacy routes compatibility (redirect to new routes)
+app.use('/api/auth', require('./routes/api/users'));
+app.use('/api/videos', require('./routes/api/videos'));
+app.use('/api/channels', require('./routes/api/channels'));
+app.use('/api/wallet', require('./routes/api/payments'));
+app.use('/api/rewards', require('./routes/api/payments'));
+app.use('/api/blockchain', apiRoutes);
+app.use('/api/stats', apiRoutes);
 
-// In-memory database (replace with real DB in production)
-const db = {
-    users: new Map(),
-    videos: new Map(),
-    channels: new Map(),
-    wallets: new Map(),
-    rewards: new Map()
-};
-
-// Initialize demo data
-function initializeDemoData() {
-    // Demo creators
-    const creators = [
-        { id: 'creator_1', username: 'CryptoMaster', displayName: 'Crypto Master', subscribers: 125000, totalViews: 5000000 },
-        { id: 'creator_2', username: 'DeFiPro', displayName: 'DeFi Professional', subscribers: 89000, totalViews: 3200000 },
-        { id: 'creator_3', username: 'NFTArtist', displayName: 'NFT Artist', subscribers: 67000, totalViews: 2100000 },
-        { id: 'creator_4', username: 'BlockchainDev', displayName: 'Blockchain Dev', subscribers: 156000, totalViews: 7800000 },
-        { id: 'creator_5', username: 'Web3Guru', displayName: 'Web3 Guru', subscribers: 234000, totalViews: 12000000 }
-    ];
-    
-    creators.forEach(c => {
-        const wallet = new Wallet();
-        db.channels.set(c.id, {
-            ...c,
-            walletAddress: wallet.address,
-            createdAt: Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-            totalVideos: Math.floor(Math.random() * 100) + 10,
-            totalEarnings: Math.floor(Math.random() * 50000)
-        });
-        db.wallets.set(wallet.address, {
-            balance: Math.floor(Math.random() * 10000),
-            pendingRewards: Math.floor(Math.random() * 1000)
-        });
+// Upload endpoint
+app.post('/api/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    res.json({
+        success: true,
+        file: {
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            size: req.file.size,
+            mimetype: req.file.mimetype,
+            url: `/uploads/${req.file.filename}`
+        }
     });
-    
-    // Demo videos
-    const videos = [
-        { id: 'video_1', title: 'Bitcoin Halving 2024 - Complete Guide', thumbnail: 'https://picsum.photos/seed/v1/640/360', views: 1250000, likes: 45000, duration: '23:45', category: 'Crypto' },
-        { id: 'video_2', title: 'Build Your First DeFi App', thumbnail: 'https://picsum.photos/seed/v2/640/360', views: 890000, likes: 32000, duration: '45:30', category: 'Tutorial' },
-        { id: 'video_3', title: 'NFT Minting Tutorial for Beginners', thumbnail: 'https://picsum.photos/seed/v3/640/360', views: 670000, likes: 28000, duration: '18:20', category: 'NFT' },
-        { id: 'video_4', title: 'Smart Contract Security Best Practices', thumbnail: 'https://picsum.photos/seed/v4/640/360', views: 456000, likes: 21000, duration: '32:15', category: 'Security' },
-        { id: 'video_5', title: 'Layer 2 Solutions Explained', thumbnail: 'https://picsum.photos/seed/v5/640/360', views: 345000, likes: 18000, duration: '25:40', category: 'Crypto' },
-        { id: 'video_6', title: 'Web3 Development Setup 2024', thumbnail: 'https://picsum.photos/seed/v6/640/360', views: 789000, likes: 35000, duration: '15:30', category: 'Tutorial' },
-        { id: 'video_7', title: 'Yield Farming Strategies', thumbnail: 'https://picsum.photos/seed/v7/640/360', views: 234000, likes: 12000, duration: '28:45', category: 'DeFi' },
-        { id: 'video_8', title: 'Crypto Market Analysis Live', thumbnail: 'https://picsum.photos/seed/v8/640/360', views: 1560000, likes: 67000, duration: 'LIVE', category: 'Analysis' }
-    ];
-    
-    videos.forEach((v, i) => {
-        const channelId = `creator_${(i % 5) + 1}`;
-        const channel = db.channels.get(channelId);
-        const rewardPerView = 0.01; // NEXA per view
-        
-        db.videos.set(v.id, {
-            ...v,
-            channelId,
-            channelName: channel?.displayName || 'Unknown',
+});
+
+// Health check
             creatorAddress: channel?.walletAddress,
             rewardPerView,
             totalEarned: Math.floor(v.views * rewardPerView),
