@@ -92,18 +92,8 @@ export default function HomePage() {
     }
   }
 
-  const getFallbackVideos = (): Video[] => {
-    return [
-      { id: '1', title: 'Bitcoin Halving 2024: Complete Guide', description: 'Everything you need to know', thumbnail_url: 'https://picsum.photos/seed/v1/640/360', video_url: '', duration: 1234, views: 125000, likes: 8500, category: 'crypto', reward_amount: 25, created_at: new Date().toISOString(), channel_name: 'Crypto Academy', channel_handle: 'cryptoacademy', channel_avatar: '' },
-      { id: '2', title: 'Build Your First DeFi App', description: 'Step by step tutorial', thumbnail_url: 'https://picsum.photos/seed/v2/640/360', video_url: '', duration: 2345, views: 89000, likes: 6200, category: 'defi', reward_amount: 30, created_at: new Date().toISOString(), channel_name: 'DeFi Masters', channel_handle: 'defimaster', channel_avatar: '' },
-      { id: '3', title: 'NFT Minting Tutorial for Beginners', description: 'Learn how to mint NFTs', thumbnail_url: 'https://picsum.photos/seed/v3/640/360', video_url: '', duration: 1567, views: 67000, likes: 4500, category: 'nft', reward_amount: 20, created_at: new Date().toISOString(), channel_name: 'NFT World', channel_handle: 'nftworld', channel_avatar: '' },
-      { id: '4', title: 'Web3 Development Setup Guide', description: 'Complete setup tutorial', thumbnail_url: 'https://picsum.photos/seed/v4/640/360', video_url: '', duration: 1890, views: 54000, likes: 3800, category: 'education', reward_amount: 15, created_at: new Date().toISOString(), channel_name: 'Web3 Education', channel_handle: 'web3edu', channel_avatar: '' },
-      { id: '5', title: 'Top 10 Crypto Gains This Week', description: 'Weekly market analysis', thumbnail_url: 'https://picsum.photos/seed/v5/640/360', video_url: '', duration: 980, views: 156000, likes: 12000, category: 'crypto', reward_amount: 35, created_at: new Date().toISOString(), channel_name: 'Crypto Academy', channel_handle: 'cryptoacademy', channel_avatar: '' },
-      { id: '6', title: 'Layer 2 Solutions Explained', description: 'Scaling Ethereum', thumbnail_url: 'https://picsum.photos/seed/v6/640/360', video_url: '', duration: 1456, views: 43000, likes: 2900, category: 'technology', reward_amount: 18, created_at: new Date().toISOString(), channel_name: 'Web3 Education', channel_handle: 'web3edu', channel_avatar: '' },
-      { id: '7', title: 'Staking Rewards: Maximize Returns', description: 'Yield optimization strategies', thumbnail_url: 'https://picsum.photos/seed/v7/640/360', video_url: '', duration: 2134, views: 38000, likes: 2600, category: 'defi', reward_amount: 22, created_at: new Date().toISOString(), channel_name: 'DeFi Masters', channel_handle: 'defimaster', channel_avatar: '' },
-      { id: '8', title: 'The Future of Gaming on Blockchain', description: 'Play to earn evolution', thumbnail_url: 'https://picsum.photos/seed/v8/640/360', video_url: '', duration: 1678, views: 29000, likes: 2100, category: 'gaming', reward_amount: 12, created_at: new Date().toISOString(), channel_name: 'NFT World', channel_handle: 'nftworld', channel_avatar: '' },
-    ]
-  }
+  // NOTE: Fallback videos removed - no fake data
+  // Real videos should come from the API or P2P network
 
   const formatViews = (views: number) => {
     if (!views) return '0'
@@ -118,6 +108,19 @@ export default function HomePage() {
     const s = seconds % 60
     if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
     return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (seconds < 60) return 'just now'
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`
+    return date.toLocaleDateString()
   }
 
   return (
@@ -224,12 +227,9 @@ export default function HomePage() {
                 <div className="my-4 border-t border-slate-800" />
                 <div className="px-3 py-2">
                   <h3 className="text-sm font-medium text-slate-400 mb-2">Subscriptions</h3>
-                  {['Crypto Academy', 'DeFi Masters', 'NFT World', 'Web3 Education'].map(channel => (
-                    <a key={channel} href={`/@${channel.toLowerCase().replace(' ', '')}`} className="flex items-center gap-3 py-2 text-slate-400 hover:text-white">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-accent" />
-                      <span className="text-sm">{channel}</span>
-                    </a>
-                  ))}
+                  <p className="text-xs text-slate-500">
+                    Channels will appear here when the network is live.
+                  </p>
                 </div>
               </>
             )}
@@ -284,6 +284,21 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
+            ) : videos.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">📹</div>
+                <h3 className="text-xl font-bold text-white mb-2">No Videos Yet</h3>
+                <p className="text-slate-400 mb-4">
+                  The NexaStream network is under development.<br/>
+                  Real videos will appear here when the network is live.
+                </p>
+                <p className="text-slate-500 text-sm">
+                  Want to help build decentralized video?{' '}
+                  <a href="https://github.com/Railancosta/nexastream" className="text-primary hover:underline">
+                    Contribute on GitHub
+                  </a>
+                </p>
+              </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {videos.map(video => (
@@ -321,8 +336,12 @@ export default function HomePage() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
                           <span>{formatViews(video.views)} views</span>
-                          <span>•</span>
-                          <span>2 days ago</span>
+                          {video.created_at && (
+                            <>
+                              <span>•</span>
+                              <span>{formatTimeAgo(video.created_at)}</span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -381,11 +400,11 @@ export default function HomePage() {
                   © 2024 NexaStream. All rights reserved. Powered by NexaChain.
                 </p>
                 <div className="flex items-center gap-4 mt-4 md:mt-0">
-                  <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
-                    Network: Operational
+                  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs">
+                    Network: Under Development
                   </span>
                   <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs">
-                    $NEXA: $0.0234
+                    NST Token: In Development
                   </span>
                 </div>
               </div>
