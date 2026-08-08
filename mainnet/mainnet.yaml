@@ -1,0 +1,495 @@
+# NexaStream Mainnet Kubernetes Deployment
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexastream-mainnet
+  labels:
+    name: nexastream-mainnet
+    environment: production
+
+---
+# Genesis ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexachain-genesis
+  namespace: nexastream-mainnet
+data:
+  genesis.json: |
+    {
+      "chain_id": 1,
+      "network": "mainnet",
+      "consensus": {
+        "type": "hybrid_pow_pos",
+        "block_time": 3,
+        "min_validators": 7
+      }
+    }
+
+---
+# Node Config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexachain-config
+  namespace: nexastream-mainnet
+data:
+  config.toml: |
+    [chain]
+    chain_id = 1
+    network = "mainnet"
+    
+    [p2p]
+    listen_address = "/ip4/0.0.0.0/tcp/30303"
+    max_peers = 50
+    persistent_peers = "peer1,peer2,peer3"
+    
+    [rpc]
+    enabled = true
+    listen_address = "0.0.0.0:8545"
+    cors = ["https://nexastream.org", "https://www.nexastream.org"]
+    api = ["eth", "web3", "net", "txpool"]
+    rate_limit = 100
+    
+    [ws]
+    enabled = true
+    listen_address = "0.0.0.0:8546"
+    
+    [telemetry]
+    enabled = true
+    prometheus = true
+    listen_address = "0.0.0.0:26660"
+    
+    [security]
+    post_quantum = true
+    encryption = true
+
+---
+# Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nexachain-secrets
+  namespace: nexastream-mainnet
+type: Opaque
+stringData:
+  validator-key: "PLACEHOLDER_REPLACE_IN_PRODUCTION"
+
+---
+# Persistent Volume Claims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexachain-data
+  namespace: nexastream-mainnet
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ssd
+  resources:
+    requests:
+      storage: 500Gi
+
+---
+# NexaChain Validator Deployment
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nexachain-validator
+  namespace: nexastream-mainnet
+  labels:
+    app: nexachain
+    component: validator
+    environment: production
+spec:
+  serviceName: nexachain-validator
+  replicas: 7
+  selector:
+    matchLabels:
+      app: nexachain
+      component: validator
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: nexachain
+        component: validator
+        environment: production
+    spec:
+      terminationGracePeriodSeconds: 300
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: nexachain
+          image: railancosta/nexachain:mainnet
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 30303
+              name: p2p
+              protocol: TCP
+            - containerPort: 8545
+              name: rpc
+              protocol: TCP
+            - containerPort: 8546
+              name: ws
+              protocol: TCP
+            - containerPort: 26660
+              name: metrics
+              protocol: TCP
+          env:
+            - name: NODE_ROLE
+              value: "validator"
+            - name: CHAIN_ID
+              value: "1"
+            - name: DATA_DIR
+              value: "/data"
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            requests:
+              cpu: "1"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 16Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: genesis
+              mountPath: /config/genesis.json
+              subPath: genesis.json
+            - name: config
+              mountPath: /config/config.toml
+              subPath: config.toml
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8545
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8545
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8545
+            failureThreshold: 30
+            periodSeconds: 10
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: nexachain-data
+        - name: genesis
+          configMap:
+            name: nexachain-genesis
+        - name: config
+          configMap:
+            name: nexachain-config
+        - name: secrets
+          secret:
+            secretName: nexachain-secrets
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: nexachain
+                  component: validator
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: node.kubernetes.io/disk-type
+                    operator: In
+                    values:
+                      - ssd
+                  - key: node.kubernetes.io/instance-type
+                    operator: In
+                    values:
+                      - c5.2xlarge
+                      - c5.4xlarge
+
+---
+# Validator Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexachain-validator
+  namespace: nexastream-mainnet
+  labels:
+    app: nexachain
+    component: validator
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: p2p
+      port: 30303
+      targetPort: 30303
+      protocol: TCP
+    - name: rpc
+      port: 8545
+      targetPort: 8545
+      protocol: TCP
+    - name: ws
+      port: 8546
+      targetPort: 8546
+      protocol: TCP
+    - name: metrics
+      port: 26660
+      targetPort: 26660
+      protocol: TCP
+  selector:
+    app: nexachain
+    component: validator
+
+---
+# Full Node Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexachain-fullnode
+  namespace: nexastream-mainnet
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: nexachain
+      component: fullnode
+  template:
+    metadata:
+      labels:
+        app: nexachain
+        component: fullnode
+    spec:
+      containers:
+        - name: nexachain
+          image: railancosta/nexachain:mainnet
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 30303
+              name: p2p
+            - containerPort: 8545
+              name: rpc
+          env:
+            - name: NODE_ROLE
+              value: "fullnode"
+            - name: CHAIN_ID
+              value: "1"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: 2000m
+              memory: 8Gi
+          volumeMounts:
+            - name: genesis
+              mountPath: /config/genesis.json
+              subPath: genesis.json
+            - name: config
+              mountPath: /config/config.toml
+              subPath: config.toml
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8545
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: genesis
+          configMap:
+            name: nexachain-genesis
+        - name: config
+          configMap:
+            name: nexachain-config
+
+---
+# Full Node Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexachain-fullnode
+  namespace: nexastream-mainnet
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8545
+      targetPort: 8545
+      name: rpc
+  selector:
+    app: nexachain
+    component: fullnode
+
+---
+# Ingress for Public RPC
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nexachain-rpc
+  namespace: nexastream-mainnet
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+    - hosts:
+        - rpc.nexastream.org
+        - ws.nexastream.org
+      secretName: nexachain-rpc-tls
+  rules:
+    - host: rpc.nexastream.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nexachain-validator
+                port:
+                  number: 8545
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nexachain-validator-hpa
+  namespace: nexastream-mainnet
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: nexachain-validator
+  minReplicas: 7
+  maxReplicas: 21
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nexachain-validator-pdb
+  namespace: nexastream-mainnet
+spec:
+  minAvailable: 6
+  selector:
+    matchLabels:
+      app: nexachain
+      component: validator
+
+---
+# Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nexachain-network-policy
+  namespace: nexastream-mainnet
+spec:
+  podSelector:
+    matchLabels:
+      app: nexachain
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: 30303
+        - port: 8545
+        - port: 8546
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - port: 8545
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: nexachain
+      ports:
+        - port: 30303
+    - ports:
+        - port: 53
+        - port: 443
+        - port: 80
+
+---
+# Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexachain
+  namespace: nexastream-mainnet
+
+---
+# Cluster Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nexachain
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "create", "update"]
+
+---
+# Cluster Role Binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nexachain
+subjects:
+  - kind: ServiceAccount
+    name: nexachain
+    namespace: nexastream-mainnet
+roleRef:
+  kind: ClusterRole
+  name: nexachain
+  apiGroup: rbac.authorization.k8s.io

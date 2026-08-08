@@ -1,0 +1,416 @@
+{
+  "chain_name": "NexaStream",
+  "chain_id": 1,
+  "network_id": 1,
+  "genesis_time": "2024-10-01T00:00:00.000Z",
+  "consensus": {
+    "type": "hybrid_pow_pos",
+    "pos_blocks_ratio": 9,
+    "pow_blocks_ratio": 1,
+    "min_validators": 7,
+    "max_validators": 21,
+    "block_time": 3,
+    "target_block_time": 3,
+    "difficulty_adjustment": true,
+    "difficulty_target": 180,
+    "finality": {
+      "blocks": 2,
+      "time_seconds": 6
+    }
+  },
+  "governance": {
+    "quorum_percentage": 51,
+    "proposal_deposit": "1000000000000000000000",
+    "voting_period_blocks": 8400,
+    "execution_delay_blocks": 1200,
+    "emergency_proposal_threshold": 67,
+    "veto_percentage": 33.4
+  },
+  "token": {
+    "name": "NexaStream Token",
+    "symbol": "NST",
+    "decimals": 18,
+    "total_supply": "55000000000000000000000000",
+    "initial_supply": "0",
+    "emission": {
+      "type": "mining_reward",
+      "inflation_rate": 0.05,
+      "deflation_mechanism": "burn_fee"
+    }
+  },
+  "rewards": {
+    "pow_block_reward": "10000000000000000000",
+    "pos_block_reward": "2000000000000000000",
+    "validator_reward_ratio": 0.1,
+    "developer_reward_ratio": 0.1,
+    "inflation_rate": 0.05,
+    "halving_interval_blocks": 2100000,
+    "min_block_reward": "1000000000000000000",
+    "reward_decay_rate": 0.95
+  },
+  "staking": {
+    "min_stake": "100000000000000000000",
+    "max_stake_per_validator": "11000000000000000000000000",
+    "unstake_period_blocks": 300,
+    "reward_distribution_blocks": 1,
+    "slashing": {
+      "double_sign_penalty": 0.05,
+      "unavailability_penalty": 0.01,
+      "missed_blocks_threshold": 50,
+      "max_penalty": 0.2
+    },
+    "delegation": {
+      "enabled": true,
+      "min_delegation": "10000000000000000000",
+      "undelegation_period_blocks": 200
+    }
+  },
+  "accounts": [
+    {
+      "address": "0x0000000000000000000000000000000000000000",
+      "balance": "0",
+      "type": "zero",
+      "name": "Zero Address"
+    },
+    {
+      "address": "0xTreasury00000000000000000000000000001",
+      "balance": "11000000000000000000000000000",
+      "type": "treasury",
+      "name": "NexaStream Treasury",
+      "multisig": {
+        "required_signatures": 3,
+        "signers": [
+          "0xTreasury00000000000000000000000000001",
+          "0xTreasury00000000000000000000000000002",
+          "0xTreasury00000000000000000000000000003"
+        ]
+      },
+      "purpose": "ecosystem_development"
+    },
+    {
+      "address": "0xFoundation0000000000000000000000000002",
+      "balance": "5500000000000000000000000000",
+      "type": "foundation",
+      "name": "NexaStream Foundation",
+      "purpose": "operations_and_development"
+    },
+    {
+      "address": "0xStrategic000000000000000000000000003",
+      "balance": "5500000000000000000000000000",
+      "type": "strategic",
+      "name": "Strategic Partners Reserve",
+      "vesting": {
+        "start_time": "2024-10-01T00:00:00Z",
+        "end_time": "2027-10-01T00:00:00Z",
+        "cliff_months": 12,
+        "vesting_months": 36,
+        "slice_period_months": 1
+      }
+    },
+    {
+      "address": "0xTeam0000000000000000000000000000004",
+      "balance": "2750000000000000000000000000",
+      "type": "team",
+      "name": "Team Reserve",
+      "vesting": {
+        "start_time": "2024-10-01T00:00:00Z",
+        "end_time": "2028-10-01T00:00:00Z",
+        "cliff_months": 24,
+        "vesting_months": 48,
+        "slice_period_months": 1
+      }
+    },
+    {
+      "address": "0xAirdrop0000000000000000000000000005",
+      "balance": "550000000000000000000000000",
+      "type": "airdrop",
+      "name": "Community Airdrop",
+      "claim_start": "2024-10-01T00:00:00Z",
+      "claim_end": "2025-10-01T00:00:00Z"
+    },
+    {
+      "address": "0xEcosystem000000000000000000000000006",
+      "balance": "5500000000000000000000000000",
+      "type": "ecosystem",
+      "name": "Ecosystem Growth Fund",
+      "purpose": "grants_incentives_partnerships"
+    },
+    {
+      "address": "0xValidator0000000000000000000000000007",
+      "balance": "2750000000000000000000000000",
+      "type": "validator_rewards",
+      "name": "Validator Incentive Program",
+      "vesting": {
+        "start_time": "2024-10-01T00:00:00Z",
+        "end_time": "2026-10-01T00:00:00Z",
+        "cliff_months": 6,
+        "vesting_months": 24,
+        "slice_period_months": 1
+      }
+    }
+  ],
+  "validators": [
+    {
+      "address": "0xValidator0000000000000000000000000001",
+      "pubkey": "NstValidatorPubKey001",
+      "power": 1000000000000000000000,
+      "name": "NexaStream Foundation Validator 1",
+      "description": "Primary validator operated by NexaStream Foundation",
+      "website": "https://validator1.nexastream.org",
+      "identity": "nexastream_foundation_1",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01,
+      "location": {
+        "country": "United States",
+        "region": "North America"
+      }
+    },
+    {
+      "address": "0xValidator0000000000000000000000000002",
+      "pubkey": "NstValidatorPubKey002",
+      "power": 1000000000000000000000,
+      "name": "NexaStream Foundation Validator 2",
+      "description": "Secondary validator operated by NexaStream Foundation",
+      "website": "https://validator2.nexastream.org",
+      "identity": "nexastream_foundation_2",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01,
+      "location": {
+        "country": "Germany",
+        "region": "Europe"
+      }
+    },
+    {
+      "address": "0xValidator0000000000000000000000000003",
+      "pubkey": "NstValidatorPubKey003",
+      "power": 1000000000000000000000,
+      "name": "NexaStream Foundation Validator 3",
+      "description": "Tertiary validator operated by NexaStream Foundation",
+      "website": "https://validator3.nexastream.org",
+      "identity": "nexastream_foundation_3",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01,
+      "location": {
+        "country": "Japan",
+        "region": "Asia Pacific"
+      }
+    },
+    {
+      "address": "0xValidator0000000000000000000000000004",
+      "pubkey": "NstValidatorPubKey004",
+      "power": 1000000000000000000000,
+      "name": "Community Validator 1",
+      "description": "Community operated validator",
+      "website": "https://validator4.nexastream.org",
+      "identity": "community_validator_1",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01,
+      "location": {
+        "country": "Singapore",
+        "region": "Asia Pacific"
+      }
+    },
+    {
+      "address": "0xValidator0000000000000000000000000005",
+      "pubkey": "NstValidatorPubKey005",
+      "power": 1000000000000000000000,
+      "name": "Community Validator 2",
+      "description": "Community operated validator",
+      "website": "https://validator5.nexastream.org",
+      "identity": "community_validator_2",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01,
+      "location": {
+        "country": "United Kingdom",
+        "region": "Europe"
+      }
+    },
+    {
+      "address": "0xValidator0000000000000000000000000006",
+      "pubkey": "NstValidatorPubKey006",
+      "power": 1000000000000000000000,
+      "name": "Community Validator 3",
+      "description": "Community operated validator",
+      "website": "https://validator6.nexastream.org",
+      "identity": "community_validator_3",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01,
+      "location": {
+        "country": "Canada",
+        "region": "North America"
+      }
+    },
+    {
+      "address": "0xValidator0000000000000000000000000007",
+      "pubkey": "NstValidatorPubKey007",
+      "power": 1000000000000000000000,
+      "name": "Strategic Partner Validator",
+      "description": "Validator operated by strategic partner",
+      "website": "https://validator7.nexastream.org",
+      "identity": "strategic_partner_validator",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01,
+      "location": {
+        "country": "Switzerland",
+        "region": "Europe"
+      }
+    }
+  ],
+  "contracts": {
+    "NSTToken": {
+      "address": "0xNSTToken00000000000000000000000001",
+      "source": "native",
+      "params": {
+        "name": "NexaStream Token",
+        "symbol": "NST",
+        "decimals": 18,
+        "max_supply": "55000000000000000000000000"
+      }
+    },
+    "Staking": {
+      "address": "0xStaking000000000000000000000000002",
+      "source": "native",
+      "params": {
+        "min_stake": "100000000000000000000",
+        "unstake_period": 300,
+        "reward_rate": 1200,
+        "slashing_enabled": true
+      }
+    },
+    "Governance": {
+      "address": "0xGovernance0000000000000000000000003",
+      "source": "native",
+      "params": {
+        "proposal_deposit": "1000000000000000000000",
+        "voting_period": 8400,
+        "quorum": 0.51,
+        "veto_threshold": 0.334
+      }
+    },
+    "NFTMarketplace": {
+      "address": "0xNFTMarket0000000000000000000000004",
+      "source": "native",
+      "params": {
+        "royalty_fee": 250,
+        "platform_fee": 250,
+        "min_price": "1000000000000000"
+      }
+    },
+    "Treasury": {
+      "address": "0xTreasury00000000000000000000000005",
+      "source": "native",
+      "params": {
+        "multisig_required_signatures": 3
+      }
+    }
+  },
+  "parameters": {
+    "max_block_size": 10485760,
+    "max_gas_per_block": 10000000,
+    "min_gas_price": 0,
+    "tx_fee": 0,
+    "account_upgrade_bytes": 1000000,
+    "key_rotation": true,
+    "replay_protection": true,
+    "max_transactions_per_block": 1000,
+    "max_code_size": 24576
+  },
+  "p2p": {
+    "listen_addresses": [
+      "/ip4/0.0.0.0/tcp/30303",
+      "/ip6/::/tcp/30303"
+    ],
+    "max_peers": 50,
+    "max_inbound_peers": 25,
+    "max_outbound_peers": 25,
+    "connection_timeout": 30,
+    "dial_timeout": 10,
+    "enable_upnp": false,
+    "enable_nat_detection": true
+  },
+  "rpc": {
+    "enabled": true,
+    "listen_address": "0.0.0.0:8545",
+    "cors": ["https://nexastream.org", "https://www.nexastream.org"],
+    "api": ["eth", "web3", "net", "txpool", "debug", "trace"],
+    "max_connections": 1000,
+    "rate_limit": 100,
+    "rate_limit_window": 60,
+    "ws": {
+      "enabled": true,
+      "listen_address": "0.0.0.0:8546",
+      "origins": ["https://nexastream.org", "https://www.nexastream.org"],
+      "api": ["eth", "web3", "net"],
+      "max_connections": 500
+    }
+  },
+  "telemetry": {
+    "enabled": true,
+    "prometheus": true,
+    "listen_address": "0.0.0.0:26660",
+    "labels": {
+      "network": "mainnet",
+      "chain_id": "1",
+      "node_type": "validator"
+    }
+  },
+  "mining": {
+    "enabled": true,
+    "threads": 4,
+    "gas_limit": 8000000,
+    "target_gas_limit": 10000000
+  },
+  "security": {
+    "post_quantum": {
+      "enabled": true,
+      "algorithms": ["CRYSTALS-Dilithium", "SPHINCS+"],
+      "fallback": "ECDSA"
+    },
+    "encryption": {
+      "at_rest": true,
+      "in_transit": true,
+      "algorithm": "AES-256-GCM"
+    },
+    "access_control": {
+      "rbac_enabled": true,
+      "multisig_enabled": true
+    }
+  },
+  "upgrades": [
+    {
+      "name": "Genesis",
+      "block_height": 0,
+      "features": ["hybrid_consensus", "native_token", "smart_contracts"]
+    },
+    {
+      "name": "Phase1_Streaming",
+      "block_height": 100000,
+      "features": ["live_streaming", "transcoding"]
+    },
+    {
+      "name": "Phase2_NFT",
+      "block_height": 500000,
+      "features": ["nft_minting", "nft_marketplace"]
+    }
+  ],
+  "checkpoints": [
+    {
+      "block_height": 0,
+      "hash": "0xGenesisHash0000000000000000000000000",
+      "timestamp": "2024-10-01T00:00:00Z"
+    }
+  ],
+  "metadata": {
+    "description": "NexaStream Mainnet Genesis Block",
+    "created_at": "2024-09-01T00:00:00Z",
+    "version": "1.0.0",
+    "hash": "0xGenesisMetadataHash000000000000000"
+  }
+}
