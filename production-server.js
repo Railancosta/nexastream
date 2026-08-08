@@ -1,6 +1,13 @@
 /**
  * NexaStream Production Server
- * Serves both frontend (static) and backend (API)
+ * 
+ * ⚠️ IMPORTANT: This is a DEMO server with NO real data.
+ * All statistics displayed are FAKE and should NOT be trusted.
+ * 
+ * For production:
+ * - Use the Docker Compose setup (docker/docker-compose.zero-cloud.yml)
+ * - Connect to real NexaChain network
+ * - Use real IPFS storage
  */
 
 const express = require('express');
@@ -11,7 +18,6 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_PORT = process.env.API_PORT || 3001;
 
 // Trust proxy
 app.set('trust proxy', 1);
@@ -48,91 +54,136 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Serve static files from frontend/out
 app.use(express.static(path.join(__dirname, 'frontend', 'out')));
 
-// API routes (mock for demo)
+// API routes - ALL RETURN DEMO/FAKE DATA
+// DO NOT USE IN PRODUCTION
+
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: Date.now(),
-    version: '2.0.0',
+    version: '0.0.1-dev',
     platform: 'NexaStream',
-    network: 'NexaChain'
+    network: 'NexaChain',
+    mode: 'DEVELOPMENT',
+    warning: 'All data is fake - no real network'
   });
 });
 
 app.get('/api/videos', (req, res) => {
-  const mockVideos = [
-    { id: '1', title: 'Bitcoin Halving 2024: Complete Guide', thumbnailUrl: 'https://picsum.photos/seed/v1/640/360', views: 125000, likes: 8500, category: 'crypto', rewardAmount: 25, duration: 1234, channel: { name: 'Crypto Academy', verified: true } },
-    { id: '2', title: 'Build Your First DeFi App', thumbnailUrl: 'https://picsum.photos/seed/v2/640/360', views: 89000, likes: 6200, category: 'defi', rewardAmount: 30, duration: 2345, channel: { name: 'DeFi Masters', verified: true } },
-    { id: '3', title: 'NFT Minting Tutorial for Beginners', thumbnailUrl: 'https://picsum.photos/seed/v3/640/360', views: 67000, likes: 4500, category: 'nft', rewardAmount: 20, duration: 1567, channel: { name: 'NFT World', verified: true } },
-    { id: '4', title: 'Web3 Development Setup Guide', thumbnailUrl: 'https://picsum.photos/seed/v4/640/360', views: 54000, likes: 3800, category: 'education', rewardAmount: 15, duration: 1890, channel: { name: 'Web3 Education', verified: true } },
-    { id: '5', title: 'Top 10 Crypto Gains This Week', thumbnailUrl: 'https://picsum.photos/seed/v5/640/360', views: 156000, likes: 12000, category: 'crypto', rewardAmount: 35, duration: 980, channel: { name: 'Crypto Academy', verified: true } },
-    { id: '6', title: 'Layer 2 Solutions Explained', thumbnailUrl: 'https://picsum.photos/seed/v6/640/360', views: 43000, likes: 2900, category: 'technology', rewardAmount: 18, duration: 1456, channel: { name: 'Web3 Education', verified: true } },
-    { id: '7', title: 'Staking Rewards: Maximize Returns', thumbnailUrl: 'https://picsum.photos/seed/v7/640/360', views: 38000, likes: 2600, category: 'defi', rewardAmount: 22, duration: 2134, channel: { name: 'DeFi Masters', verified: true } },
-    { id: '8', title: 'The Future of Gaming on Blockchain', thumbnailUrl: 'https://picsum.photos/seed/v8/640/360', views: 29000, likes: 2100, category: 'gaming', rewardAmount: 12, duration: 1678, channel: { name: 'NFT World', verified: true } },
-  ];
-  res.json({ videos: mockVideos });
+  // NO VIDEOS - Real videos would come from IPFS
+  res.json({ 
+    videos: [],
+    message: 'No videos available - connect to IPFS network'
+  });
 });
 
 app.get('/api/stats', (req, res) => {
+  // HONEST STATS - All zeros/fake
   res.json({
-    totalVideos: 2847,
-    totalViews: '12.5M',
-    totalCreators: 1234,
-    totalStaked: 45230,
-    price: 0.0234,
-    dailyRewards: 45230,
-    tvl: '12.5M',
-    networkSecurity: '99.9%'
+    totalVideos: 0,
+    totalViews: 0,
+    totalCreators: 0,
+    totalStaked: '0 NST',
+    price: 0,
+    dailyRewards: 0,
+    tvl: '0',
+    networkStatus: 'NOT_INITIALIZED',
+    warning: 'No real data - network not yet launched'
   });
 });
 
 app.get('/api/leaderboard', (req, res) => {
   res.json({
-    topChannels: [
-      { rank: 1, name: 'Crypto Academy', subscribers: '1.2M', earnings: 125000 },
-      { rank: 2, name: 'DeFi Masters', subscribers: '890K', earnings: 98500 },
-      { rank: 3, name: 'NFT World', subscribers: '650K', earnings: 72000 },
-      { rank: 4, name: 'Web3 Education', subscribers: '520K', earnings: 58200 },
-    ]
+    topChannels: [],
+    message: 'No real data available yet'
   });
 });
 
-// Blockchain stats endpoint
+// Blockchain stats endpoint - ALL FAKE
 app.get('/api/chain/stats', (req, res) => {
   res.json({
-    blockHeight: 18500000,
-    totalTransactions: '45.2M',
-    avgBlockTime: '3s',
-    validators: 150,
-    stakingAPY: '12.5%',
-    totalStaked: '45.2M NST'
+    blockHeight: 0,
+    totalTransactions: 0,
+    avgBlockTime: 'N/A',
+    validators: 0,
+    stakingAPY: 0,
+    totalStaked: '0 NST',
+    status: 'NOT_STARTED',
+    warning: 'Blockchain not yet launched'
+  });
+});
+
+// Network status endpoint
+app.get('/api/network/status', (req, res) => {
+  res.json({
+    connected: false,
+    peers: 0,
+    storageNodes: 0,
+    activeNodes: 0,
+    blockHeight: 0,
+    networkReady: false,
+    message: 'Connect to P2P network to see real status'
   });
 });
 
 // Serve frontend for all other routes (SPA support)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'out', 'index.html'));
+  const indexPath = path.join(__dirname, 'frontend', 'out', 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      // Fallback to root frontend if 'out' doesn't exist
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>NexaStream - Development Mode</title>
+            <style>
+              body { font-family: system-ui; background: #0f172a; color: white; padding: 2rem; }
+              h1 { color: #0ea5e9; }
+              .warning { background: #fbbf24; color: #000; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+              .status { color: #ef4444; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h1>NexaStream</h1>
+            <div class="warning">
+              ⚠️ DEVELOPMENT MODE - ALL DATA IS FAKE
+            </div>
+            <p class="status">Network Status: NOT_INITIALIZED</p>
+            <p>This server is running in development mode.</p>
+            <p>No real blockchain, no real P2P network, no real videos.</p>
+            <p>Use Docker Compose for real local development.</p>
+          </body>
+        </html>
+      `);
+    }
+  });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║   🚀 NexaStream Production Server v2.0                   ║
+║   ⚠️  NexaStream DEVELOPMENT SERVER v0.0.1              ║
 ║                                                           ║
 ║   🌐 URL: http://0.0.0.0:${PORT}                          ║
 ║   📡 API: http://0.0.0.0:${PORT}/api                       ║
 ║                                                           ║
-║   📊 Platform Stats:                                      ║
-║   ├── Total Videos: 2,847                                ║
-║   ├── Total Views: 12.5M                                 ║
-║   ├── Creators: 1,234                                    ║
-║   └── NST Staked: 45,230                                ║
+║   ⚠️  WARNING: ALL DATA IS FAKE                           ║
 ║                                                           ║
-║   🔗 NexaStream Chain:                                    ║
-║   ├── Block Height: 18,500,000                           ║
-║   ├── Validators: 150                                    ║
-║   └── Staking APY: 12.5%                                 ║
+║   📊 Platform Stats (FAKE):                              ║
+║   ├── Total Videos: 0                                    ║
+║   ├── Total Views: 0                                     ║
+║   ├── Creators: 0                                        ║
+║   └── NST Staked: 0 NST                                  ║
+║                                                           ║
+║   🔗 NexaStream Chain (NOT STARTED):                      ║
+║   ├── Block Height: 0                                     ║
+║   ├── Validators: 0                                      ║
+║   └── Status: NOT_INITIALIZED                            ║
+║                                                           ║
+║   ℹ️  Use Docker Compose for real development             ║
+║       docker-compose -f docker/docker-compose.zero-cloud.yml up
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
   `);

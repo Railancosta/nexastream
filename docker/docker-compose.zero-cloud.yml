@@ -1,0 +1,166 @@
+# NexaStream Zero-Cloud Development Environment
+# =============================================
+# This docker-compose setup enables local development without paid cloud services.
+# No AWS, GCP, Azure, Vercel, Railway, or Supabase required.
+#
+# Usage:
+#   docker-compose -f docker/docker-compose.zero-cloud.yml up
+#
+# Components:
+#   - PostgreSQL: Local database
+#   - IPFS/Kubo: Content-addressed storage
+#   - NexaChain: Local blockchain node
+#   - Prometheus: Metrics collection
+#   - Frontend: Next.js application
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexastream-postgres
+    environment:
+      POSTGRES_DB: nexastream
+      POSTGRES_USER: nexastream
+      POSTGRES_PASSWORD: nexastream_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexastream -d nexastream"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # IPFS/Kubo Node
+  ipfs:
+    image: ipfs/kubo:v0.24.0
+    container_name: nexastream-ipfs
+    ports:
+      - "5001:5001"   # IPFS API
+      - "8080:8080"   # IPFS Gateway
+      - "4001:4001/tcp"   # Swarm TCP
+      - "4001:4001/udp"   # Swarm UDP
+    volumes:
+      - ipfs_data:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5001/api/v0/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NexaChain Node
+  nexachain:
+    build:
+      context: ./nexachain
+      dockerfile: Dockerfile
+    container_name: nexastream-nexachain
+    ports:
+      - "30303:30303"  # P2P
+      - "26657:26657"  # RPC
+      - "26656:26656"  # Tendermint
+    volumes:
+      - nexachain_data:/data
+      - ./nexachain:/app
+    environment:
+      - CHAIN_ID=nexastream-local
+      - P2P_PORT=30303
+      - RPC_PORT=26657
+      - STORAGE_PATH=/data/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "26657"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NexaStream Frontend
+  frontend:
+    build:
+      context: ./nexastream
+      dockerfile: Dockerfile
+    container_name: nexastream-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_SITE_URL=http://localhost:3000
+      - NEXT_PUBLIC_CHAIN_ID=nexastream-local
+      - NEXT_PUBLIC_RPC_URL=http://localhost:26657
+      - NEXT_PUBLIC_IPFS_GATEWAY=http://localhost:8080
+      - DATABASE_URL=postgresql://nexastream:nexastream_dev_password@postgres:5432/nexastream
+    depends_on:
+      - postgres
+      - ipfs
+      - nexachain
+    volumes:
+      - ./nexastream:/app
+      - /app/node_modules
+      - /app/.next
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: nexastream-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: nexastream-grafana
+    ports:
+      - "3031:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+    depends_on:
+      - prometheus
+
+  # NGINX Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nexastream-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/certs:/etc/nginx/certs
+    depends_on:
+      - frontend
+      - ipfs
+      - nexachain
+
+networks:
+  default:
+    name: nexastream-network
+
+volumes:
+  postgres_data:
+    name: nexastream-postgres
+  ipfs_data:
+    name: nexastream-ipfs
+  nexachain_data:
+    name: nexastream-nexachain
+  prometheus_data:
+    name: nexastream-prometheus
+  grafana_data:
+    name: nexastream-grafana
