@@ -1,0 +1,454 @@
+# NexaStream Prometheus Alerting Rules
+groups:
+  # ========================
+  # INFRASTRUCTURE ALERTS
+  # ========================
+  - name: infrastructure
+    interval: 30s
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: cpu_usage_percent > 80 for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for more than 5 minutes"
+
+      - alert: CriticalCPUUsage
+        expr: cpu_usage_percent > 95 for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Critical CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 95% for more than 2 minutes"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: memory_usage_percent > 85 for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% for more than 5 minutes"
+
+      - alert: CriticalMemoryUsage
+        expr: memory_usage_percent > 95 for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Critical memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 95% for more than 2 minutes"
+
+      # Disk Space
+      - alert: LowDiskSpace
+        expr: disk_free_percent < 20 for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk space is below 20% for more than 5 minutes"
+
+      - alert: CriticalDiskSpace
+        expr: disk_free_percent < 10
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Disk space is below 10%"
+
+  # ========================
+  # APPLICATION ALERTS
+  # ========================
+  - name: application
+    interval: 30s
+    rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "Error rate is above 5% for more than 2 minutes"
+
+      - alert: CriticalErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.10
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Critical error rate on {{ $labels.service }}"
+          description: "Error rate is above 10% for more than 1 minute"
+
+      # High Latency
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High latency on {{ $labels.service }}"
+          description: "P95 latency is above 2 seconds"
+
+      - alert: CriticalLatency
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Critical latency on {{ $labels.service }}"
+          description: "P99 latency is above 5 seconds"
+
+      # Service Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "{{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute"
+
+      # High Request Rate
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[5m]) > 10000
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High request rate on {{ $labels.service }}"
+          description: "Request rate is above 10,000 req/s"
+
+  # ========================
+  # DATABASE ALERTS
+  # ========================
+  - name: database
+    interval: 30s
+    rules:
+      # PostgreSQL Connection Pool
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High PostgreSQL connections"
+          description: "PostgreSQL has more than 80 active connections"
+
+      - alert: PostgreSQLConnectionExhausted
+        expr: pg_stat_activity_count > 95
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL connections exhausted"
+          description: "PostgreSQL connection pool is nearly full"
+
+      # PostgreSQL Replication Lag
+      - alert: PostgreSQLReplicationLag
+        expr: pg_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "PostgreSQL replication lag"
+          description: "Replication lag is above 30 seconds"
+
+      # PostgreSQL Long Running Queries
+      - alert: PostgreSQLLongRunningQueries
+        expr: pg_stat_activity_max_tx_duration_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Long running queries detected"
+          description: "Queries running for more than 5 minutes"
+
+      # Slow Queries
+      - alert: HighSlowQueries
+        expr: rate(pg_stat_statements_mean_seconds[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High rate of slow queries"
+          description: "Average query duration is above 1 second"
+
+  # ========================
+  # BLOCKCHAIN ALERTS
+  # ========================
+  - name: blockchain
+    interval: 30s
+    rules:
+      # Block Production
+      - alert: BlockchainNoNewBlocks
+        expr: time() - nexachain_last_block_timestamp > 60
+        for: 2m
+        labels:
+          severity: critical
+          component: blockchain
+        annotations:
+          summary: "No new blocks produced"
+          description: "No new blocks produced in the last 2 minutes"
+
+      # High Unconfirmed Transactions
+      - alert: HighUnconfirmedTx
+        expr: nexachain_pending_transactions > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: blockchain
+        annotations:
+          summary: "High number of unconfirmed transactions"
+          description: "More than 1000 unconfirmed transactions"
+
+      # Validator Down
+      - alert: ValidatorDown
+        expr: nexachain_validator_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: blockchain
+        annotations:
+          summary: "Validator {{ $labels.validator }} is down"
+          description: "Validator has been offline for more than 1 minute"
+
+      # High Gas Usage
+      - alert: HighGasUsage
+        expr: rate(nexachain_gas_used[5m]) > 0.9 * nexachain_gas_limit
+        for: 10m
+        labels:
+          severity: warning
+          component: blockchain
+        annotations:
+          summary: "High gas usage on NexaChain"
+          description: "Gas usage is above 90% of limit"
+
+      # Fork Detected
+      - alert: ForkDetected
+        expr: nexachain_fork_detected == 1
+        labels:
+          severity: critical
+          component: blockchain
+        annotations:
+          summary: "Blockchain fork detected"
+          description: "A blockchain fork has been detected"
+
+  # ========================
+  # STORAGE ALERTS
+  # ========================
+  - name: storage
+    interval: 30s
+    rules:
+      # Redis Memory
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is above 90%"
+
+      # Redis OOM
+      - alert: RedisOOM
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.99
+        for: 1m
+        labels:
+          severity: critical
+          component: storage
+        annotations:
+          summary: "Redis out of memory"
+          description: "Redis is about to run out of memory"
+
+      # Storage Disk Usage
+      - alert: StorageLowSpace
+        expr: nexastream_storage_free_bytes < 10 * 1024 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+        annotations:
+          summary: "Low storage space"
+          description: "Less than 10GB of storage remaining"
+
+      # Upload Failures
+      - alert: HighUploadFailureRate
+        expr: rate(nexastream_upload_errors_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+        annotations:
+          summary: "High upload failure rate"
+          description: "Upload failure rate is above 1%"
+
+  # ========================
+  # STREAMING ALERTS
+  # ========================
+  - name: streaming
+    interval: 30s
+    rules:
+      # Stream Health
+      - alert: StreamerOffline
+        expr: nexastream_live_streams < 1
+        for: 5m
+        labels:
+          severity: info
+          component: streaming
+        annotations:
+          summary: "No live streams"
+          description: "There are no live streams currently"
+
+      # High Viewer Count
+      - alert: HighViewerCount
+        expr: nexastream_concurrent_viewers > 100000
+        for: 5m
+        labels:
+          severity: info
+          component: streaming
+        annotations:
+          summary: "High concurrent viewers"
+          description: "More than 100,000 concurrent viewers"
+
+      # Transcoding Backlog
+      - alert: TranscodingBacklog
+        expr: nexastream_transcoding_queue_size > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Transcoding backlog building up"
+          description: "More than 100 videos waiting to be transcoded"
+
+      # Stream Quality Issues
+      - alert: StreamQualityIssues
+        expr: rate(nexastream_stream_errors_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          component: streaming
+        annotations:
+          summary: "Stream quality issues detected"
+          description: "Error rate for streams is above 5%"
+
+  # ========================
+  # SLO ALERTS
+  # ========================
+  - name: slo_alerts
+    interval: 60s
+    rules:
+      # API Availability SLO (99.9%)
+      - alert: APIAvailabilitySLOBurn
+        expr: |
+          (
+            1 - sum(rate(http_requests_total{job="nexastream-backend",status!~"5.."}[1h])) 
+            / 
+            sum(rate(http_requests_total{job="nexastream-backend"}[1h]))
+          ) > 0.001
+        for: 5m
+        labels:
+          severity: warning
+          component: slo
+        annotations:
+          summary: "API availability SLO at risk"
+          description: "API availability is below 99.9% SLO target"
+
+      # API Latency SLO (P95 < 500ms)
+      - alert: APILatencySLOBurn
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="nexastream-backend"}[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: slo
+        annotations:
+          summary: "API latency SLO at risk"
+          description: "API P95 latency is above 500ms SLO target"
+
+      # Error Budget Exhausted
+      - alert: ErrorBudgetExhausted
+        expr: |
+          (
+            sum(rate(http_requests_total{job="nexastream-backend",status=~"5.."}[1h])) 
+            / 
+            sum(rate(http_requests_total{job="nexastream-backend"}[1h]))
+          ) > 0.001
+        for: 30m
+        labels:
+          severity: critical
+          component: slo
+        annotations:
+          summary: "Error budget nearly exhausted"
+          description: "API error rate is consuming error budget rapidly"
+
+  # ========================
+  # SECURITY ALERTS
+  # ========================
+  - name: security
+    interval: 60s
+    rules:
+      # Failed Login Attempts
+      - alert: HighFailedLogins
+        expr: rate(nexastream_auth_failures_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High rate of failed login attempts"
+          description: "More than 10 failed logins per minute detected"
+
+      # Potential Brute Force
+      - alert: PotentialBruteForce
+        expr: |
+          increase(nexastream_auth_failures_total[5m]) > 50
+        for: 5m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Potential brute force attack detected"
+          description: "More than 50 failed login attempts in 5 minutes"
+
+      # Suspicious API Activity
+      - alert: SuspiciousAPIActivity
+        expr: rate(nexastream_suspicious_requests_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Suspicious API activity detected"
+          description: "Potential malicious activity detected in API requests"
+
+      # Rate Limit Hit
+      - alert: RateLimitExceeded
+        expr: rate(nexastream_rate_limit_exceeded_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High rate limit violations"
+          description: "Many clients are hitting rate limits"

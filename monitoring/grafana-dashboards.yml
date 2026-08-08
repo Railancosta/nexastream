@@ -1,0 +1,77 @@
+# NexaStream Grafana Dashboard Provisioning
+apiVersion: 1
+
+providers:
+  - name: 'NexaStream'
+    orgId: 1
+    folder: 'NexaStream'
+    folderUid: 'nexastream'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/nexastream
+
+dashboards:
+  # ==========================================
+  # MAIN OVERVIEW DASHBOARD
+  # ==========================================
+  - name: 'NexaStream Overview'
+    uid: nexastream-overview
+    title: 'NexaStream - Overview'
+    folder: 'NexaStream'
+    type: file
+    datasource: Prometheus
+    dashletConfig:
+      size: 12
+      refresh: 30s
+
+  - name: 'NexaStream API'
+    uid: nexastream-api
+    title: 'NexaStream - API'
+    folder: 'NexaStream'
+    type: file
+    datasource: Prometheus
+
+  - name: 'NexaStream Blockchain'
+    uid: nexastream-blockchain
+    title: 'NexaStream - Blockchain'
+    folder: 'NexaStream'
+    type: file
+    datasource: Prometheus
+
+  - name: 'NexaStream Storage'
+    uid: nexastream-storage
+    title: 'NexaStream - Storage'
+    folder: 'NexaStream'
+    type: file
+    datasource: Prometheus
+
+  - name: 'NexaStream Streaming'
+    uid: nexastream-streaming
+    title: 'NexaStream - Streaming'
+    folder: 'NexaStream'
+    type: file
+    datasource: Prometheus
+
+  - name: 'NexaStream Infrastructure'
+    uid: nexastream-infra
+    title: 'NexaStream - Infrastructure'
+    folder: 'NexaStream'
+    type: file
+    datasource: Prometheus
+
+  - name: 'NexaStream SLO'
+    uid: nexastream-slo
+    title: 'NexaStream - SLO'
+    folder: 'NexaStream'
+    type: file
+    datasource: Prometheus
+
+  - name: 'NexaStream Security'
+    uid: nexastream-security
+    title: 'NexaStream - Security'
+    folder: 'NexaStream'
+    type: file
+    datasource: Prometheus
