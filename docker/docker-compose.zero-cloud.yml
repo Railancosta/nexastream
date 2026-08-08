@@ -1,17 +1,20 @@
-# NexaStream Zero-Cloud Development Environment
+# NexaStream Zero-Cloud Multi-Node Testnet
 # =============================================
-# This docker-compose setup enables local development without paid cloud services.
+# This docker-compose setup enables local multi-node testnet development.
 # No AWS, GCP, Azure, Vercel, Railway, or Supabase required.
 #
 # Usage:
 #   docker-compose -f docker/docker-compose.zero-cloud.yml up
+#   docker-compose -f docker/docker-compose.zero-cloud.yml up --scale nexachain-node-2=1
+#   docker-compose -f docker/docker-compose.zero-cloud.yml up --scale nexachain-node-3=1
 #
 # Components:
 #   - PostgreSQL: Local database
-#   - IPFS/Kubo: Content-addressed storage
-#   - NexaChain: Local blockchain node
+#   - IPFS/Kubo Cluster: Distributed content storage
+#   - NexaChain Nodes: Blockchain nodes (scalable)
 #   - Prometheus: Metrics collection
 #   - Frontend: Next.js application
+#   - Block Explorer: Blockchain explorer
 
 version: '3.8'
 
@@ -34,18 +37,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - nexastream-net
 
-  # IPFS/Kubo Node
-  ipfs:
+  # IPFS/Kubo Node (Bootstrap)
+  ipfs-bootstrap:
     image: ipfs/kubo:v0.24.0
-    container_name: nexastream-ipfs
+    container_name: nexastream-ipfs-bootstrap
     ports:
       - "5001:5001"   # IPFS API
       - "8080:8080"   # IPFS Gateway
       - "4001:4001/tcp"   # Swarm TCP
       - "4001:4001/udp"   # Swarm UDP
     volumes:
-      - ipfs_data:/data/ipfs
+      - ipfs_bootstrap_data:/data/ipfs
     environment:
       - IPFS_PROFILE=server
     healthcheck:
@@ -53,33 +58,148 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - nexastream-net
 
-  # NexaChain Node
-  nexachain:
+  # IPFS/Kubo Node 2 (Storage)
+  ipfs-node-2:
+    image: ipfs/kubo:v0.24.0
+    container_name: nexastream-ipfs-2
+    ports:
+      - "5002:5001"
+      - "8081:8080"
+    volumes:
+      - ipfs_node2_data:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    depends_on:
+      - ipfs-bootstrap
+    networks:
+      - nexastream-net
+
+  # IPFS/Kubo Node 3 (Storage)
+  ipfs-node-3:
+    image: ipfs/kubo:v0.24.0
+    container_name: nexastream-ipfs-3
+    ports:
+      - "5003:5001"
+      - "8082:8080"
+    volumes:
+      - ipfs_node3_data:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    depends_on:
+      - ipfs-bootstrap
+    networks:
+      - nexastream-net
+
+  # NexaChain Bootstrap Node (Validator + Miner)
+  nexachain-bootstrap:
     build:
       context: ./nexachain
       dockerfile: Dockerfile
-    container_name: nexastream-nexachain
+    container_name: nexastream-nexachain-bootstrap
     ports:
       - "30303:30303"  # P2P
       - "26657:26657"  # RPC
-      - "26656:26656"  # Tendermint
     volumes:
-      - nexachain_data:/data
-      - ./nexachain:/app
+      - nexachain_bootstrap_data:/data
     environment:
       - CHAIN_ID=nexastream-local
       - P2P_PORT=30303
       - RPC_PORT=26657
       - STORAGE_PATH=/data/storage
+      - NODE_TYPE=bootstrap
+      - IS_VALIDATOR=true
+      - IS_MINER=true
+      - P2P_BOOTSTRAP=/ip4/127.0.0.1/tcp/30303/p2p/QmBootstrapNode
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "26657"]
+      test: ["CMD-SHELL", "curl -f http://localhost:26657/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - nexastream-net
+
+  # NexaChain Node 2 (Validator)
+  nexachain-node-2:
+    build:
+      context: ./nexachain
+      dockerfile: Dockerfile
+    container_name: nexastream-nexachain-node-2
+    ports:
+      - "30304:30303"  # P2P (different port)
+      - "26658:26657"  # RPC
+    volumes:
+      - nexachain_node2_data:/data
+    environment:
+      - CHAIN_ID=nexastream-local
+      - P2P_PORT=30303
+      - RPC_PORT=26657
+      - STORAGE_PATH=/data/storage
+      - NODE_TYPE=validator
+      - IS_VALIDATOR=true
+      - IS_MINER=false
+      - P2P_BOOTSTRAP=/ip4/host.docker.internal/tcp/30303
+    depends_on:
+      - nexachain-bootstrap
+      - postgres
+    networks:
+      - nexastream-net
+
+  # NexaChain Node 3 (Validator)
+  nexachain-node-3:
+    build:
+      context: ./nexachain
+      dockerfile: Dockerfile
+    container_name: nexastream-nexachain-node-3
+    ports:
+      - "30305:30303"  # P2P (different port)
+      - "26659:26657"  # RPC
+    volumes:
+      - nexachain_node3_data:/data
+    environment:
+      - CHAIN_ID=nexastream-local
+      - P2P_PORT=30303
+      - RPC_PORT=26657
+      - STORAGE_PATH=/data/storage
+      - NODE_TYPE=validator
+      - IS_VALIDATOR=true
+      - IS_MINER=false
+      - P2P_BOOTSTRAP=/ip4/host.docker.internal/tcp/30303
+    depends_on:
+      - nexachain-bootstrap
+      - postgres
+    networks:
+      - nexastream-net
+
+  # Storage Node (Video Storage)
+  storage-node:
+    build:
+      context: ./nexachain
+      dockerfile: Dockerfile
+    container_name: nexastream-storage-node
+    ports:
+      - "30306:30303"
+    volumes:
+      - storage_node_data:/data
+      - video_storage:/data/videos
+    environment:
+      - CHAIN_ID=nexastream-local
+      - P2P_PORT=30303
+      - NODE_TYPE=storage
+      - IS_VALIDATOR=false
+      - IS_MINER=false
+      - P2P_BOOTSTRAP=/ip4/host.docker.internal/tcp/30303
+      - STORAGE_CAPACITY=100GB
+    depends_on:
+      - nexachain-bootstrap
+      - ipfs-bootstrap
+    networks:
+      - nexastream-net
 
   # NexaStream Frontend
   frontend:
@@ -98,12 +218,14 @@ services:
       - DATABASE_URL=postgresql://nexastream:nexastream_dev_password@postgres:5432/nexastream
     depends_on:
       - postgres
-      - ipfs
-      - nexachain
+      - ipfs-bootstrap
+      - nexachain-bootstrap
     volumes:
       - ./nexastream:/app
       - /app/node_modules
       - /app/.next
+    networks:
+      - nexastream-net
 
   # Prometheus Metrics
   prometheus:
@@ -118,6 +240,10 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.enable-lifecycle'
+      - '--scrape.interval=15s'
+      - '--scrape.timeout=10s'
+    networks:
+      - nexastream-net
 
   # Grafana Dashboard
   grafana:
@@ -133,6 +259,8 @@ services:
       - ./monitoring/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
     depends_on:
       - prometheus
+    networks:
+      - nexastream-net
 
   # NGINX Reverse Proxy
   nginx:
@@ -146,20 +274,35 @@ services:
       - ./docker/certs:/etc/nginx/certs
     depends_on:
       - frontend
-      - ipfs
-      - nexachain
+      - ipfs-bootstrap
+      - nexachain-bootstrap
+    networks:
+      - nexastream-net
 
 networks:
-  default:
+  nexastream-net:
+    driver: bridge
     name: nexastream-network
 
 volumes:
   postgres_data:
     name: nexastream-postgres
-  ipfs_data:
-    name: nexastream-ipfs
-  nexachain_data:
-    name: nexastream-nexachain
+  ipfs_bootstrap_data:
+    name: nexastream-ipfs-bootstrap
+  ipfs_node2_data:
+    name: nexastream-ipfs-2
+  ipfs_node3_data:
+    name: nexastream-ipfs-3
+  nexachain_bootstrap_data:
+    name: nexastream-nexachain-bootstrap
+  nexachain_node2_data:
+    name: nexastream-nexachain-node-2
+  nexachain_node3_data:
+    name: nexastream-nexachain-node-3
+  storage_node_data:
+    name: nexastream-storage-node
+  video_storage:
+    name: nexastream-videos
   prometheus_data:
     name: nexastream-prometheus
   grafana_data:
