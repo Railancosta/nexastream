@@ -1,0 +1,749 @@
+# NexaStream Monitoring and Alerting Configuration
+
+---
+# Prometheus ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: nexastream
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'nexastream-production'
+        environment: 'production'
+
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - alertmanager:9093
+
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+
+    scrape_configs:
+    # NexaChain Node Metrics
+    - job_name: 'nexachain-node'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - nexastream
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: nexachain
+      metrics_path: /metrics
+      scrape_interval: 10s
+
+    # Backend API Metrics
+    - job_name: 'nexastream-backend'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - nexastream
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: nexastream
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: backend
+      metrics_path: /api/v1/metrics
+      scrape_interval: 10s
+
+    # Frontend Metrics
+    - job_name: 'nexastream-frontend'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - nexastream
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: frontend
+      metrics_path: /metrics
+      scrape_interval: 30s
+
+    # Infrastructure Metrics
+    - job_name: 'kubernetes-nodes'
+      kubernetes_sd_configs:
+      - role: node
+      scrape_interval: 30s
+
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+      - role: pod
+      scrape_interval: 30s
+
+---
+# PrometheusRules ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: nexastream
+data:
+  blockchain.yml: |
+    groups:
+    - name: nexachain
+      interval: 30s
+      rules:
+      # Block Production
+      - alert: BlockProductionSlow
+        expr: rate(nexachain_blocks_total[5m]) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Block production is slow"
+          description: "Block production rate is below 0.1 blocks/min for 5 minutes"
+      
+      - alert: BlockHeightStalled
+        expr: increase(nexachain_blocks_total[10m]) == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Block production has stalled"
+          description: "No new blocks produced in the last 10 minutes"
+      
+      # Validator Health
+      - alert: ValidatorDown
+        expr: nexachain_validator_up == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Validator is down"
+          description: "Validator {{ $labels.instance }} has been unreachable for 1 minute"
+      
+      - alert: ValidatorMissedBlocks
+        expr: rate(nexachain_validator_missed_blocks_total[1h]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Validator missing blocks"
+          description: "Validator {{ $labels.instance }} is missing more than 5% of blocks"
+      
+      # Network Health
+      - alert: PeerCountLow
+        expr: nexachain_peers_count < 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low peer count"
+          description: "Node has fewer than 3 peers"
+      
+      - alert: PeerCountCritical
+        expr: nexachain_peers_count == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No peers connected"
+          description: "Node has no connected peers"
+      
+      # Transaction Pool
+      - alert: MempoolFull
+        expr: nexachain_mempool_size / nexachain_mempool_max_size > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mempool is nearly full"
+          description: "Mempool utilization is above 90%"
+      
+      - alert: PendingTxHigh
+        expr: nexachain_pending_transactions > 10000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High pending transaction count"
+          description: "More than 10,000 pending transactions"
+      
+      # Sync Status
+      - alert: OutOfSync
+        expr: abs(nexachain_block_height - nexachain_synced_block_height) > 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node is out of sync"
+          description: "Node is more than 10 blocks behind the network"
+
+  api.yml: |
+    groups:
+    - name: api
+      interval: 30s
+      rules:
+      # Request Rate
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API request rate"
+          description: "API is receiving more than 1000 requests per second"
+      
+      - alert: RequestRateCritical
+        expr: rate(http_requests_total[5m]) > 5000
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical API request rate"
+          description: "API is receiving more than 5000 requests per second"
+      
+      # Response Time
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API latency"
+          description: "95th percentile latency is above 1 second"
+      
+      - alert: LatencyCritical
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical API latency"
+          description: "99th percentile latency is above 5 seconds"
+      
+      # Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_failed_total[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API error rate"
+          description: "More than 5% of requests are failing"
+      
+      - alert: ErrorRateCritical
+        expr: rate(http_requests_failed_total[5m]) / rate(http_requests_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical API error rate"
+          description: "More than 10% of requests are failing"
+
+  infrastructure.yml: |
+    groups:
+    - name: infrastructure
+      interval: 30s
+      rules:
+      # CPU Usage
+      - alert: HighCPU
+        expr: rate(container_cpu_usage_seconds_total[5m]) / container_spec_cpu_quota/container_spec_cpu_period > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 80%"
+      
+      # Memory Usage
+      - alert: HighMemory
+        expr: container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is above 85% of limit"
+      
+      - alert: MemoryCritical
+        expr: container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is above 95% of limit"
+      
+      # Disk Usage
+      - alert: DiskUsageHigh
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.15
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space running low"
+          description: "Disk usage is above 85%"
+      
+      - alert: DiskUsageCritical
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical disk space"
+          description: "Disk usage is above 95%"
+      
+      # Pod Restarts
+      - alert: PodRestartingTooMuch
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container restarting frequently"
+          description: "Container has restarted more than 6 times in the last hour"
+      
+      # Pod Status
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{condition="true"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready"
+      
+      - alert: PodCrashing
+        expr: rate(kube_pod_container_status_restarts_total[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pod crashing"
+          description: "Container is crashing repeatedly"
+
+  security.yml: |
+    groups:
+    - name: security
+      interval: 60s
+      rules:
+      # Failed Authentications
+      - alert: HighAuthFailureRate
+        expr: rate(auth_failures_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Multiple failed authentication attempts detected"
+      
+      # Suspicious Activity
+      - alert: SuspiciousIPActivity
+        expr: rate(suspicious_requests_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Suspicious IP activity detected"
+          description: "Potential attack or abuse from suspicious IPs"
+      
+      # Rate Limiting
+      - alert: RateLimitTriggered
+        expr: rate(rate_limit_hits_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Rate limiting triggered"
+          description: "Rate limiting has been triggered for multiple clients"
+
+---
+# AlertManager Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: nexastream
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: 'smtp.example.com:587'
+      smtp_from: 'alerts@nexastream.org'
+      smtp_auth_username: 'alerts@nexastream.org'
+      smtp_auth_password: '${SMTP_PASSWORD}'
+
+    route:
+      group_by: ['alertname', 'severity']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: 'default'
+      routes:
+      - match:
+          severity: critical
+        receiver: 'critical-alerts'
+        group_wait: 10s
+      - match:
+          severity: warning
+        receiver: 'warning-alerts'
+      - match:
+          severity: info
+        receiver: 'info-alerts'
+
+    receivers:
+    - name: 'default'
+      email_configs:
+      - to: 'on-call@nexastream.org'
+        send_resolved: true
+
+    - name: 'critical-alerts'
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#critical-alerts'
+        send_resolved: true
+        title: '🚨 NexaStream Critical Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+    - name: 'warning-alerts'
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts'
+        send_resolved: true
+        title: '⚠️ NexaStream Warning'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+    - name: 'info-alerts'
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts'
+        send_resolved: false
+        title: 'ℹ️ NexaStream Info'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+    inhibit_rules:
+    - source_match:
+        severity: 'critical'
+      target_match:
+        severity: 'warning'
+      equal: ['alertname', 'instance']
+
+---
+# Grafana Dashboard ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: nexastream
+data:
+  blockchain-overview.json: |
+    {
+      "dashboard": {
+        "title": "NexaStream - Blockchain Overview",
+        "panels": [
+          {
+            "title": "Block Production Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(nexachain_blocks_total[5m])",
+                "legendFormat": "Blocks/min"
+              }
+            ]
+          },
+          {
+            "title": "Active Validators",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "nexachain_active_validators",
+                "legendFormat": "Validators"
+              }
+            ]
+          },
+          {
+            "title": "Network Peers",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "nexachain_peers_count",
+                "legendFormat": "Peers"
+              }
+            ]
+          },
+          {
+            "title": "Pending Transactions",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "nexachain_pending_transactions",
+                "legendFormat": "Pending Tx"
+              }
+            ]
+          },
+          {
+            "title": "Transaction Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(nexachain_transactions_total[5m])",
+                "legendFormat": "Tx/sec"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+  api-overview.json: |
+    {
+      "dashboard": {
+        "title": "NexaStream - API Overview",
+        "panels": [
+          {
+            "title": "Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total[5m])",
+                "legendFormat": "Req/sec"
+              }
+            ]
+          },
+          {
+            "title": "Response Time (p95)",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "p95 Latency"
+              }
+            ]
+          },
+          {
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_failed_total[5m]) / rate(http_requests_total[5m]) * 100",
+                "legendFormat": "Error %"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+---
+# Prometheus Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: nexastream
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.45.0
+        args:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus'
+        - '--storage.tsdb.retention.time=30d'
+        - '--web.enable-lifecycle'
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus
+        - name: rules
+          mountPath: /etc/prometheus/rules
+        - name: data
+          mountPath: /prometheus
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+      volumes:
+      - name: config
+        configMap:
+          name: prometheus-config
+      - name: rules
+        configMap:
+          name: prometheus-rules
+      - name: data
+        persistentVolumeClaim:
+          claimName: prometheus-data
+
+---
+# AlertManager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: nexastream
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.26.0
+        args:
+        - '--config.file=/etc/alertmanager/alertmanager.yml'
+        - '--storage.path=/alertmanager'
+        ports:
+        - containerPort: 9093
+        volumeMounts:
+        - name: config
+          mountPath: /etc/alertmanager
+        - name: data
+          mountPath: /alertmanager
+      volumes:
+      - name: config
+        configMap:
+          name: alertmanager-config
+      - name: data
+        persistentVolumeClaim:
+          claimName: alertmanager-data
+
+---
+# Grafana Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: nexastream
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.0.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GF_SECURITY_ADMIN_USER
+          value: admin
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: nexastream-secrets
+              key: grafana-password
+        - name: GF_SERVER_ROOT_URL
+          value: https://grafana.nexastream.org
+        volumeMounts:
+        - name: dashboards
+          mountPath: /etc/grafana/provisioning/dashboards
+        - name: datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+      volumes:
+      - name: dashboards
+        configMap:
+          name: grafana-dashboards
+      - name: datasources
+        configMap:
+          name: grafana-datasources
+
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: nexastream
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - port: 9090
+    targetPort: 9090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: nexastream
+spec:
+  selector:
+    app: alertmanager
+  ports:
+  - port: 9093
+    targetPort: 9093
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: nexastream
+spec:
+  selector:
+    app: grafana
+  ports:
+  - port: 3000
+    targetPort: 3000
+
+---
+# Persistent Volume Claims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-data
+  namespace: nexastream
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alertmanager-data
+  namespace: nexastream
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 5Gi
