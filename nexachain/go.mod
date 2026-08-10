@@ -3,6 +3,7 @@ module github.com/nexastream/nexachain
 go 1.21
 
 require (
+	github.com/cloudflare/circl v1.6.4
 	github.com/ethereum/go-ethereum v1.12.0
 	github.com/google/uuid v1.5.0
 	github.com/libp2p/go-libp2p v0.32.0
