@@ -1,0 +1,28 @@
+name: NexaChain Cryptography
+
+on:
+  push:
+    branches: [main, feat/mainnet-production-gate]
+  pull_request:
+    paths:
+      - 'nexachain/**'
+      - '.github/workflows/nexachain-crypto.yml'
+
+jobs:
+  crypto:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nexachain
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: nexachain/go.sum
+      - name: Download dependencies
+        run: go mod download
+      - name: Verify modules
+        run: go mod verify
+      - name: Run post-quantum tests
+        run: go test ./crypto/postquantum -count=1
