@@ -24,42 +24,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+      - name: Prepare static site
+        run: |
+          mkdir -p ./site
+          cp index.html ./site/index.html
+          if [ -d frontend/public ]; then
+            cp -r frontend/public/. ./site/ 2>/dev/null || true
+          fi
+          cp index.html ./site/index.html
+          echo "nexastream.org" > ./site/CNAME
 
-      - name: Install dependencies
-        run: cd frontend && npm install
-
-      - name: Build Next.js
-        run: cd frontend && npm run build
-        env:
-          NEXT_PUBLIC_APP_URL: https://nexastream.org
-          NEXT_PUBLIC_DOMAIN: nexastream.org
-          NEXT_PUBLIC_API_URL: https://api.nexastream.org
-
-      - name: Add CNAME file
-        run: echo "nexastream.org" > frontend/out/CNAME
-
-      - name: Configure GitHub Pages
+      - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./frontend/out
+          path: ./site
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Deployment Summary
-        run: |
-          echo "## 🚀 NexaStream Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Run:** #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
