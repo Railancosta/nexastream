@@ -17,7 +17,9 @@ services:
       timeout: 3s
       retries: 5
 
-  # MinIO — storage S3-compatible
+  # MinIO — storage S3-compatible (local dev)
+  # Para produção: use Cloudflare R2 (zero egress fee)
+  # Veja: infrastructure/cloudflare/r2-config.md
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
