@@ -1,0 +1,88 @@
+services:
+  # === API REST (backend) ===
+  - type: web
+    name: nexastream-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: apps/api
+    buildCommand: |
+      cd ../.. && corepack enable pnpm && pnpm install --frozen-lockfile=false
+      pnpm --filter @nexastream/shared run build
+      pnpm --filter @nexastream/api run build
+    startCommand: cd ../.. && node apps/api/dist/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PORT
+        value: 4000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://nexastream.org,http://localhost:3000
+      - key: STORAGE_DIR
+        value: /data/storage
+      - key: UPLOAD_TEMP_DIR
+        value: /data/uploads
+      - key: UPLOAD_CHUNK_SIZE
+        value: 8388608
+      - key: UPLOAD_MAX_SIZE
+        value: 2147483648
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nexastream-db
+          property: connectionString
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        value: auto
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: "false"
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+
+  # === Signaling WebRTC server ===
+  - type: web
+    name: nexastream-signaling
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: apps/signaling
+    buildCommand: |
+      cd ../.. && corepack enable pnpm && pnpm install --frozen-lockfile=false
+      pnpm --filter @nexastream/shared run build
+      pnpm --filter @nexastream/signaling run build
+    startCommand: cd ../.. && node apps/signaling/dist/server.js
+    envVars:
+      - key: SIGNALING_PORT
+        value: 4010
+      - key: STUN_URL
+        value: stun:stun.l.google.com:19302
+    autoDeploy: true
+
+  # === Solo Validator (blockchain) ===
+  - type: web
+    name: nexastream-validator
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: .
+    buildCommand: corepack enable pnpm && pnpm install --frozen-lockfile=false
+    startCommand: node packages/blockchain/solo-validator.mjs --port 9001 --interval 10000 --data-dir /data/validator
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+
+databases:
+  - name: nexastream-db
+    plan: free
+    databaseName: nexastream
+    user: nexastream
+    region: oregon
