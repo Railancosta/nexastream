@@ -27,16 +27,24 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p ./site
-          # Use the canonical homepage as the site root.
-          cp index.html ./site/index.html
-          # Copy supporting static assets (manifest, icons, service worker, etc.).
+          # Copy ONLY non-conflicting static assets (manifest, icons, sw.js).
+          # Explicitly EXCLUDE index.html from frontend/public to avoid
+          # overwriting the canonical homepage.
           if [ -d frontend/public ]; then
-            cp -r frontend/public/. ./site/ 2>/dev/null || true
+            for f in frontend/public/*; do
+              base=$(basename "$f")
+              if [ "$base" != "index.html" ] && [ "$base" != "CNAME" ]; then
+                cp -r "$f" ./site/ 2>/dev/null || true
+              fi
+            done
           fi
-          # Ensure the homepage from root wins over any copied index.html.
+          # Canonical homepage (always last — wins over anything).
           cp index.html ./site/index.html
           # CNAME for nexastream.org.
           echo "nexastream.org" > ./site/CNAME
+          # Verify the correct file is in place.
+          echo "=== index.html head ==="
+          head -3 ./site/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
