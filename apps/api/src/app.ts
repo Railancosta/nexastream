@@ -2,15 +2,18 @@ import express, { type Request, type Response, type NextFunction } from "express
 import type { ApiConfig } from "./config.js";
 import type { UploadManager } from "./services/upload-manager.js";
 import type { UserService } from "./services/auth/user-service.js";
+import type { PlatformService } from "./services/platform/platform-service.js";
 import type { TokenService } from "./services/auth/token-service.js";
 import { healthRouter } from "./routes/health.js";
 import { uploadsRouter } from "./routes/uploads.js";
 import { authRouter } from "./routes/auth.js";
+import { platformRouter } from "./routes/platform.js";
 
 export interface AppDeps {
   readonly config: ApiConfig;
   readonly uploads: UploadManager;
   readonly users: UserService;
+  readonly platform: PlatformService;
   readonly tokens: TokenService;
   readonly isReady: () => Promise<boolean>;
 }
@@ -56,6 +59,7 @@ export function createApp(deps: AppDeps): express.Express {
   // Versioned API.
   app.use("/api/v1", healthRouter({ isReady: deps.isReady }));
   app.use("/api/v1/auth", authRouter({ users: deps.users, tokens: deps.tokens }));
+  app.use("/api/v1", platformRouter({ platform: deps.platform, tokens: deps.tokens }));
   app.use(
     "/api/v1/uploads",
     uploadsRouter({ uploads: deps.uploads, chunkMaxBytes: deps.config.chunkSize }),

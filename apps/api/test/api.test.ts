@@ -3,6 +3,9 @@ import { promises as fs } from "node:fs";
 import http from "node:http";
 import express from "express";
 import { createApp } from "../src/app.js";
+import { UserService } from "../src/services/auth/user-service.js";
+import { JwtTokenService } from "../src/services/auth/token-service.js";
+import { PlatformService } from "../src/services/platform/platform-service.js";
 import { LocalContentStorage } from "../src/storage/local-storage.js";
 import { UploadManager } from "../src/services/upload-manager.js";
 import type { ApiConfig } from "../src/config.js";
@@ -40,7 +43,10 @@ beforeAll(async () => {
     chunkSize: config.chunkSize,
     maxUploadSize: config.maxUploadSize,
   });
-  const app = createApp({ config, uploads, isReady: async () => true });
+  const users = new UserService();
+  const tokens = new JwtTokenService(config.jwtSecret);
+  const platform = new PlatformService();
+  const app = createApp({ config, uploads, users, tokens, platform, isReady: async () => true });
   server = app.listen(0);
   const address = server.address();
   if (!address || typeof address === "string") throw new Error("listen failed");
