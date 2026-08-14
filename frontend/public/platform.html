@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NexaStream — Plataforma de Vídeos Web3</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#8b5cf6" />
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#8b5cf6;--s:#ec4899;--g:#10b981;--bg:#0b0b12;--bg2:#12121c;--bd:#262636;--t:#f5f5fa;--m:#9a9ab0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--t);line-height:1.6;overflow-x:hidden}
+a{color:var(--p);text-decoration:none}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
+.nav-l,.nav-r{display:flex;align-items:center;gap:14px}
+.logo{font-weight:800;font-size:20px;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.nl{color:var(--m);font-size:14px;font-weight:500}
+.nl:hover{color:var(--t)}
+.btn-p{padding:8px 18px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px}
+.btn-g{padding:8px 18px;background:rgba(255,255,255,.06);color:var(--t);border:1px solid var(--bd);border-radius:8px;font-weight:600;cursor:pointer;font-size:14px}
+.ui{color:var(--m);font-size:14px}
+.load{color:var(--m);text-align:center;padding:40px}
+.empty{text-align:center;padding:60px 20px}
+.empty h2{margin-bottom:10px}
+.vg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:20px}
+.vc{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s}
+.vc:hover{transform:translateY(-3px)}
+.vt{aspect-ratio:16/9;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(236,72,153,.1));display:flex;align-items:center;justify-content:center}
+.pi{font-size:36px;color:rgba(255,255,255,.5)}
+.vi{padding:12px}
+.vi h3{font-size:15px;margin-bottom:4px}
+.vm{color:var(--m);font-size:13px}
+.fh{margin-bottom:20px}
+.fh h1{font-size:28px}
+.fh p{color:var(--m);font-size:14px}
+.auth{max-width:400px;margin:60px auto;text-align:center}
+.auth h1{margin-bottom:20px}
+.af{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.af input,.af textarea,.uf input,.uf textarea{padding:12px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:14px}
+.uf{display:flex;flex-direction:column;gap:12px;max-width:600px}
+.pb{height:8px;background:var(--bd);border-radius:4px;overflow:hidden}
+.pf{height:100%;width:0%;background:linear-gradient(135deg,var(--p),var(--s));transition:width .3s}
+.wp{max-width:900px;margin:0 auto}
+.pp{aspect-ratio:16/9;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px}
+.wm{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.wm div{display:flex;gap:8px}
+.vc-box{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:16px}
+.vc-box code{color:var(--p)}
+.cs{margin-top:20px}
+.ci{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.ci textarea{min-height:60px}
+.cm{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:8px}
+.cm p:last-child{margin-top:4px}
+.sc{padding:20px;border-radius:12px;margin-top:20px}
+.sc.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3)}
+.sc.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+.sp input{width:100%;padding:12px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:16px;margin-bottom:20px}
+.pi-box{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:20px;margin-bottom:20px}
+.center{text-align:center;padding:60px}
+.err{color:#ef4444;text-align:center;padding:40px}
+@media(max-width:600px){.vg{grid-template-columns:1fr}.nav-l{gap:8px}.nl{font-size:13px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="/app.js"></script>
+</body>
+</html>

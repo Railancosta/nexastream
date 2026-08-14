@@ -30,6 +30,10 @@ jobs:
           mkdir -p ./site
           # ONLY the canonical homepage — nothing else from frontend/.
           cp index.html ./site/index.html
+          cp platform.html ./site/platform.html
+          if [ -f frontend/public/app.js ]; then cp frontend/public/app.js ./site/app.js; fi
+          if [ -f frontend/public/manifest.json ]; then cp frontend/public/manifest.json ./site/manifest.json; fi
+          if [ -f frontend/public/sw.js ]; then cp frontend/public/sw.js ./site/sw.js; fi
           echo "nexastream.org" > ./site/CNAME
           # nojekyll to disable Jekyll processing
           touch ./site/.nojekyll
