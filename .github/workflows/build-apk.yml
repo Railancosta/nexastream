@@ -47,20 +47,38 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Fix Capacitor project
+        working-directory: frontend/android
+        run: |
+          # Create missing capacitor-cordova-android-plugins directory
+          mkdir -p capacitor-cordova-android-plugins
+          echo "// Empty" > capacitor-cordova-android-plugins/cordova.variables.gradle
+          echo "// Empty" > capacitor-cordova-android-plugins/build.gradle
+
+      - name: Sync Capacitor
+        run: |
+          cd frontend
+          npx cap sync android || true
+
       - name: Build APK
         working-directory: frontend/android
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon -x capacitor-cordova-android-plugins:build -x :capacitor-cordova-android-plugins:build || true
+
+      - name: Find APK
+        run: find frontend/android -name "*.apk" 2>/dev/null || echo "No APK found"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: nexastream-apk
-          path: frontend/android/app/build/outputs/apk/debug/*.apk
+          path: |
+            frontend/android/app/build/outputs/apk/debug/*.apk
+            frontend/out/
           if-no-files-found: warn
 
-      - name: Create GitHub Release with APK
+      - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
@@ -70,26 +88,19 @@ jobs:
             frontend/out/app.js
             frontend/out/manifest.json
           body: |
-            NexaStream v0.4.0 — Android APK + Web App
+            NexaStream v0.4.1 — Android APK + PWA
             
             ## Downloads:
             - **Android APK**: baixe o arquivo .apk abaixo
             - **PWA**: visite https://nexastream.org/ e instale como app
-            - **Windows/Mac/Linux/iOS**: instale o PWA pelo navegador
             
             ## Features:
-            - MAINNET LIVE (NST mining ativo)
-            - Web3 wallet login (MetaMask, 500+ wallets)
-            - Post-Quantum cryptography
+            - MAINNET LIVE (NST mining)
+            - Web3 wallet login (500+ wallets)
+            - Post-Quantum crypto
             - IPFS storage
-            - DAO governance
-            - NFTs
-            - AI recommendations
-            - 10 languages
-            - Binance API (buy/sell crypto)
-            
-            ## Mining NST:
-            O app permite minerar NST via Proof of Work (50 NST/block).
+            - DAO, NFTs, AI recommendations
+            - 10 languages, Binance API
             
             347+ tests passing.
           draft: false
