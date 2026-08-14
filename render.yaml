@@ -84,6 +84,18 @@ services:
         value: production
     autoDeploy: true
 
+  # IPFS Kubo node — storage descentralizado ilimitado
+  - type: web
+    name: nexastream-ipfs
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./infrastructure/ipfs/Dockerfile
+    envVars:
+      - key: IPFS_PROFILE
+        value: server
+    autoDeploy: true
+
 databases:
   - name: nexastream-db
     plan: free
