@@ -98,6 +98,10 @@ a{color:var(--p);text-decoration:none}
 </head>
 <body>
 <div id="app"></div>
+<script>
+window.NEXASTREAM_API = '/api/v1';
+window.NEXASTREAM_RPC = window.location.hostname === 'nexastream.org' ? '' : 'http://localhost:9001';
+</script>
 <script src="/app.js"></script>
 </body>
 </html>

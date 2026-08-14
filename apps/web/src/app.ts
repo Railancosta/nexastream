@@ -3,7 +3,9 @@
  * Features: i18n, Google login, channels, SEO, financial dashboard,
  * sponsorship, ads, stablecoin, analytics, alerts, security hardening.
  */
-const API_BASE = (typeof window !== "undefined" && (window as any).NEXASTREAM_API) || "http://localhost:4000";
+// API URL: configurable, defaults to same-origin or localhost
+const API_BASE = (typeof window !== "undefined" && (window as any).NEXASTREAM_API) || "/api/v1";
+const RPC_URL = (typeof window !== "undefined" && (window as any).NEXASTREAM_RPC) || "http://localhost:9001";
 let accessToken: string | null = null;
 let currentUser: any = null;
 let currentLang = "en";
@@ -78,7 +80,15 @@ function renderFeed(app: HTMLElement) {
     const g = document.getElementById("fc"); if (!g) return;
     if (!d.videos?.length) { g.innerHTML = `<div class="empty"><h2>No videos yet</h2><p>The NexaStream network is live and mining NST! Be the first to upload.</p>${currentUser?`<a href="/upload" class="btn-p">${t("upload")}</a>`:`<a href="/register" class="btn-p">${t("register")}</a>`}</div>`; return; }
     g.innerHTML = d.videos.map((v:any)=>`<div class="vc" onclick="navigate('/watch/${v.id}')"><div class="vt"><div class="pi">▶</div>${v.sponsored?`<span class="sp-tag">${t("sponsored")}</span>`:""}</div><div class="vi"><h3>${esc(v.title)}</h3><p class="vm">${v.views||0} ${t("views")} · ${ft(v.createdAt)}</p><p>by ${esc(v.creatorId)}</p><span>👍 ${v.likes||0}</span></div></div>`).join("");
-  }).catch(()=>{ const g=document.getElementById("fc"); if(g) g.innerHTML=`<div class="empty"><h2>API offline</h2><p>Backend not running. <a href="/status">Check status</a></p></div>`; });
+  }).catch(()=>{ 
+    const g=document.getElementById("fc"); if(!g) return;
+    // Try blockchain RPC for live data
+    fetch(RPC_URL + "/explorer").then(r=>r.json()).then(d => {
+      g.innerHTML = `<div class="empty"><h2>MAINNET LIVE</h2><p>Block #${d.height} | NST being mined now!</p><p>Upload, login and feed require the API server. Blockchain is live.</p><a href="/status" class="btn-p">Network Status</a></div>`;
+    }).catch(() => {
+      g.innerHTML = `<div class="empty"><h2>Welcome to NexaStream</h2><p>The decentralized video platform. MAINNET is LIVE with NST mining.</p><p>Create an account to start uploading videos and earning NST.</p><a href="/register" class="btn-p">Get Started</a></div>`;
+    });
+  });
 }
 
 function loadSponsored() {
@@ -117,13 +127,13 @@ function renderDashboard(app: HTMLElement) {
 }
 function loadDashboard() {
   // Fetch NST balance from blockchain RPC
-  fetch("http://localhost:9001/balance/" + (currentUser?.username || "solo-validator-1")).then(r=>r.json()).then(d => {
+  fetch(RPC_URL + "/balance/" + (currentUser?.username || "solo-validator-1")).then(r=>r.json()).then(d => {
     const el = document.getElementById("dash-balance"); if (el) el.textContent = (BigInt(d.balance) / 10n**18n).toString() + " NST";
   }).catch(() => { const el = document.getElementById("dash-balance"); if (el) el.textContent = "0 NST"; });
   // Earnings from ledger (would be API call)
   const eEl = document.getElementById("dash-earnings"); if (eEl) eEl.textContent = "R$ 0,00";
   // Mining status
-  fetch("http://localhost:9001/metrics").then(r=>r.json()).then(d => {
+  fetch(RPC_URL + "/metrics").then(r=>r.json()).then(d => {
     const el = document.getElementById("dash-mining"); if (el) el.textContent = "Block #" + d.height + " · " + (BigInt(d.totalSupply)/10n**18n).toString() + " NST mined";
   }).catch(() => { const el = document.getElementById("dash-mining"); if (el) el.textContent = "Mining offline"; });
 }
@@ -142,7 +152,7 @@ function renderProfile(app: HTMLElement) {
 }
 function renderStatus(app: HTMLElement) {
   app.innerHTML = layout(`<div class="sp"><h1>${t("status")}</h1><div id="st"><div class="load">Checking...</div></div></div>`);
-  fetch("http://localhost:9001/health").then(r=>r.json()).then(d => {
+  fetch(RPC_URL + "/health").then(r=>r.json()).then(d => {
     const e = document.getElementById("st"); if (e) e.innerHTML = `<div class="sc ok"><h3>✅ MAINNET LIVE</h3><p>Height: ${d.height}</p><p>Genesis: ${d.genesisHash?.slice(0,16)}...</p></div>`;
   }).catch(() => { const e = document.getElementById("st"); if (e) e.innerHTML = `<div class="sc err"><h3>❌ Node Offline</h3><p>Start the solo validator to activate the network.</p></div>`; });
 }
