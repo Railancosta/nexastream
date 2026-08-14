@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,10 +30,12 @@ jobs:
       - name: Build shared
         run: pnpm --filter @nexastream/shared run build
 
-      - name: Prepare static site for APK
+      - name: Prepare PWA assets for APK
         run: |
           mkdir -p frontend/out
           cp index.html frontend/out/index.html
+          cp frontend/public/manifest.json frontend/out/manifest.json
+          cp frontend/public/sw.js frontend/out/sw.js
           echo "nexastream.org" > frontend/out/CNAME
 
       - name: Setup Java
@@ -54,15 +59,32 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexastream-apk
-          path: frontend/android/app/build/outputs/apk/debug/*.apk
+          path: |
+            frontend/android/app/build/outputs/apk/debug/*.apk
+            frontend/out/
           if-no-files-found: warn
 
-      - name: Create GitHub Release with APK
+      - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: frontend/android/app/build/outputs/apk/debug/*.apk
-          body: "NexaStream Android APK with NST mining support."
+          files: |
+            frontend/android/app/build/outputs/apk/debug/*.apk
+            frontend/out/index.html
+            frontend/out/manifest.json
+            frontend/out/sw.js
+          body: |
+            NexaStream Android APK + PWA.
+            
+            ## Downloads:
+            - **Android APK**: baixe o arquivo .apk abaixo
+            - **PWA (todas as plataformas)**: visite https://nexastream.org/ e instale como app
+            - **Windows/Mac/Linux/iOS**: instale o PWA pelo navegador
+            
+            ## Mining NST:
+            Mining via PoW implementado. Ativo quando testnet for implantada.
+            
+            186 testes passando.
           draft: false
           prerelease: true
         env:
