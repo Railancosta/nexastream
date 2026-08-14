@@ -44,6 +44,10 @@ services:
         sync: false
       - key: S3_FORCE_PATH_STYLE
         value: "false"
+      - key: IPFS_API_URL
+        value: http://localhost:5001/api/v0
+      - key: IPFS_GATEWAY_URL
+        value: https://ipfs.io/ipfs/
     healthCheckPath: /api/v1/health
     autoDeploy: true
 
