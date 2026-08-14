@@ -27,16 +27,27 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p ./site
+          # Root files
           cp index.html ./site/index.html
-          cp platform.html ./site/platform.html 2>/dev/null || true
+          cp platform.html ./site/platform.html
+          cp app.js ./site/app.js
+          cp _redirects ./site/_redirects
+          cp _headers ./site/_headers
+          cp .nojekyll ./site/.nojekyll
+          # Frontend public assets
           cp frontend/public/manifest.json ./site/manifest.json 2>/dev/null || true
           cp frontend/public/sw.js ./site/sw.js 2>/dev/null || true
-          cp frontend/public/app.js ./site/app.js 2>/dev/null || true
+          # CNAME
           echo "nexastream.org" > ./site/CNAME
-          touch ./site/.nojekyll
-          echo "=== VERIFY index.html exists ==="
-          ls -la ./site/index.html
-          head -2 ./site/index.html
+          # Verify
+          echo "=== FILES IN SITE ==="
+          ls -la ./site/
+          echo "=== index.html first line ==="
+          head -1 ./site/index.html
+          echo "=== platform.html first line ==="
+          head -1 ./site/platform.html
+          echo "=== app.js size ==="
+          wc -c ./site/app.js
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
