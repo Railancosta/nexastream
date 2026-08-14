@@ -5,6 +5,8 @@
 import { siweLogin, loadSession, clearSession, isWalletAvailable, type AuthSession } from "./web3/auth.js";
 import { getHealth, getNetworkStats, getAccount, formatNst } from "./web3/rpc.js";
 
+const API_BASE = (typeof window !== "undefined" && (window as any).NEXASTREAM_API) || "https://5998ef0014c6d2.lhr.life/api/v1";
+const RPC_URL = (typeof window !== "undefined" && (window as any).NEXASTREAM_RPC) || "http://localhost:9001";
 let currentUser: AuthSession | null = null;
 let currentLang = "en";
 
@@ -80,7 +82,7 @@ import { detectWallets, connectWalletByType, type WalletType } from "./web3/wall
 function renderLogin(app: HTMLElement) {
   const wallets = detectWallets().filter(w => w.available);
   const walletButtons = wallets.map(w =>
-    '<button onclick="connectWith(''+w.type+'')" class="btn-g" style="display:block;width:100%;margin-bottom:10px;text-align:left;padding:12px;">'+w.icon+' '+w.name+'</button>'
+    '<button onclick="connectWith(\''+w.type+'\')" class="btn-g" style="display:block;width:100%;margin-bottom:10px;text-align:left;padding:12px;">'+w.icon+' '+w.name+'</button>'
   ).join('');
   app.innerHTML = layout('<div class="auth"><h1>'+t("login")+'</h1><p>Connect your Web3 wallet to sign in.</p><p>No password needed — your wallet signature proves ownership.</p><div style="margin-top:20px;">'+walletButtons+'</div></div>');
 }
@@ -89,17 +91,17 @@ async function connectWith(type: string) {
   try {
     const conn = await connectWalletByType(type as WalletType);
     // Create SIWE message
-    const { createSiweMessage, formatSiweMessage, signMessage, saveSession, type AuthSession } = await import("./web3/auth.js");
-    const msg = createSiweMessage(conn.address, conn.chainId);
-    const msgStr = formatSiweMessage(msg);
-    const sig = await signMessage(conn.address, msgStr);
+    const auth = await import("./web3/auth.js");
+    const msg = auth.createSiweMessage(conn.address, conn.chainId);
+    const msgStr = auth.formatSiweMessage(msg);
+    const sig = await auth.signMessage(conn.address, msgStr);
     const session: AuthSession = {
       address: conn.address,
       sessionToken: sig,
       chainId: conn.chainId,
       expiresAt: Date.now() + 24*60*60*1000,
     };
-    saveSession(session);
+    auth.saveSession(session);
     currentUser = session;
     render();
   } catch (err: any) {
