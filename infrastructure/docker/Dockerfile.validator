@@ -1,0 +1,8 @@
+FROM node:22-slim
+WORKDIR /app
+COPY package.json pnpm-workspace.yaml ./
+COPY blockchain/testnet/genesis.json blockchain/testnet/genesis.json
+COPY packages/blockchain/solo-validator.mjs packages/blockchain/solo-validator.mjs
+RUN mkdir -p /data
+EXPOSE 9001
+CMD ["node", "packages/blockchain/solo-validator.mjs", "--port", "9001", "--interval", "10000", "--data-dir", "/data"]
