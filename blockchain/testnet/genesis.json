@@ -1,0 +1,27 @@
+{
+  "chainId": "nexastream-testnet-1",
+  "networkId": "nexastream-testnet",
+  "version": 1,
+  "timestamp": 1735689600,
+  "difficulty": 8,
+  "blockReward": 50,
+  "maxSupply": 55000000,
+  "initialValidators": [
+    {
+      "id": "validator-1",
+      "publicKey": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "stake": 10000
+    },
+    {
+      "id": "validator-2",
+      "publicKey": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+      "stake": 10000
+    },
+    {
+      "id": "validator-3",
+      "publicKey": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+      "stake": 10000
+    }
+  ],
+  "initialAllocations": []
+}
