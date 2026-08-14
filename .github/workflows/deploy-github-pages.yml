@@ -31,6 +31,7 @@ jobs:
           cp index.html ./site/index.html
           cp platform.html ./site/platform.html
           cp app.js ./site/app.js
+          cp 404.html ./site/404.html
           cp _redirects ./site/_redirects
           cp _headers ./site/_headers
           cp .nojekyll ./site/.nojekyll
