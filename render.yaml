@@ -32,18 +32,6 @@ services:
         fromDatabase:
           name: nexastream-db
           property: connectionString
-      - key: S3_ENDPOINT
-        sync: false
-      - key: S3_REGION
-        value: auto
-      - key: S3_BUCKET
-        sync: false
-      - key: S3_ACCESS_KEY_ID
-        sync: false
-      - key: S3_SECRET_ACCESS_KEY
-        sync: false
-      - key: S3_FORCE_PATH_STYLE
-        value: "false"
       - key: IPFS_API_URL
         value: http://localhost:5001/api/v0
       - key: IPFS_GATEWAY_URL
