@@ -27,11 +27,15 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p ./site
+          # Use the canonical homepage as the site root.
           cp index.html ./site/index.html
+          # Copy supporting static assets (manifest, icons, service worker, etc.).
           if [ -d frontend/public ]; then
             cp -r frontend/public/. ./site/ 2>/dev/null || true
           fi
+          # Ensure the homepage from root wins over any copied index.html.
           cp index.html ./site/index.html
+          # CNAME for nexastream.org.
           echo "nexastream.org" > ./site/CNAME
 
       - name: Setup Pages

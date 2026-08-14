@@ -1,0 +1,30 @@
+{
+  "name": "@nexastream/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "NexaStream REST API v1 — health, version, resumable content-addressed upload.",
+  "main": "./dist/server.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src --max-warnings 0",
+    "start": "node dist/server.js",
+    "dev": "node --watch dist/server.js",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@nexastream/shared": "workspace:*",
+    "express": "^4.21.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8",
+    "supertest": "^7.2.2",
+    "@types/supertest": "^6.0.2"
+  }
+}
