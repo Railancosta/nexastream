@@ -59,3 +59,25 @@ const storage = new S3ContentStorage({
 | CDN integrado | Sim (Cloudflare) | Não (CloudFront $) |
 
 ## Custo: $0/mês para começar
+
+## Análise de custo (simulação real)
+
+### Catálogo de 200 GB, 50 mil plays/mês:
+- Storage: 190 GB × $0.015 ≈ **$2.85/mês**
+- Class A (uploads + multipart): **$0** (free — milhares de ops)
+- Class B (150k GETs com ranges): **$0** (free — 10M limite)
+- Egress (~10 TB entregues): **$0** ← economia real vs S3
+
+### Comparação: R2 vs AWS S3 (mesmo cenário)
+| Item | R2 | AWS S3 |
+|------|-----|--------|
+| Storage 200GB | $2.85 | $4.60 |
+| Reads 150k | $0 | $0.06 |
+| **Egress 10TB** | **$0** ✅ | **$900** ❌ |
+| **Total** | **$2.85/mês** | **$904.66/mês** |
+
+### Veredito: R2 vence por egress gratuito
+- Storage é o único item que deve aparecer na fatura
+- Class B (reads) vence em generosidade de free tier (10M/mês)
+- Egress grátis é o motivo pelo qual R2 ganha de S3 para vídeos
+- Class A (writes) dificilmente sai do free tier (1M/mês)
