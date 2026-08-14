@@ -75,8 +75,36 @@ function renderWatch(app: HTMLElement, id: string) {
   if (v) v.views++;
 }
 
+import { detectWallets, connectWalletByType, type WalletType } from "./web3/wallet-providers.js";
+
 function renderLogin(app: HTMLElement) {
-  app.innerHTML = layout('<div class="auth"><h1>'+t("login")+'</h1><p>Connect your Web3 wallet to sign in.</p><p>No password needed — your wallet signature proves ownership.</p><button onclick="doConnectWallet()" class="btn-p" style="margin-top:20px;">Connect Wallet</button>'+(isWalletAvailable()?'':'<p style="color:var(--m);margin-top:20px">Install MetaMask to use Web3 login</p>')+'</div>');
+  const wallets = detectWallets().filter(w => w.available);
+  const walletButtons = wallets.map(w =>
+    '<button onclick="connectWith(''+w.type+'')" class="btn-g" style="display:block;width:100%;margin-bottom:10px;text-align:left;padding:12px;">'+w.icon+' '+w.name+'</button>'
+  ).join('');
+  app.innerHTML = layout('<div class="auth"><h1>'+t("login")+'</h1><p>Connect your Web3 wallet to sign in.</p><p>No password needed — your wallet signature proves ownership.</p><div style="margin-top:20px;">'+walletButtons+'</div></div>');
+}
+
+async function connectWith(type: string) {
+  try {
+    const conn = await connectWalletByType(type as WalletType);
+    // Create SIWE message
+    const { createSiweMessage, formatSiweMessage, signMessage, saveSession, type AuthSession } = await import("./web3/auth.js");
+    const msg = createSiweMessage(conn.address, conn.chainId);
+    const msgStr = formatSiweMessage(msg);
+    const sig = await signMessage(conn.address, msgStr);
+    const session: AuthSession = {
+      address: conn.address,
+      sessionToken: sig,
+      chainId: conn.chainId,
+      expiresAt: Date.now() + 24*60*60*1000,
+    };
+    saveSession(session);
+    currentUser = session;
+    render();
+  } catch (err: any) {
+    alert("Connection failed: " + err.message);
+  }
 }
 
 function renderUpload(app: HTMLElement) {
@@ -136,6 +164,7 @@ function likeV() { alert("Liked!"); }
 function esc(s: string): string { return s.replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]!)); }
 
 (window as any).doConnectWallet = doConnectWallet;
+(window as any).connectWith = connectWith;
 (window as any).doDisconnect = doDisconnect;
 (window as any).setLang = setLang;
 (window as any).navigate = navigate;
