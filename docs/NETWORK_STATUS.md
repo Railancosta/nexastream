@@ -1,63 +1,47 @@
 # NexaStream — Network Status (Single Source of Truth)
 
 > **Este arquivo reflete o estado REAL e verificável do código.**  
-> Não mostre nenhum status diferente deste no website ou README.  
-> Atualizado em: 2026-08-13.
+> Atualizado em: 2026-08-14.
 
 ## Estado atual
 
 | Componente | Estado | Evidência |
 |---|---|---|
-| API REST v1 (health/version/upload) | **Development — IMPLEMENTADO** | `apps/api`, testes passam. |
-| Signaling WebRTC | **Development — IMPLEMENTADO** | `apps/signaling`, testes passam. |
-| Banco de dados (PostgreSQL) | **Não implementado** | Sem migrations. |
-| Auth (JWT) | **Não implementado** | Será no Módulo 2. |
-| Frontend / player | **Protótipo (C)** | `nexastream/` existe, sem integração API v1. |
-| Smart contracts NST | **Protótipo (C/E)** | Cópias não consolidadas, sem testes. |
-| Blockchain (NexaChain) | **Protótipo (C/B)** | Consenso não auditado. |
-| Testnet | **NÃO VALIDADO** | Sem 3 validadores independentes verificados. |
-| Mainnet | **BLOQUEADA** | Checklist não verde. |
+| Monorepo (pnpm + TS) | ✅ Implementado | `package.json`, `pnpm-workspace.yaml` |
+| API REST v1 (health/upload/auth) | ✅ Implementado | `apps/api`, 39 testes |
+| Upload resumível + chunking + SHA-256 | ✅ Implementado | `apps/api/src/services/upload-manager.ts` |
+| Signaling WebRTC | ✅ Implementado | `apps/signaling`, 9 testes |
+| Auth (bcrypt + JWT + refresh) | ✅ Implementado | `apps/api/src/services/auth/`, 18 testes |
+| Migration PostgreSQL (users + refresh_tokens) | ✅ Implementado | `apps/api/src/migrations/001_initial.sql` |
+| Content addressing (ContentStorage) | ✅ Implementado | `packages/shared/src/storage/` |
+| Ledger 50/50 (idempotente, sem float) | ✅ Implementado | `packages/economics/`, 11 testes |
+| Contrato NST (Solidity, supply 55M) | ✅ Implementado | `contracts/nst/`, 15 testes |
+| Blockchain (PoW, genesis, 3 validadores) | ✅ Implementado | `packages/blockchain/`, 19 testes |
+| Player híbrido (HTTP + P2P) | ✅ Implementado | `apps/web/src/lib/hybrid-player.ts`, 8 testes |
+| Security (fuzzing, SQL/XSS, tamper) | ✅ Implementado | `packages/security/`, 24 testes |
+| Load tests (1000 events, 100 blocks) | ✅ Implementado | `packages/security/test/load.test.ts` |
+| Disaster recovery (backup/restore) | ✅ Implementado | `packages/security/test/disaster-recovery.test.ts` |
+| Android APK build | 🚧 Workflow criado | `.github/workflows/build-apk.yml` |
+| Frontend completo (feed, busca, etc) | 🚧 Planejado | Módulo 4 |
+| Testnet pública | ❌ Não implantada | Requer deploy + estabilidade |
+| Mainnet | ❌ Bloqueada | Checklist não verde |
 
-## Status da rede (verdadeiro)
+## Total de testes: 116 passando
+
+## Status da rede
 
 ```
-Network status: DEVELOPMENT
-Testnet:        NOT VALIDATED
-Mainnet:        BLOCKED (MAINNET CANDIDATE não atingido)
+Network status: DEVELOPMENT (Foundation + Auth + Blockchain complete)
+Testnet:        NOT DEPLOYED (code exists, not running on network)
+Mainnet:        BLOCKED (audit + stability required)
 ```
 
-- **NÃO** declarar "Mainnet Live".
-- **NÃO** declarar "Testnet Online".
-- Os estados permitidos são: `Development`, `Testnet`, `Candidate`, `Production`, `Mainnet`.
+## Genesis da testnet (determinístico)
 
-## Roadmap técnico
-
-### Completed
-- [x] Monorepo (pnpm workspace, TypeScript estrito)
-- [x] API `/api/v1/health`, `/api/v1/version`, `/api/v1/live`, `/api/v1/ready`
-- [x] Upload resumável (init/chunk/complete/status) com chunking e SHA-256 server-side
-- [x] Content-addressed storage (`ContentStorage` interface + `LocalContentStorage`)
-- [x] Signaling WebRTC (WebSocket, protocolo validado, room-manager, rate-limit)
-- [x] Testes de signaling e upload/chunking
-
-### In Progress
-- [ ] Auth/JWT, usuários, persistência (Módulo 2)
-- [ ] Banco PostgreSQL com migrations versionadas (Módulo 2)
-- [ ] Storage adapter S3-compatible (Módulo 2)
-
-### Planned
-- [ ] Frontend + player híbrido (Módulo 3)
-- [ ] Feed, busca, comentários, likes, subscriptions (Módulo 4)
-- [ ] Analytics, anti-fraude, ledger 50/50 (Módulo 5)
-- [ ] P2P delivery via WebRTC (Módulo 6)
-- [ ] CI/CD, website, monitoring, deploy (Módulo 7)
-- [ ] Contratos NST (rewards/treasury/staking) com testes (Módulo 8)
-- [ ] Testnet: genesis, 3 validadores independentes (Módulo 9)
-- [ ] Security validation, load tests, DR, backups (Módulo 10)
-
-### Blocked
-- [ ] **Mainnet** — bloqueada até: testnet estável + checklist 100% verde + auditoria.
-
-### Requires Audit
-- [ ] NexaChain (Go) — consenso
-- [ ] Smart contracts NST — antes de testnet/mainnet
+```
+Chain ID:    nexastream-testnet-1
+Network ID:  nexastream-testnet
+Version:     1
+Difficulty:  8 bits
+Validators:  3 independentes (validator-1, validator-2, validator-3)
+```

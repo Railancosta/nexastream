@@ -48,7 +48,7 @@ export function computeBlockHash(header: Omit<BlockHeader, "hash">): string {
  */
 export function computeMerkleRoot(txs: readonly Transaction[]): string {
   if (txs.length === 0) return createHash("sha256").update("").digest("hex");
-  let layer = txs.map((t) => createHash("sha256").update(t.id).digest("hex"));
+  let layer = txs.map((t) => createHash("sha256").update(t.id + t.amount + t.from + t.to).digest("hex"));
   while (layer.length > 1) {
     const next: string[] = [];
     for (let i = 0; i < layer.length; i += 2) {

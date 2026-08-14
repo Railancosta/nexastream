@@ -79,6 +79,18 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.1)
 
+  apps/web:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
   packages/blockchain:
     devDependencies:
       '@types/node':
@@ -96,6 +108,25 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
+  packages/security:
+    dependencies:
+      '@nexastream/blockchain':
+        specifier: workspace:*
+        version: link:../blockchain
+      '@nexastream/economics':
+        specifier: workspace:*
+        version: link:../economics
     devDependencies:
       '@types/node':
         specifier: ^22.10.0

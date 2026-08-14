@@ -1,0 +1,19 @@
+{
+  "name": "@nexastream/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "NexaStream web frontend with hybrid video player (HTTP + P2P fallback).",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "dev": "node serve.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
