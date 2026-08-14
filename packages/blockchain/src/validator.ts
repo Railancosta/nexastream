@@ -29,7 +29,7 @@ export class Validator {
     sign.end();
     const signature = sign.sign(this.privateKey, "hex");
     const id = createHash("sha256").update(data + signature).digest("hex");
-    return { id, from, to, amount, timestamp, signature };
+    return { id, from, to, amount, timestamp, signature, nonce: 0 };
   }
 
   /** Produce a new block by mining (PoW). */

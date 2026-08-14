@@ -22,6 +22,7 @@ export interface Transaction {
   readonly amount: number;
   readonly timestamp: number;
   readonly signature: string;
+  readonly nonce?: number;
 }
 
 /** Header fields needed to mine a block (merkleRoot is computed inside). */
