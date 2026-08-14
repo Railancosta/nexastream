@@ -1,8 +1,8 @@
-# 🚀 NexaStream - Decentralized Video Platform v2.0
+# 🚀 NexaStream - Decentralized Video Platform v2.1 — Mainnet Live
 
 ## 🌐 nexastream.org | Blockchain Video Streaming DApp
 
-![NexaStream](https://img.shields.io/badge/NexaStream-v2.0-purple)
+![NexaStream](https://img.shields.io/badge/NexaStream-v2.1 — Mainnet Live-purple)
 ![Blockchain](https://img.shields.io/badge/NexaChain-PoW%2BPoS-blue)
 ![Token](https://img.shields.io/badge/NST-55M-Max-green)
 
@@ -12,12 +12,25 @@
 
 **NexaStream** is a next-generation **decentralized video platform** built on **NexaChain blockchain**, designed to compete with YouTube and TikTok while offering:
 
-- ✅ **100% Decentralized** - No single point of failure
-- ✅ **Creator-First Monetization** - Earn from day one (50% revenue share)
-- ✅ **Blockchain Native** - Built-in crypto economy
-- ✅ **Web3 Integration** - Wallet login, NFTs, DAO governance
-- ✅ **AI-Powered** - Smart recommendations and moderation
-- ✅ **Hybrid Consensus** - PoW + PoS for security and speed
+- ✅ **Blockchain Native** - PoW consensus, NST token (55M supply cap), solo validator live
+- ✅ **Creator Economy 50/50** - Ledger implemented (idempotent, no float, audit trail)
+- ✅ **Content-Addressed Storage** - SHA-256, S3-compatible adapter, local storage
+- ✅ **WebRTC Signaling** - WebSocket signaling server with protocol validation
+- ✅ **Auth** - bcrypt + JWT + refresh tokens, PostgreSQL migrations
+- ✅ **Platform** - Feed, search, comments, likes, subscriptions, upload
+- ✅ **Analytics** - Event-driven tracking, anti-fraud (risk score, Sybil detection)
+- ✅ **P2P Delivery** - Segment integrity, peer manager, reputation
+- ✅ **Monitoring** - MetricsCollector, AlertManager, Prometheus export
+- ✅ **Security** - Fuzzing, load tests, disaster recovery, tamper detection
+- ✅ **i18n** - 10 languages (EN, PT, ES, ZH, JA, FR, DE, HI, AR, RU)
+- ✅ **Financial Dashboard** - NST balance, deposit/withdraw/swap, mining stats
+- 🚧 **Multi-validator** - Architecture ready (tested 1→3→5), solo mode active
+- 🚧 **External Audit** - Internal audit complete, external pending
+- ❌ **100% Decentralized** - Currently solo validator (centralized), multi-validator ready
+- ❌ **AI-Powered** - Not implemented (recommendation algorithm is recency + engagement)
+- ❌ **Web3 Wallet Login** - Google OAuth simulated, wallet login not implemented
+- ❌ **DAO Governance** - Not implemented
+- ❌ **NFTs** - Not implemented
 
 ---
 
@@ -362,4 +375,4 @@ MIT License - see [LICENSE](LICENSE)
 
 **Built with ❤️ for the decentralized future**
 
-**NexaStream v2.0** - nexastream.org
+**NexaStream v2.1 — Mainnet Live** - nexastream.org
