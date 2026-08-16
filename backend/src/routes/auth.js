@@ -11,7 +11,7 @@ const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'nexastream-secret-key';
+const JWT_SECRET = require('./config').JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 // Register

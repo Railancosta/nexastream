@@ -8,7 +8,7 @@ router.post('/:videoId', (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     const { type } = req.body;
     const existing = db.prepare('SELECT * FROM likes WHERE user_id = ? AND video_id = ?').get(decoded.userId, req.params.videoId);
     if (existing) {

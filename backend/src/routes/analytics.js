@@ -85,7 +85,7 @@ router.get('/video/:videoId', (req, res) => {
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     
     // Verify ownership
     const video = db.prepare(`
@@ -150,7 +150,7 @@ router.post('/profile', (req, res) => {
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     
     const { watched_categories, watched_creators, engagement_patterns } = req.body;
     
@@ -186,7 +186,7 @@ router.get('/creator/:channelId', (req, res) => {
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     
     const stats = db.prepare(`
       SELECT * FROM creator_relationships 

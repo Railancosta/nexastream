@@ -8,7 +8,7 @@ router.post('/:channelId', (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     const existing = db.prepare('SELECT id FROM subscriptions WHERE user_id = ? AND channel_id = ?').get(decoded.userId, req.params.channelId);
     if (existing) {
       db.prepare('DELETE FROM subscriptions WHERE user_id = ? AND channel_id = ?').run(decoded.userId, req.params.channelId);
@@ -27,7 +27,7 @@ router.get('/check/:channelId', (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return res.json({ subscribed: false });
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     const existing = db.prepare('SELECT id FROM subscriptions WHERE user_id = ? AND channel_id = ?').get(decoded.userId, req.params.channelId);
     res.json({ subscribed: !!existing });
   } catch (error) { res.json({ subscribed: false }); }

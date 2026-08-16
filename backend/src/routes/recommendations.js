@@ -14,7 +14,7 @@ router.get('/for-you', (req, res) => {
     if (token) {
       try {
         const jwt = require('jsonwebtoken');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+        const decoded = jwt.verify(token, require('./config').JWT_SECRET);
         userId = decoded.userId;
       } catch (e) {}
     }
@@ -97,7 +97,7 @@ router.get('/subscriptions', (req, res) => {
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     
     const { limit = 20, offset = 0 } = req.query;
     const videos = recommendationEngine.getSubscriptionFeed(
@@ -176,7 +176,7 @@ router.get('/hybrid', (req, res) => {
     if (token) {
       try {
         const jwt = require('jsonwebtoken');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+        const decoded = jwt.verify(token, require('./config').JWT_SECRET);
         userId = decoded.userId;
       } catch (e) {}
     }

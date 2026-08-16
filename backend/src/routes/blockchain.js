@@ -157,7 +157,7 @@ router.post('/rewards/:userId/claim', async (req, res) => {
     }
     
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     
     if (decoded.userId !== userId) {
       return res.status(403).json({ error: 'Forbidden' });
@@ -205,7 +205,7 @@ router.put('/wallet', async (req, res) => {
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     
     const { wallet_address } = req.body;
     

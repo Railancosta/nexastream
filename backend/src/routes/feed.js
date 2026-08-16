@@ -24,7 +24,7 @@ router.get('/subscriptions', (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     const videos = db.prepare(`SELECT v.*, c.name as channel_name, c.handle as channel_handle, c.avatar_url as channel_avatar FROM videos v JOIN channels c ON v.channel_id = c.id JOIN subscriptions s ON s.channel_id = c.id WHERE s.user_id = ? AND v.status = 'published' ORDER BY v.created_at DESC LIMIT 50`).all(decoded.userId);
     res.json({ videos, empty: videos.length === 0 });
   } catch (error) { res.status(500).json({ error: 'Failed to get subscriptions feed' }); }

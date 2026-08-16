@@ -12,7 +12,9 @@ const User = sequelize.define('User', {
   banner: { type: DataTypes.STRING(500) },
   bio: { type: DataTypes.TEXT },
   walletAddress: { type: DataTypes.STRING(100) },
-  walletPrivateKey: { type: DataTypes.STRING(255) },
+  walletPrivateKey: { type: DataTypes.STRING(1000) }, // AES-256-GCM payload (iv:ct:tag), never plaintext
+  authProvider: { type: DataTypes.ENUM('email', 'google'), defaultValue: 'email' },
+  googleId: { type: DataTypes.STRING(100), unique: true },
   phone: { type: DataTypes.STRING(20) },
   isEmailVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
   isPhoneVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
@@ -305,6 +307,7 @@ Livestream.hasMany(ChatMessage, { foreignKey: 'streamId', as: 'messages' });
 ChatMessage.belongsTo(Livestream, { foreignKey: 'streamId', as: 'stream' });
 
 module.exports = {
+  sequelize,
   User, Channel, Video, Livestream, Subscription, Comment,
   WatchHistory, Playlist, PlaylistVideo, Notification, Transaction,
   Report, NFT, ChatMessage

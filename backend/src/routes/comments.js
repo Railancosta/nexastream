@@ -16,7 +16,7 @@ router.post('/video/:videoId', (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     const { content, parent_id } = req.body;
     const id = uuidv4();
     db.prepare(`INSERT INTO comments (id, video_id, user_id, content, parent_id, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))`).run(id, req.params.videoId, decoded.userId, content, parent_id || null);

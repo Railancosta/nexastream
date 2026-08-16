@@ -53,7 +53,7 @@ router.post('/upload', upload.single('video'), (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexastream-secret-key');
+    const decoded = jwt.verify(token, require('./config').JWT_SECRET);
     const channel = db.prepare('SELECT * FROM channels WHERE user_id = ?').get(decoded.userId);
     if (!channel) return res.status(400).json({ error: 'No channel found' });
     const { title, description, category, tags } = req.body;
