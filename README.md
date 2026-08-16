@@ -1,378 +1,176 @@
-# 🚀 NexaStream - Decentralized Video Platform v2.1 — Mainnet Live
+# NexaStream — Engineering Foundation
 
-## 🌐 nexastream.org | Blockchain Video Streaming DApp
+NexaStream is an open-source video platform project exploring creator economy, distributed content delivery, Web3 integration and AI-assisted platform services.
 
-![NexaStream](https://img.shields.io/badge/NexaStream-v2.1 — Mainnet Live-purple)
-![Blockchain](https://img.shields.io/badge/NexaChain-PoW%2BPoS-blue)
-![Token](https://img.shields.io/badge/NST-55M-Max-green)
+> **Engineering rule:** Build first. Validate through engineering. Scale through measurable milestones.
+>
+> This README intentionally does **not** claim that NexaStream is decentralized, secure, production-ready, scalable to a specific user count, or that mainnet is safe to launch. Those claims require evidence.
 
----
+## Current Phase
 
-## 📋 Overview
+**FASE 0 — Codebase Audit + Foundation Scaffold**
 
-**NexaStream** is a next-generation **decentralized video platform** built on **NexaChain blockchain**, designed to compete with YouTube and TikTok while offering:
+Repository: https://github.com/Railancosta/nexastream
+Website: https://nexastream.org/
+Token design target: **NST**, maximum planned supply **55,000,000 NST**. Token economics and issuance remain subject to engineering, security and economic validation.
 
-- ✅ **Blockchain Native** - PoW consensus, NST token (55M supply cap), solo validator live
-- ✅ **Creator Economy 50/50** - Ledger implemented (idempotent, no float, audit trail)
-- ✅ **Content-Addressed Storage** - SHA-256, S3-compatible adapter, local storage
-- ✅ **WebRTC Signaling** - WebSocket signaling server with protocol validation
-- ✅ **Auth** - bcrypt + JWT + refresh tokens, PostgreSQL migrations
-- ✅ **Platform** - Feed, search, comments, likes, subscriptions, upload
-- ✅ **Analytics** - Event-driven tracking, anti-fraud (risk score, Sybil detection)
-- ✅ **P2P Delivery** - Segment integrity, peer manager, reputation
-- ✅ **Monitoring** - MetricsCollector, AlertManager, Prometheus export
-- ✅ **Security** - Fuzzing, load tests, disaster recovery, tamper detection
-- ✅ **i18n** - 10 languages (EN, PT, ES, ZH, JA, FR, DE, HI, AR, RU)
-- ✅ **Financial Dashboard** - NST balance, deposit/withdraw/swap, mining stats
-- 🚧 **Multi-validator** - Architecture ready (tested 1→3→5), solo mode active
-- 🚧 **External Audit** - Internal audit complete, external pending
-- 🚧 **100% Decentralized** - Solo validator active, multi-validator architecture ready
-- ✅ **AI-Powered** - Recommendation engine implemented (watch time, completion rate, engagement, recency, creator affinity)
-- ✅ **Web3 Wallet Login** - SIWE (Sign-In With Ethereum) + EIP-6963 (500+ wallets) + MetaMask/Coinbase/Phantom/Trust/Binance/OKX
-- ✅ **DAO Governance** - Implemented (proposals, voting, quorum, execution, double-vote prevention)
-- ✅ **NFTs** - Implemented (mint, transfer, query, collections, royalties)
+## Audit Snapshot
 
----
+The repository already contains multiple overlapping generations of frontend, backend, blockchain, contracts, P2P and infrastructure code. The existing audit report is dated 2024 and therefore cannot be treated as a current production certification. It reports missing/insufficient tests, dependency vulnerabilities, and unverified deployment/DNS/TLS items. fileciteturn2file0L2-L2
 
-## 🏗️ Architecture
+The current tree also confirms substantial duplicated architecture: `backend/`, `frontend/`, `nexastream/`, `apps/`, `packages/`, `nexachain/`, `blockchain/`, `contracts/`, Kubernetes manifests and several deployment stacks coexist. fileciteturn1file0L2-L2
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         NEXASTREAM STACK                           │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
-│  │   FRONTEND  │    │   BACKEND   │    │  NEXACHAIN  │             │
-│  │   Next.js   │    │   Node.js   │    │   (Go)      │             │
-│  │   React     │◄──►│   Express   │◄──►│   Blockchain │             │
-│  │   Web3.js   │    │   Redis     │    │             │             │
-│  │   IPFS      │    │   WebSocket │    │             │             │
-│  └─────────────┘    └─────────────┘    └─────────────┘             │
-│         │                  │                  │                      │
-│         └──────────────────┼──────────────────┘                    │
-│                            ▼                                       │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │                    INFRASTRUCTURE                           │  │
-│  │  • Cloudflare (CDN, DDoS, SSL)                           │  │
-│  │  • Supabase (PostgreSQL, Auth, Storage)                  │  │
-│  │  • Docker & Kubernetes (Orchestration)                     │  │
-│  │  • Redis (Cache, Sessions)                                 │  │
-│  │  • MinIO (S3-compatible storage)                         │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+### Immediate audit conclusions
 
----
+- **Do not call the project production-ready yet.**
+- **Do not treat existing blockchain/mainnet files as evidence of a safe mainnet.**
+- **Do not treat existing P2P/storage code as proof of decentralization.**
+- Consolidation into the mandatory architecture is required before Phase 1 is considered complete.
+- Security and dependency findings must be re-run with current tooling.
+- Tests, observability, rollback and disaster-recovery procedures must be validated rather than inferred from file presence.
 
-## ⛓️ NexaChain - Hybrid PoW + PoS Blockchain
+## Mandatory Target Architecture
 
-### Token: NST (NexaStream Token)
-
-| Property | Value |
-|----------|-------|
-| **Name** | NexaStream Token |
-| **Symbol** | NST |
-| **Max Supply** | 55,000,000 NST |
-| **Standard** | ERC-20 / Native |
-| **Blockchain** | NexaChain |
-| **Consensus** | Hybrid PoW + PoS |
-| **Block Time** | 3 seconds (PoS) / 60 seconds (PoW) |
-| **Chain ID** | 1010101 |
-
-### Token Allocation
-
-| Category | Percentage | Amount |
-|----------|------------|--------|
-| Ecosystem | 50% | 27,500,000 NST |
-| Rewards | 30% | 16,500,000 NST |
-| Team | 10% | 5,500,000 NST |
-| Public Sale | 5% | 2,750,000 NST |
-| Liquidity | 5% | 2,750,000 NST |
-
-### Consensus Mechanism
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  NEXACHAIN CONSENSUS                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│   PoW Blocks (10%)          PoS Blocks (90%)               │
-│   ───────────────           ────────────────                │
-│   • Mining reward: 10 NST   • Validator reward: 2 NST      │
-│   • Every 10th block        • 3-second blocks              │
-│   • High security           • High throughput              │
-│                                                              │
-│   Min Stake: 100 NST       APY: 12.5%                     │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+```text
+nexastream/
+├── apps/
+│   ├── web/              # TypeScript + Next.js + React
+│   ├── android/          # Kotlin
+│   └── desktop/          # Tauri/Rust
+├── services/
+│   ├── auth/             # Go
+│   ├── users/            # Go
+│   ├── videos/           # Go
+│   ├── search/           # Go
+│   ├── recommendations/  # Python
+│   ├── analytics/        # Go/Python
+│   ├── payments/         # Go
+│   ├── moderation/       # Python
+│   └── antifraud/        # Python
+├── blockchain/
+│   ├── node/             # Rust
+│   ├── consensus/        # Rust
+│   ├── wallet/           # Rust core + TS UI
+│   └── explorer/         # TypeScript
+├── p2p/
+│   ├── discovery/        # Rust/libp2p/DHT
+│   ├── storage/          # Rust
+│   ├── relay/            # Rust
+│   └── replication/      # Rust
+├── contracts/            # Solidity + Ink!
+├── sdk/                  # JS/TS, Python, Android
+├── infrastructure/       # Terraform, Docker, Kubernetes
+├── monitoring/           # Prometheus/Grafana/OTel
+├── security/             # Threat models and audits
+└── tests/                # Unit/integration/E2E/chaos/load
 ```
 
----
+`setup.sh` creates this target layout without deleting the existing implementation. Migration and deletion are separate, reviewable changes.
 
-## 🎬 Platform Features (200+)
-
-### Core Video Features
-- ✅ 4K/8K Streaming
-- ✅ Adaptive Bitrate
-- ✅ Shorts (15-60 seconds)
-- ✅ Long-form (up to 4 hours)
-- ✅ Live Streaming
-- ✅ Premiere (scheduled releases)
-- ✅ Podcasts
-- ✅ Playlists & Series
-- ✅ Video chapters
-
-### Web3/Blockchain Features
-- ✅ MetaMask/WalletConnect Login
-- ✅ NST Token Rewards
-- ✅ Staking (12.5% APY)
-- ✅ DAO Governance
-- ✅ NFT Marketplace
-- ✅ Video NFTs
-- ✅ Cross-chain Bridge
-- ✅ DeFi Integration
-
-### Monetization
-- ✅ Ad Revenue (50% creator share)
-- ✅ Subscriptions
-- ✅ Tips & Super Chats
-- ✅ NFT Sales
-- ✅ Course Sales
-- ✅ Crowdfunding
-- ✅ Affiliate Program
-
----
-
-## 🛠️ Technology Stack
-
-### Frontend
-- **Framework**: Next.js 14 (React 18)
-- **Language**: TypeScript
-- **Styling**: TailwindCSS
-- **Web3**: wagmi, viem, WalletConnect
-- **State**: TanStack Query
-
-### Backend
-- **Runtime**: Node.js 20
-- **Framework**: Express.js
-- **Database**: PostgreSQL + Redis
-- **Storage**: S3/MinIO + IPFS
-- **CDN**: Cloudflare
-
-### Blockchain
-- **Language**: Go 1.21
-- **Consensus**: Hybrid PoW + PoS
-- **Smart Contracts**: Solidity 0.8.20
-- **Standards**: ERC-20, ERC-721, ERC-1155
-
-### Infrastructure
-- **Container**: Docker + Kubernetes
-- **CI/CD**: GitHub Actions
-- **Monitoring**: Prometheus + Grafana
-- **Logging**: ELK Stack
-
----
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
-```bash
-Node.js 18+
-Go 1.21+
-Docker & Docker Compose
-Git
-```
 
-### Installation
+- Git
+- Docker Engine/Desktop + Compose v2
+- Rust stable + Cargo
+- Go 1.23+
+- Python 3.12
+- Node.js 22
+- A Unix-like shell (Linux/macOS recommended)
 
-```bash
-# Clone repository
-git clone https://github.com/Railancosta/nexastream.git
-cd nexastream
-
-# Install frontend dependencies
-cd frontend && npm install
-
-# Install backend dependencies
-cd ../backend && npm install
-
-# Install blockchain dependencies
-cd ../nexachain && go mod download
-
-# Install contract dependencies
-cd ../contracts && npm install
-```
-
-### Run Development
+### Setup
 
 ```bash
-# Terminal 1: Frontend
-cd frontend && npm run dev
-
-# Terminal 2: Backend
-cd backend && npm run dev
-
-# Terminal 3: NexaChain Node
-cd nexachain && go run cmd/nexachain/main.go
+chmod +x setup.sh
+./setup.sh
 ```
 
-### Docker Deployment
+The script is designed to be idempotent where practical. It installs local development toolchains, creates `.venv`, configures Git hooks, and creates the target monorepo directories. It does not provision production infrastructure or credentials.
+
+### Local infrastructure
 
 ```bash
-docker-compose up -d
+cp .env.example .env
+make docker-up
 ```
 
----
+Development services include PostgreSQL 16, Redis 7, Redpanda, ClickHouse, Meilisearch, MinIO, Prometheus, Grafana and Jaeger.
 
-## 🌐 Deployment
+Default local endpoints:
 
-### Frontend (Vercel)
+| Service | Endpoint |
+|---|---|
+| PostgreSQL | localhost:5432 |
+| Redis | localhost:6379 |
+| Redpanda Kafka API | localhost:19092 |
+| ClickHouse HTTP | http://localhost:8123 |
+| Meilisearch | http://localhost:7700 |
+| MinIO API | http://localhost:9002 |
+| MinIO Console | http://localhost:9001 |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 |
+| Jaeger | http://localhost:16686 |
+
+Local credentials in Compose are intentionally development-only and must never be reused in production.
+
+## Developer Commands
+
 ```bash
-cd frontend
-vercel --prod
+make setup
+make test
+make lint
+make build
+make docker-up
+make docker-down
+make dev
+make security-scan
 ```
 
-### Backend (Railway)
-```bash
-cd backend
-railway up
-```
+The targets are deliberately conservative: components that have not yet been migrated into the target Go/Rust/Python structure are not represented as successfully built merely because older code exists elsewhere in the repository.
 
-### NexaChain Node
-```bash
-cd nexachain
-go build -o nexachain ./cmd/nexachain
-./nexachain
-```
+## CI/CD
 
----
+`.github/workflows/phase0-ci.yml` performs repository secret scanning, Node dependency auditing, Python formatting checks, discovered Go tests/vet, discovered Rust fmt/clippy checks and Trivy filesystem scanning. A CI green result is evidence only for the checks actually executed; it is not a security audit or production certification.
 
-## 📁 Project Structure
+## Security Rules
 
-```
-nexastream/
-├── frontend/                 # Next.js 14 app
-│   ├── src/
-│   │   ├── app/            # App router pages
-│   │   ├── components/     # React components
-│   │   └── lib/            # Utilities
-│   └── public/             # Static assets
-│
-├── backend/                 # Express.js API
-│   ├── src/
-│   │   ├── routes/         # API endpoints
-│   │   ├── middleware/     # Auth, security
-│   │   ├── models/         # Database models
-│   │   └── services/       # Business logic
-│   └── Dockerfile
-│
-├── nexachain/              # Go blockchain
-│   ├── cmd/                # CLI commands
-│   ├── core/               # Blockchain core
-│   ├── api/                # RPC API
-│   ├── p2p/                # Networking
-│   └── wallet/             # Wallet management
-│
-├── contracts/               # Solidity contracts
-│   ├── NSTToken.sol       # Main token
-│   ├── NSTStaking.sol     # Staking contract
-│   ├── NSTRewards.sol      # Rewards distribution
-│   └── NFT/                # NFT marketplace
-│
-├── nexastream/             # Alternative frontend
-│   └── src/
-│
-├── docker/                 # Docker configs
-├── k8s/                    # Kubernetes manifests
-└── scripts/                # Deployment scripts
-```
+1. No proprietary cryptography.
+2. No credentials in source code.
+3. TLS, authentication, authorization, rate limiting and input validation are mandatory for network services.
+4. Security-sensitive components require threat models and independent review before production use.
+5. Dependency vulnerabilities must be tracked and remediated according to severity.
+6. Never claim decentralization without measured peer/node/replication evidence.
+7. Never claim scalability without load-test evidence.
+8. Never launch mainnet merely because a binary starts.
 
----
+## Roadmap
 
-## 🔐 Security
+| Phase | Gate |
+|---|---|
+| 0 | Audit + scaffold + reproducible local environment |
+| 1 | MVP backend, DB, auth, users, channels, videos, search, feed, analytics, admin |
+| 2 | Creator Studio, monetization, live, comments, notifications, revenue tracking |
+| 3 | Rust P2P testnet, DHT, content addressing, storage, relay, replication |
+| 4 | Blockchain testnet, consensus, wallets, NST transactions, explorer |
+| 5 | Security Gate: threat model, audits, pentest, load/consensus/wallet/DR tests |
+| 6 | Mainnet decision only after every Phase 5 gate is independently evidenced |
+| 7 | Global expansion, ecosystem, SDKs, mobile/desktop, marketplace and DAO |
 
-| Feature | Implementation |
-|---------|----------------|
-| **Authentication** | OAuth 2.0, JWT, Web3 Wallet |
-| **Password** | bcrypt with cost 12 |
-| **MFA** | TOTP (Google Authenticator) |
-| **TLS/SSL** | TLS 1.3 |
-| **DDoS Protection** | Cloudflare WAF |
-| **Rate Limiting** | Redis-based |
-| **Data Encryption** | AES-256 |
-| **GDPR/LGPD** | Full compliance |
+## Creator Economy
 
----
+The target business rule is a 50/50 split of **net eligible platform revenue** between creators and NexaStream. Exact accounting definitions, exclusions, fraud handling, payout timing and legal/compliance requirements must be implemented and tested before this is marketed as a guaranteed payout.
 
-## 📊 Tokenomics
+## Contribution Rules
 
-### Revenue Distribution
+- Keep changes small and reviewable.
+- Add automated tests with functional changes.
+- Add metrics and structured logs to network services.
+- Update threat models when attack surfaces change.
+- Do not introduce custom cryptography.
+- Do not commit secrets, production credentials, private keys or generated local state.
+- Do not mark a feature complete until it works in a real environment and has measurable acceptance criteria.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              REVENUE DISTRIBUTION                       │
-├─────────────────────────────────────────────────────────┤
-│                                                          │
-│   Advertisers/Users                                     │
-│        │                                                │
-│        ▼                                                │
-│   ┌─────────────────────────────────────────┐          │
-│   │      NEXASTREAM PLATFORM               │          │
-│   └─────────────────────────────────────────┘          │
-│        │                                                │
-│        ├─── 50% ──► Content Creators                    │
-│        │                                              │
-│        └─── 50% ──► Platform Treasury                  │
-│                     ├── Infrastructure (20%)           │
-│                     ├── Development (15%)             │
-│                     ├── Marketing (10%)                 │
-│                     └── Staking Rewards (5%)             │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
-```
+## License
 
-### Reward Actions
-
-| Action | Reward |
-|--------|--------|
-| Upload Video | 10 NST |
-| 1000 Views | 5 NST |
-| Like | 0.1 NST |
-| Comment | 0.5 NST |
-| Share | 1 NST |
-| Subscribe | 2 NST |
-| Live Stream | 20 NST/hour |
-
----
-
-## 🔗 Links
-
-| Resource | URL |
-|----------|-----|
-| **Website** | https://nexastream.org |
-| **GitHub** | https://github.com/Railancosta/nexastream |
-| **Docs** | https://docs.nexastream.org |
-| **Explorer** | https://explorer.nexastream.org |
-| **RPC** | https://rpc.nexastream.org |
-| **Discord** | https://discord.gg/nexastream |
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE)
-
----
-
-## 👥 Team
-
-- **Rilan Costa** - Founder & Lead Developer
-- [GitHub](https://github.com/Railancosta)
-- [Twitter](https://twitter.com/railancosta)
-
----
-
-**Built with ❤️ for the decentralized future**
-
-**NexaStream v2.1 — Mainnet Live** - nexastream.org
+See `LICENSE.md`.
