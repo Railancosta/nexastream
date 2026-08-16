@@ -1,9 +1,57 @@
-node_modules/
-*.log
+# Secrets and local state
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+
+# Node / TypeScript
+node_modules/
 .next/
 out/
 dist/
+coverage/
+*.tsbuildinfo
+pnpm-debug.log*
+npm-debug.log*
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Rust
+**/target/
+Cargo.lock
+!blockchain/Cargo.lock
+!p2p/Cargo.lock
+
+# Go
+bin/
+*.test
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local databases and data
 *.db
+*.sqlite
+*.sqlite3
+.data/
 backend/data/
-nexastream/node_modules/
+
+# Generated blockchain artifacts
+artifacts/
+cache/
+
+# Logs and reports generated locally
+*.log
+trivy-report.json
+npm-audit.json
