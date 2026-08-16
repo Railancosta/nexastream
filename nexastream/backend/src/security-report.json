@@ -1,0 +1,495 @@
+{
+  "summary": {
+    "total": 53,
+    "bySeverity": {
+      "critical": 24,
+      "high": 25,
+      "medium": 3,
+      "low": 0,
+      "info": 1
+    },
+    "duration": 12,
+    "scannedFiles": 51,
+    "linesScanned": 13352,
+    "passed": false
+  },
+  "findings": [
+    {
+      "id": 1,
+      "timestamp": "2026-08-08T02:43:57.937Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/algorithms/recommendationEngine.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-08-08T02:43:57.938Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/blockchain/ethereum.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-08-08T02:43:57.938Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/config/database.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 4,
+      "timestamp": "2026-08-08T02:43:57.938Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/db/database.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 5,
+      "timestamp": "2026-08-08T02:43:57.938Z",
+      "type": "command_injection",
+      "severity": "critical",
+      "file": "src/db/database.js",
+      "message": "Potential command injection vulnerability",
+      "recommendation": "Avoid shell commands with user input, use execFile"
+    },
+    {
+      "id": 6,
+      "timestamp": "2026-08-08T02:43:57.938Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/db/database.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 7,
+      "timestamp": "2026-08-08T02:43:57.939Z",
+      "type": "hardcoded_secrets",
+      "severity": "high",
+      "file": "src/db/setup.js",
+      "message": "Potential hardcoded secret found",
+      "detail": "Found 2 potential secret(s)",
+      "recommendation": "Use environment variables or secure vault for secrets"
+    },
+    {
+      "id": 8,
+      "timestamp": "2026-08-08T02:43:57.939Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/db/setup.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 9,
+      "timestamp": "2026-08-08T02:43:57.939Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/db/setup.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 10,
+      "timestamp": "2026-08-08T02:43:57.939Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/index.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 11,
+      "timestamp": "2026-08-08T02:43:57.939Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/main.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 12,
+      "timestamp": "2026-08-08T02:43:57.939Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/middleware/security.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 13,
+      "timestamp": "2026-08-08T02:43:57.940Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/models/index.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 14,
+      "timestamp": "2026-08-08T02:43:57.940Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/analytics.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 15,
+      "timestamp": "2026-08-08T02:43:57.940Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/api/analytics.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 16,
+      "timestamp": "2026-08-08T02:43:57.940Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/api/channels.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 17,
+      "timestamp": "2026-08-08T02:43:57.940Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/api/channels.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 18,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/api/payments.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 19,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/api/streaming.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 20,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/api/streaming.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 21,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/api/users.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 22,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/api/users.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 23,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/api/videos.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 24,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/auth.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 25,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/blockchain.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 26,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/blockchain.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 27,
+      "timestamp": "2026-08-08T02:43:57.941Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/comments.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 28,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/likes.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 29,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/rewards.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 30,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/search.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 31,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/stats.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 32,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/storage.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 33,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/storage.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 34,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/streaming.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 35,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/upload.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 36,
+      "timestamp": "2026-08-08T02:43:57.942Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/upload.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 37,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/routes/videos.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 38,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/videos.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 39,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/routes/web3.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 40,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "command_injection",
+      "severity": "critical",
+      "file": "src/scripts/initDb.js",
+      "message": "Potential command injection vulnerability",
+      "recommendation": "Avoid shell commands with user input, use execFile"
+    },
+    {
+      "id": 41,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/scripts/seed.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 42,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "command_injection",
+      "severity": "critical",
+      "file": "src/scripts/seed.js",
+      "message": "Potential command injection vulnerability",
+      "recommendation": "Avoid shell commands with user input, use execFile"
+    },
+    {
+      "id": 43,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "path_traversal",
+      "severity": "high",
+      "file": "src/scripts/seed.js",
+      "message": "Potential path traversal vulnerability",
+      "recommendation": "Validate and sanitize file paths, use path.resolve"
+    },
+    {
+      "id": 44,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/server.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 45,
+      "timestamp": "2026-08-08T02:43:57.943Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/services/backup.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 46,
+      "timestamp": "2026-08-08T02:43:57.944Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/services/security/audit.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 47,
+      "timestamp": "2026-08-08T02:43:57.944Z",
+      "type": "weak_crypto",
+      "severity": "medium",
+      "file": "src/services/security/audit.js",
+      "message": "MD5 usage detected - not secure for cryptographic purposes",
+      "recommendation": "Use SHA-256 or stronger hash algorithms"
+    },
+    {
+      "id": 48,
+      "timestamp": "2026-08-08T02:43:57.944Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/services/storage/index.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 49,
+      "timestamp": "2026-08-08T02:43:57.944Z",
+      "type": "weak_crypto",
+      "severity": "medium",
+      "file": "src/services/storage/index.js",
+      "message": "MD5 usage detected - not secure for cryptographic purposes",
+      "recommendation": "Use SHA-256 or stronger hash algorithms"
+    },
+    {
+      "id": 50,
+      "timestamp": "2026-08-08T02:43:57.944Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/services/streaming/index.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 51,
+      "timestamp": "2026-08-08T02:43:57.945Z",
+      "type": "sql_injection",
+      "severity": "critical",
+      "file": "src/services/web3/index.js",
+      "message": "Potential SQL injection vulnerability",
+      "recommendation": "Use parameterized queries or ORM"
+    },
+    {
+      "id": 52,
+      "timestamp": "2026-08-08T02:43:57.947Z",
+      "type": "auth_bypass",
+      "severity": "medium",
+      "message": "No CORS configuration found",
+      "recommendation": "Configure CORS to restrict cross-origin requests"
+    },
+    {
+      "id": 53,
+      "timestamp": "2026-08-08T02:43:57.947Z",
+      "type": "auth_bypass",
+      "severity": "info",
+      "message": "No security headers library detected",
+      "recommendation": "Consider using Helmet.js for security headers"
+    }
+  ],
+  "timestamp": "2026-08-08T02:43:57.948Z"
+}

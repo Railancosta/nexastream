@@ -1,0 +1,50 @@
+{
+  "dashboard": {
+    "title": "NexaStream Overview",
+    "panels": [
+      {
+        "title": "API Request Rate",
+        "type": "graph",
+        "datasource": "Prometheus",
+        "targets": [{ "expr": "rate(http_requests_total[1m])" }]
+      },
+      {
+        "title": "API Latency P95",
+        "type": "graph",
+        "datasource": "Prometheus",
+        "targets": [{ "expr": "histogram_quantile(0.95, rate(latency_ms_bucket[5m]))" }]
+      },
+      {
+        "title": "Error Rate",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [{ "expr": "rate(http_requests_total{status=\"500\"}[1m])" }]
+      },
+      {
+        "title": "Active Validators",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [{ "expr": "nexastream_validators_active" }]
+      },
+      {
+        "title": "Block Height",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [{ "expr": "nexastream_block_height" }]
+      },
+      {
+        "title": "Mempool Size",
+        "type": "graph",
+        "datasource": "Prometheus",
+        "targets": [{ "expr": "nexastream_mempool_size" }]
+      },
+      {
+        "title": "Active Alerts",
+        "type": "alertlist",
+        "datasource": "Prometheus"
+      }
+    ],
+    "templating": { "list": [] },
+    "time": { "from": "now-1h", "to": "now" }
+  }
+}

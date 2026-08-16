@@ -1,0 +1,246 @@
+{
+  "chain_name": "NexaStream Testnet",
+  "chain_id": 9999,
+  "network_id": 9999,
+  "genesis_time": "2024-01-01T00:00:00.000Z",
+  "consensus": {
+    "type": "hybrid_pow_pos",
+    "pos_blocks_ratio": 9,
+    "pow_blocks_ratio": 1,
+    "min_validators": 4,
+    "max_validators": 21,
+    "block_time": 3,
+    "target_block_time": 3,
+    "difficulty_adjustment": true,
+    "difficulty_target": 180
+  },
+  "governance": {
+    "quorum_percentage": 51,
+    "proposal_deposit": "1000000000000000000000",
+    "voting_period_blocks": 8400,
+    "execution_delay_blocks": 1200,
+    "emergency_proposal_threshold": 67
+  },
+  "token": {
+    "name": "NexaStream Token",
+    "symbol": "NST",
+    "decimals": 18,
+    "total_supply": "55000000000000000000000000",
+    "initial_supply": "55000000000000000000000000"
+  },
+  "rewards": {
+    "pow_block_reward": "10000000000000000000",
+    "pos_block_reward": "2000000000000000000",
+    "validator_reward_ratio": 0.1,
+    "developer_reward_ratio": 0.1,
+    "inflation_rate": 0.05,
+    "halving_interval_blocks": 2100000,
+    "min_block_reward": "1000000000000000000"
+  },
+  "staking": {
+    "min_stake": "100000000000000000000",
+    "max_stake_per_validator": "11000000000000000000000000",
+    "unstake_period_blocks": 300,
+    "reward_distribution_blocks": 1,
+    "slashing": {
+      "double_sign_penalty": 0.05,
+      "unavailability_penalty": 0.01,
+      "missed_blocks_threshold": 50
+    }
+  },
+  "governance_token": {
+    "name": "NexaStream Governance Token",
+    "symbol": "NSTGOV",
+    "decimals": 18,
+    "total_supply": "55000000000000000000000000"
+  },
+  "accounts": [
+    {
+      "address": "0x0000000000000000000000000000000000000001",
+      "balance": "10000000000000000000000000",
+      "type": "treasury",
+      "name": "NexaStream Treasury"
+    },
+    {
+      "address": "0x0000000000000000000000000000000000000002",
+      "balance": "5000000000000000000000000",
+      "type": "foundation",
+      "name": "NexaStream Foundation"
+    },
+    {
+      "address": "0x0000000000000000000000000000000000000003",
+      "balance": "5000000000000000000000000",
+      "type": "development",
+      "name": "Development Fund"
+    },
+    {
+      "address": "0x0000000000000000000000000000000000000004",
+      "balance": "10000000000000000000000000",
+      "type": "public_sale",
+      "name": "Public Sale Reserve"
+    },
+    {
+      "address": "0x0000000000000000000000000000000000000005",
+      "balance": "1000000000000000000000000",
+      "type": "airdrop",
+      "name": "Community Airdrop"
+    },
+    {
+      "address": "0x0000000000000000000000000000000000000006",
+      "balance": "1000000000000000000000000",
+      "type": "team",
+      "name": "Team Reserve",
+      "vesting": {
+        "start_block": 0,
+        "end_block": 10512000,
+        "cliff_blocks": 525600,
+        "slice_period_blocks": 525600
+      }
+    },
+    {
+      "address": "0x0000000000000000000000000000000000000007",
+      "balance": "5000000000000000000000000",
+      "type": "strategic",
+      "name": "Strategic Partners",
+      "vesting": {
+        "start_block": 0,
+        "end_block": 5256000,
+        "cliff_blocks": 262800,
+        "slice_period_blocks": 262800
+      }
+    }
+  ],
+  "validators": [
+    {
+      "address": "0xVal1dAt0r000000000000000000000000001",
+      "pubkey": "A unreala6JhbHDrWX8Kx2BVNrBqpXCgV5xB5v9p3mXKq",
+      "power": 1000000000000000000000,
+      "name": "Validator 1",
+      "description": "NexaStream Core Validator 1",
+      "website": "https://validator1.nexastream.org",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01
+    },
+    {
+      "address": "0xVal1dAt0r000000000000000000000000002",
+      "pubkey": "B unreala6JhbHDrWX8Kx2BVNrBqpXCgV5xB5v9p3mXKq",
+      "power": 1000000000000000000000,
+      "name": "Validator 2",
+      "description": "NexaStream Core Validator 2",
+      "website": "https://validator2.nexastream.org",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01
+    },
+    {
+      "address": "0xVal1dAt0r000000000000000000000000003",
+      "pubkey": "C unreala6JhbHDrWX8Kx2BVNrBqpXCgV5xB5v9p3mXKq",
+      "power": 1000000000000000000000,
+      "name": "Validator 3",
+      "description": "NexaStream Core Validator 3",
+      "website": "https://validator3.nexastream.org",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01
+    },
+    {
+      "address": "0xVal1dAt0r000000000000000000000000004",
+      "pubkey": "D unreala6JhbHDrWX8Kx2BVNrBqpXCgV5xB5v9p3mXKq",
+      "power": 1000000000000000000000,
+      "name": "Validator 4",
+      "description": "NexaStream Core Validator 4",
+      "website": "https://validator4.nexastream.org",
+      "commission": 0.05,
+      "max_rate": 0.2,
+      "max_change_rate": 0.01
+    }
+  ],
+  "contracts": {
+    "NSTToken": {
+      "address": "0x0000000000000000000000000000000000010001",
+      " bytecode": "0x...",
+      "params": {
+        "name": "NexaStream Token",
+        "symbol": "NST",
+        "decimals": 18,
+        "initial_supply": "55000000000000000000000000",
+        "max_supply": "55000000000000000000000000"
+      }
+    },
+    "Staking": {
+      "address": "0x0000000000000000000000000000000000010002",
+      " bytecode": "0x...",
+      "params": {
+        "min_stake": "100000000000000000000",
+        "unstake_period": 300,
+        "reward_rate": 1200
+      }
+    },
+    "Governance": {
+      "address": "0x0000000000000000000000000000000000010003",
+      " bytecode": "0x...",
+      "params": {
+        "proposal_deposit": "1000000000000000000000",
+        "voting_period": 8400,
+        "quorum": 0.51
+      }
+    },
+    "NFTMarketplace": {
+      "address": "0x0000000000000000000000000000000000010004",
+      " bytecode": "0x...",
+      "params": {
+        "royalty_fee": 250,
+        "platform_fee": 250
+      }
+    }
+  },
+  "parameters": {
+    "max_block_size": 10485760,
+    "max_gas_per_block": 10000000,
+    "min_gas_price": 0,
+    "tx_fee": 0,
+    "account_upgrade_bytes": 1000000,
+    "key_rotation": true,
+    "replay_protection": true
+  },
+  "p2p": {
+    "listen_addresses": [
+      "/ip4/0.0.0.0/tcp/30303",
+      "/ip6/::/tcp/30303"
+    ],
+    "max_peers": 50,
+    "max_inbound_peers": 25,
+    "max_outbound_peers": 25,
+    "connection_timeout": 30,
+    "dial_timeout": 10
+  },
+  "rpc": {
+    "enabled": true,
+    "listen_address": "0.0.0.0:8545",
+    "cors": ["*"],
+    "api": ["eth", "web3", "net", "txpool", "debug", "trace"],
+    "ws": {
+      "enabled": true,
+      "listen_address": "0.0.0.0:8546",
+      "origins": ["*"],
+      "api": ["eth", "web3", "net"]
+    }
+  },
+  "telemetry": {
+    "enabled": true,
+    "prometheus": true,
+    "listen_address": "0.0.0.0:26660",
+    "labels": {
+      "network": "testnet",
+      "chain_id": "9999",
+      "node_type": "validator"
+    }
+  },
+  "mining": {
+    "enabled": true,
+    "miner_address": "0x0000000000000000000000000000000000000001",
+    "threads": 4,
+    "gas_limit": 8000000
+  }
+}

@@ -1,0 +1,15 @@
+import time
+from web3 import Web3
+
+# Conectar ao RPC
+w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR_INFURA_KEY'))
+
+# Atacar a rede Ethereum
+def mine_blocks():
+    while True:
+        block = w3.eth.get_block('latest')
+        print(f"Bloco minerado: {block.number}")
+        time.sleep(10)
+
+# Executar ataque
+mine_blocks()

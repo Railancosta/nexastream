@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  validator-1:
+    build:
+      context: ../../../
+      dockerfile: blockchain/testnet/docker/Dockerfile
+    command: ["--genesis", "/app/blockchain/testnet/genesis.json", "--validator", "validator-1", "--port", "9001", "--data-dir", "/data/validator-1"]
+    ports: ["9001:9001"]
+    volumes: ["validator1-data:/data/validator-1"]
+    restart: unless-stopped
+  validator-2:
+    build:
+      context: ../../../
+      dockerfile: blockchain/testnet/docker/Dockerfile
+    command: ["--genesis", "/app/blockchain/testnet/genesis.json", "--validator", "validator-2", "--port", "9002", "--data-dir", "/data/validator-2"]
+    ports: ["9002:9002"]
+    volumes: ["validator2-data:/data/validator-2"]
+    restart: unless-stopped
+  validator-3:
+    build:
+      context: ../../../
+      dockerfile: blockchain/testnet/docker/Dockerfile
+    command: ["--genesis", "/app/blockchain/testnet/genesis.json", "--validator", "validator-3", "--port", "9003", "--data-dir", "/data/validator-3"]
+    ports: ["9003:9003"]
+    volumes: ["validator3-data:/data/validator-3"]
+    restart: unless-stopped
+volumes:
+  validator1-data:
+  validator2-data:
+  validator3-data:

@@ -1,279 +1,378 @@
-# NexaStream - Next-Generation Democratic Video Platform
+# 🚀 NexaStream - Decentralized Video Platform v2.1 — Mainnet Live
 
-<p align="center">
-  <img src="public/logo.svg" alt="NexaStream Logo" width="200"/>
-</p>
+## 🌐 nexastream.org | Blockchain Video Streaming DApp
 
-<p align="center">
-  <strong>Democratize Video. Earn from Day 1.</strong>
-</p>
-
-<p align="center">
-  <a href="https://nexastream.io">Website</a> •
-  <a href="https://docs.nexastream.io">Documentation</a> •
-  <a href="https://discord.gg/nexastream">Discord</a> •
-  <a href="https://twitter.com/nexastream">Twitter</a>
-</p>
+![NexaStream](https://img.shields.io/badge/NexaStream-v2.1 — Mainnet Live-purple)
+![Blockchain](https://img.shields.io/badge/NexaChain-PoW%2BPoS-blue)
+![Token](https://img.shields.io/badge/NST-55M-Max-green)
 
 ---
 
-## 🎯 Overview
+## 📋 Overview
 
-NexaStream is a next-generation video platform that combines Web3 blockchain technology with content creation to offer unprecedented monetization opportunities. Built on Ethereum mainnet, it provides instant USDC payouts, transparent algorithms, and community governance.
+**NexaStream** is a next-generation **decentralized video platform** built on **NexaChain blockchain**, designed to compete with YouTube and TikTok while offering:
 
-### Key Features
+- ✅ **Blockchain Native** - PoW consensus, NST token (55M supply cap), solo validator live
+- ✅ **Creator Economy 50/50** - Ledger implemented (idempotent, no float, audit trail)
+- ✅ **Content-Addressed Storage** - SHA-256, S3-compatible adapter, local storage
+- ✅ **WebRTC Signaling** - WebSocket signaling server with protocol validation
+- ✅ **Auth** - bcrypt + JWT + refresh tokens, PostgreSQL migrations
+- ✅ **Platform** - Feed, search, comments, likes, subscriptions, upload
+- ✅ **Analytics** - Event-driven tracking, anti-fraud (risk score, Sybil detection)
+- ✅ **P2P Delivery** - Segment integrity, peer manager, reputation
+- ✅ **Monitoring** - MetricsCollector, AlertManager, Prometheus export
+- ✅ **Security** - Fuzzing, load tests, disaster recovery, tamper detection
+- ✅ **i18n** - 10 languages (EN, PT, ES, ZH, JA, FR, DE, HI, AR, RU)
+- ✅ **Financial Dashboard** - NST balance, deposit/withdraw/swap, mining stats
+- 🚧 **Multi-validator** - Architecture ready (tested 1→3→5), solo mode active
+- 🚧 **External Audit** - Internal audit complete, external pending
+- 🚧 **100% Decentralized** - Solo validator active, multi-validator architecture ready
+- ✅ **AI-Powered** - Recommendation engine implemented (watch time, completion rate, engagement, recency, creator affinity)
+- ✅ **Web3 Wallet Login** - SIWE (Sign-In With Ethereum) + EIP-6963 (500+ wallets) + MetaMask/Coinbase/Phantom/Trust/Binance/OKX
+- ✅ **DAO Governance** - Implemented (proposals, voting, quorum, execution, double-vote prevention)
+- ✅ **NFTs** - Implemented (mint, transfer, query, collections, royalties)
 
-- 🚀 **Instant Monetization** - Earn from your first view, no subscriber requirements
-- 💰 **80% Revenue Share** - Industry-leading creator earnings (vs 45% YouTube)
-- ⚡ **Instant USDC Payouts** - Get paid immediately via Ethereum blockchain
-- 🔒 **Maximum Security** - Smart contract audited, non-custodial wallet integration
-- 🗳️ **Community Governance** - $NEXA token holders vote on platform decisions
-- 📊 **Real-time Analytics** - Comprehensive dashboard for creators
-- 🌐 **SEO Optimized** - Built-in search optimization and Google Analytics
-- 🎨 **Modern UI/UX** - Beautiful, responsive design
+---
 
-## 🔗 Platform Owner Address
+## 🏗️ Architecture
 
-**USDC Payout Address (Ethereum Mainnet):**
 ```
-0xa453B71A216a8A6608e79247B162df47B2770899
+┌─────────────────────────────────────────────────────────────────────┐
+│                         NEXASTREAM STACK                           │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
+│  │   FRONTEND  │    │   BACKEND   │    │  NEXACHAIN  │             │
+│  │   Next.js   │    │   Node.js   │    │   (Go)      │             │
+│  │   React     │◄──►│   Express   │◄──►│   Blockchain │             │
+│  │   Web3.js   │    │   Redis     │    │             │             │
+│  │   IPFS      │    │   WebSocket │    │             │             │
+│  └─────────────┘    └─────────────┘    └─────────────┘             │
+│         │                  │                  │                      │
+│         └──────────────────┼──────────────────┘                    │
+│                            ▼                                       │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │                    INFRASTRUCTURE                           │  │
+│  │  • Cloudflare (CDN, DDoS, SSL)                           │  │
+│  │  • Supabase (PostgreSQL, Auth, Storage)                  │  │
+│  │  • Docker & Kubernetes (Orchestration)                     │  │
+│  │  • Redis (Cache, Sessions)                                 │  │
+│  │  • MinIO (S3-compatible storage)                         │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🛠️ Tech Stack
+---
+
+## ⛓️ NexaChain - Hybrid PoW + PoS Blockchain
+
+### Token: NST (NexaStream Token)
+
+| Property | Value |
+|----------|-------|
+| **Name** | NexaStream Token |
+| **Symbol** | NST |
+| **Max Supply** | 55,000,000 NST |
+| **Standard** | ERC-20 / Native |
+| **Blockchain** | NexaChain |
+| **Consensus** | Hybrid PoW + PoS |
+| **Block Time** | 3 seconds (PoS) / 60 seconds (PoW) |
+| **Chain ID** | 1010101 |
+
+### Token Allocation
+
+| Category | Percentage | Amount |
+|----------|------------|--------|
+| Ecosystem | 50% | 27,500,000 NST |
+| Rewards | 30% | 16,500,000 NST |
+| Team | 10% | 5,500,000 NST |
+| Public Sale | 5% | 2,750,000 NST |
+| Liquidity | 5% | 2,750,000 NST |
+
+### Consensus Mechanism
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  NEXACHAIN CONSENSUS                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   PoW Blocks (10%)          PoS Blocks (90%)               │
+│   ───────────────           ────────────────                │
+│   • Mining reward: 10 NST   • Validator reward: 2 NST      │
+│   • Every 10th block        • 3-second blocks              │
+│   • High security           • High throughput              │
+│                                                              │
+│   Min Stake: 100 NST       APY: 12.5%                     │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🎬 Platform Features (200+)
+
+### Core Video Features
+- ✅ 4K/8K Streaming
+- ✅ Adaptive Bitrate
+- ✅ Shorts (15-60 seconds)
+- ✅ Long-form (up to 4 hours)
+- ✅ Live Streaming
+- ✅ Premiere (scheduled releases)
+- ✅ Podcasts
+- ✅ Playlists & Series
+- ✅ Video chapters
+
+### Web3/Blockchain Features
+- ✅ MetaMask/WalletConnect Login
+- ✅ NST Token Rewards
+- ✅ Staking (12.5% APY)
+- ✅ DAO Governance
+- ✅ NFT Marketplace
+- ✅ Video NFTs
+- ✅ Cross-chain Bridge
+- ✅ DeFi Integration
+
+### Monetization
+- ✅ Ad Revenue (50% creator share)
+- ✅ Subscriptions
+- ✅ Tips & Super Chats
+- ✅ NFT Sales
+- ✅ Course Sales
+- ✅ Crowdfunding
+- ✅ Affiliate Program
+
+---
+
+## 🛠️ Technology Stack
 
 ### Frontend
-- **Next.js 14** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **TailwindCSS** - Utility-first styling
-- **Framer Motion** - Animations
-- **RainbowKit** - Web3 wallet connection
-- **Wagmi** - Ethereum interactions
-- **React Query** - Data fetching
+- **Framework**: Next.js 14 (React 18)
+- **Language**: TypeScript
+- **Styling**: TailwindCSS
+- **Web3**: wagmi, viem, WalletConnect
+- **State**: TanStack Query
 
 ### Backend
-- **Node.js** - Server runtime
-- **PostgreSQL** - Primary database
-- **Redis** - Caching and sessions
-- **AWS S3** - Video storage
-- **CloudFront** - CDN distribution
+- **Runtime**: Node.js 20
+- **Framework**: Express.js
+- **Database**: PostgreSQL + Redis
+- **Storage**: S3/MinIO + IPFS
+- **CDN**: Cloudflare
 
 ### Blockchain
-- **Solidity** - Smart contracts
-- **Hardhat** - Development framework
-- **Ethers.js** - Ethereum library
-- **OpenZeppelin** - Security-first contracts
+- **Language**: Go 1.21
+- **Consensus**: Hybrid PoW + PoS
+- **Smart Contracts**: Solidity 0.8.20
+- **Standards**: ERC-20, ERC-721, ERC-1155
 
-## 🚀 Getting Started
+### Infrastructure
+- **Container**: Docker + Kubernetes
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Prometheus + Grafana
+- **Logging**: ELK Stack
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-- PostgreSQL (or Docker)
-- Redis (or Docker)
-- Ethereum wallet (MetaMask)
+```bash
+Node.js 18+
+Go 1.21+
+Docker & Docker Compose
+Git
+```
 
 ### Installation
 
-1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/nexastream.git
+# Clone repository
+git clone https://github.com/Railancosta/nexastream.git
 cd nexastream
+
+# Install frontend dependencies
+cd frontend && npm install
+
+# Install backend dependencies
+cd ../backend && npm install
+
+# Install blockchain dependencies
+cd ../nexachain && go mod download
+
+# Install contract dependencies
+cd ../contracts && npm install
 ```
 
-2. **Install dependencies**
+### Run Development
+
 ```bash
-npm install
+# Terminal 1: Frontend
+cd frontend && npm run dev
+
+# Terminal 2: Backend
+cd backend && npm run dev
+
+# Terminal 3: NexaChain Node
+cd nexachain && go run cmd/nexachain/main.go
 ```
 
-3. **Set up environment variables**
+### Docker Deployment
+
 ```bash
-cp .env.example .env.local
-# Edit .env.local with your values
+docker-compose up -d
 ```
 
-4. **Start infrastructure (using Docker)**
+---
+
+## 🌐 Deployment
+
+### Frontend (Vercel)
 ```bash
-docker-compose up -d postgres redis
+cd frontend
+vercel --prod
 ```
 
-5. **Run the development server**
+### Backend (Railway)
 ```bash
-npm run dev
+cd backend
+railway up
 ```
 
-6. **Compile smart contracts (optional)**
+### NexaChain Node
 ```bash
-npm run compile
+cd nexachain
+go build -o nexachain ./cmd/nexachain
+./nexachain
 ```
 
-### Environment Variables
-
-See `.env.example` for all required environment variables:
-
-```env
-# Blockchain
-NEXT_PUBLIC_ETH_RPC_URL=https://mainnet.infura.io/v3/YOUR_KEY
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=YOUR_PROJECT_ID
-
-# Platform
-NEXT_PUBLIC_PLATFORM_OWNER=0xa453B71A216a8A6608e79247B162df47B2770899
-
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/nexastream
-
-# Auth
-JWT_SECRET=your-secret-key
-```
+---
 
 ## 📁 Project Structure
 
 ```
 nexastream/
-├── src/
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── api/               # API routes
-│   │   ├── dashboard/         # Creator dashboard
-│   │   ├── wallet/            # Wallet management
-│   │   ├── channels/          # Channel browsing
-│   │   ├── upload/            # Video upload
-│   │   ├── login/             # Authentication
-│   │   └── register/           # Registration
-│   ├── components/            # React components
-│   │   ├── ui/               # UI primitives
-│   │   ├── layout/           # Layout components
-│   │   ├── video/            # Video components
-│   │   ├── auth/             # Auth components
-│   │   ├── dashboard/        # Dashboard widgets
-│   │   └── wallet/           # Wallet components
-│   ├── lib/                   # Utilities
-│   │   ├── blockchain/        # Web3 utilities
-│   │   ├── auth/             # Auth utilities
-│   │   ├── db/               # Database utilities
-│   │   └── utils/            # Common utilities
-│   └── types/                # TypeScript types
-├── contracts/                 # Smart contracts
-│   ├── NexaStreamCore.sol   # Main platform contract
-│   └── NEXAToken.sol         # Governance token
-├── public/                    # Static assets
-└── ...config files
+├── frontend/                 # Next.js 14 app
+│   ├── src/
+│   │   ├── app/            # App router pages
+│   │   ├── components/     # React components
+│   │   └── lib/            # Utilities
+│   └── public/             # Static assets
+│
+├── backend/                 # Express.js API
+│   ├── src/
+│   │   ├── routes/         # API endpoints
+│   │   ├── middleware/     # Auth, security
+│   │   ├── models/         # Database models
+│   │   └── services/       # Business logic
+│   └── Dockerfile
+│
+├── nexachain/              # Go blockchain
+│   ├── cmd/                # CLI commands
+│   ├── core/               # Blockchain core
+│   ├── api/                # RPC API
+│   ├── p2p/                # Networking
+│   └── wallet/             # Wallet management
+│
+├── contracts/               # Solidity contracts
+│   ├── NSTToken.sol       # Main token
+│   ├── NSTStaking.sol     # Staking contract
+│   ├── NSTRewards.sol      # Rewards distribution
+│   └── NFT/                # NFT marketplace
+│
+├── nexastream/             # Alternative frontend
+│   └── src/
+│
+├── docker/                 # Docker configs
+├── k8s/                    # Kubernetes manifests
+└── scripts/                # Deployment scripts
 ```
-
-## 🔐 Smart Contracts
-
-### NexaStreamCore.sol
-Main platform contract handling:
-- Creator earnings deposits
-- USDC withdrawals
-- Video boosting
-- Fee management
-
-### NEXAToken.sol
-Governance token for:
-- Platform voting
-- Content boosting
-- Premium features
-
-### Deployment
-
-```bash
-# Deploy to Sepolia testnet
-npx hardhat run scripts/deploy.ts --network sepolia
-
-# Deploy to Ethereum mainnet
-npx hardhat run scripts/deploy.ts --network mainnet
-```
-
-## 🎨 Features
-
-### For Creators
-- [x] Video upload with custom thumbnails
-- [x] Real-time earnings dashboard
-- [x] USDC withdrawals to any wallet
-- [x] Channel customization
-- [x] Analytics and insights
-- [x] Video boosting (paid promotion)
-
-### For Viewers
-- [x] Email/password authentication
-- [x] Google OAuth sign-in
-- [x] Web3 wallet connection
-- [x] Subscription to channels
-- [x] Watch history
-- [x] Watch-to-earn ($NEXA)
-
-### Platform
-- [x] Ad revenue distribution
-- [x] Creator verification
-- [x] Content moderation
-- [x] SEO optimization
-- [x] Google Analytics integration
-- [x] Email notifications
-- [ ] Mobile apps (coming soon)
-
-## 🔒 Security
-
-- Non-custodial wallet integration
-- Smart contract audits (OpenZeppelin)
-- Rate limiting on all endpoints
-- CSRF protection
-- Input validation and sanitization
-- Encrypted session management
-- 2FA support
-
-## 📊 Google Analytics Setup
-
-1. Create a GA4 property at [Google Analytics](https://analytics.google.com)
-2. Get your Measurement ID (G-XXXXXXXXXX)
-3. Add to environment:
-```env
-NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-```
-
-## 🚢 Deployment
-
-### Vercel (Recommended)
-
-```bash
-npm i -g vercel
-vercel
-```
-
-### AWS
-
-- Use AWS Amplify or Elastic Beanstalk
-- Configure CloudFront for video delivery
-- Set up RDS PostgreSQL
-- Use ElastiCache for Redis
-
-### Docker
-
-```bash
-docker build -t nexastream .
-docker run -p 3000:3000 nexastream
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [OpenZeppelin](https://openzeppelin.com/) for secure smart contracts
-- [RainbowKit](https://www.rainbowkit.com/) for wallet integration
-- [Next.js](https://nextjs.org/) for the amazing framework
-- [TailwindCSS](https://tailwindcss.com/) for styling
 
 ---
 
-<p align="center">
-  Built with ❤️ for creators worldwide
-</p>
+## 🔐 Security
+
+| Feature | Implementation |
+|---------|----------------|
+| **Authentication** | OAuth 2.0, JWT, Web3 Wallet |
+| **Password** | bcrypt with cost 12 |
+| **MFA** | TOTP (Google Authenticator) |
+| **TLS/SSL** | TLS 1.3 |
+| **DDoS Protection** | Cloudflare WAF |
+| **Rate Limiting** | Redis-based |
+| **Data Encryption** | AES-256 |
+| **GDPR/LGPD** | Full compliance |
+
+---
+
+## 📊 Tokenomics
+
+### Revenue Distribution
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              REVENUE DISTRIBUTION                       │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│   Advertisers/Users                                     │
+│        │                                                │
+│        ▼                                                │
+│   ┌─────────────────────────────────────────┐          │
+│   │      NEXASTREAM PLATFORM               │          │
+│   └─────────────────────────────────────────┘          │
+│        │                                                │
+│        ├─── 50% ──► Content Creators                    │
+│        │                                              │
+│        └─── 50% ──► Platform Treasury                  │
+│                     ├── Infrastructure (20%)           │
+│                     ├── Development (15%)             │
+│                     ├── Marketing (10%)                 │
+│                     └── Staking Rewards (5%)             │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Reward Actions
+
+| Action | Reward |
+|--------|--------|
+| Upload Video | 10 NST |
+| 1000 Views | 5 NST |
+| Like | 0.1 NST |
+| Comment | 0.5 NST |
+| Share | 1 NST |
+| Subscribe | 2 NST |
+| Live Stream | 20 NST/hour |
+
+---
+
+## 🔗 Links
+
+| Resource | URL |
+|----------|-----|
+| **Website** | https://nexastream.org |
+| **GitHub** | https://github.com/Railancosta/nexastream |
+| **Docs** | https://docs.nexastream.org |
+| **Explorer** | https://explorer.nexastream.org |
+| **RPC** | https://rpc.nexastream.org |
+| **Discord** | https://discord.gg/nexastream |
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE)
+
+---
+
+## 👥 Team
+
+- **Rilan Costa** - Founder & Lead Developer
+- [GitHub](https://github.com/Railancosta)
+- [Twitter](https://twitter.com/railancosta)
+
+---
+
+**Built with ❤️ for the decentralized future**
+
+**NexaStream v2.1 — Mainnet Live** - nexastream.org

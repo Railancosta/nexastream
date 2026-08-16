@@ -1,123 +1,74 @@
-# 🚀 Deploy Guide - NexaStream
+# NexaStream - Deploy Guide
 
-## Opção 1: Deploy via GitHub + Vercel (Recomendado)
+## 🚀 Quick Deploy
 
-### Passo 1: Faça upload para GitHub
+### Backend (API)
 
-1. Crie uma conta em [GitHub](https://github.com) se não tiver
-2. Crie um novo repositório chamado `nexastream`
-3. No terminal, execute:
-
+**Option 1: Docker (Recommended)**
 ```bash
-cd /workspace/project/nexastream
-git remote add origin https://github.com/SEU_USUARIO/nexastream.git
-git push -u origin master
+cd backend
+docker-compose up -d
 ```
 
-### Passo 2: Conecte ao Vercel
-
-1. Acesse [vercel.com](https://vercel.com)
-2. Faça login (pode usar GitHub)
-3. Clique em **"Add New..."** → **"Project"**
-4. Selecione seu repositório `nexastream`
-5. Clique **"Import"**
-
-### Passo 3: Configure o Deploy
-
-1. **Framework Preset**: Next.js (detectado automaticamente)
-2. **Root Directory**: `./` (ou `nexastream` se o repo incluir a pasta)
-3. **Build Command**: `npm run build` ou `next build`
-4. **Output Directory**: `.next`
-
-### Passo 4: Adicione Environment Variables
-
-Clique em **"Environment Variables"** e adicione:
-
-```
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=seu_project_id
-NEXT_PUBLIC_PLATFORM_OWNER=0xa453B71A216a8A6608e79247B162df47B2770899
-NEXT_PUBLIC_USDC_ADDRESS=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
-JWT_SECRET=uma_chave_secreta_grande_minimo_32_caracteres
-```
-
-### Passo 5: Deploy!
-
-Clique em **"Deploy"** e aguarde ~2 minutos.
-
----
-
-## Opção 2: Deploy via Vercel CLI
-
-### Passo 1: Instale o Vercel CLI
-
+**Option 2: Manual**
 ```bash
-npm install -g vercel
+cd backend
+npm install
+npm run db:init
+npm run seed  # Create demo data
+npm start
 ```
 
-### Passo 2: Login
+### Frontend
+O frontend já está configurado para GitHub Pages via GitHub Actions.
 
-```bash
-vercel login
-```
+## 🔗 API Endpoints
 
-### Passo 3: Deploy
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/register` | POST | Create account |
+| `/api/auth/login` | POST | Login |
+| `/api/auth/me` | GET | Get current user |
+| `/api/feed/home` | GET | Home feed |
+| `/api/feed/trending` | GET | Trending videos |
+| `/api/recommendations/for-you` | GET | Personalized feed |
+| `/api/videos/:id` | GET | Get video |
+| `/api/channels/@:handle` | GET | Get channel |
+| `/api/search` | GET | Search videos/channels |
+| `/api/subscriptions/:id` | POST | Subscribe |
+| `/api/likes/:id` | POST | Like video |
+| `/api/comments/video/:id` | GET/POST | Comments |
 
-```bash
-cd /workspace/project/nexastream
-vercel
-```
+## 🔐 Demo Account
+- Email: `crypto@demo.com`
+- Password: `demo123`
 
-Siga as instruções na tela:
-- Configure o projeto: **Y**
-- Escopo: Selecione sua conta
-- Directory: `./`
-- Override settings: **N**
+## 🌐 Production Deploy
 
-### Passo 4: Deploy para Produção
+### Backend (Railway/Render/Fly.io)
+1. Connect repo to Railway/Render
+2. Set environment variables:
+   - `JWT_SECRET=your-secret-key`
+   - `FRONTEND_URL=https://nexastream.org`
+   - `NODE_ENV=production`
+3. Deploy!
 
-```bash
-vercel --prod
-```
+### Database
+SQLite file is stored at `backend/data/nexastream.db`
 
----
+## 📱 Blockchain Integration
 
-## 🌐 Após o Deploy
+Para integrar blockchain real (Base/Polygon):
+1. Obtenha RPC URL em [Alchemy](https://www.alchemy.com/) ou [Infura](https://www.infura.io/)
+2. Deploy smart contract na blockchain
+3. Atualize `BLOCKCHAIN_RPC` no ambiente
 
-Você receberá uma URL como:
-```
-https://nexastream.vercel.app
-```
+Custos estimados para deploy na Base:
+- Deploy contract: ~$0.10-0.50
+- Transações: ~$0.01-0.10 cada
 
-Ou para produção:
-```
-https://nexastream-yourname.vercel.app
-```
-
----
-
-## 🔗 Domínio Personalizado
-
-1. No Vercel Dashboard, vá em **Settings** → **Domains**
-2. Adicione seu domínio: `nexastream.io` (ou outro)
-3. Configure o DNS conforme instruído
-4. Aguarde a verificação (~24h)
-
----
-
-## ⚙️ Variáveis de Ambiente Necessárias
-
-| Variável | Descrição | Exemplo |
-|----------|-----------|---------|
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | ID do projeto WalletConnect | `abc123...` |
-| `NEXT_PUBLIC_PLATFORM_OWNER` | Endereço USDC | `0xa453B71A216a8A6608e79247B162df47B2770899` |
-| `NEXT_PUBLIC_USDC_ADDRESS` | Contrato USDC | `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` |
-| `JWT_SECRET` | Chave JWT | `sua_chave_secreta_minimo_32_chars` |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics | `G-XXXXXXXXXX` |
-
----
-
-## ❓ Precisa de Ajuda?
-
-1. **Vercel Docs**: https://vercel.com/docs
-2. **Support**: support@nexastream.io
-3. **GitHub Issues**: Crie um issue no seu repo
+## 🛠️ Tech Stack
+- **Frontend**: Next.js 14, TailwindCSS
+- **Backend**: Express.js, SQLite (better-sqlite3)
+- **Auth**: JWT, bcrypt
+- **Deploy**: Docker, GitHub Pages

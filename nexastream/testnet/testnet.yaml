@@ -1,0 +1,342 @@
+# NexaStream Testnet Kubernetes Deployment
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexastream-testnet
+  labels:
+    name: nexastream-testnet
+    environment: testnet
+
+---
+# ConfigMap for Genesis
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexachain-genesis
+  namespace: nexastream-testnet
+data:
+  genesis.json: |
+    {
+      "chain_id": 9999,
+      "network": "testnet",
+      "consensus": {
+        "type": "hybrid_pow_pos",
+        "block_time": 3
+      }
+    }
+
+---
+# ConfigMap for Node Config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexachain-config
+  namespace: nexastream-testnet
+data:
+  config.toml: |
+    [chain]
+    chain_id = 9999
+    network = "testnet"
+    
+    [p2p]
+    listen_address = "/ip4/0.0.0.0/tcp/30303"
+    max_peers = 50
+    
+    [rpc]
+    enabled = true
+    listen_address = "0.0.0.0:8545"
+    cors = ["*"]
+    
+    [ws]
+    enabled = true
+    listen_address = "0.0.0.0:8546"
+    
+    [telemetry]
+    enabled = true
+    prometheus = true
+    listen_address = "0.0.0.0:26660"
+    
+    [mining]
+    enabled = true
+
+---
+# Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexachain-data
+  namespace: nexastream-testnet
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# NexaChain Validator Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexachain-validator
+  namespace: nexastream-testnet
+  labels:
+    app: nexachain
+    component: validator
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nexachain
+      component: validator
+  serviceName: nexachain-validator
+  template:
+    metadata:
+      labels:
+        app: nexachain
+        component: validator
+    spec:
+      containers:
+        - name: nexachain
+          image: railancosta/nexachain:testnet
+          ports:
+            - containerPort: 30303
+              name: p2p
+            - containerPort: 8545
+              name: rpc
+            - containerPort: 8546
+              name: ws
+            - containerPort: 26660
+              name: metrics
+          env:
+            - name: NODE_ROLE
+              value: "validator"
+            - name: CHAIN_ID
+              value: "9999"
+            - name: DATA_DIR
+              value: "/data"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: 2000m
+              memory: 8Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: genesis
+              mountPath: /config/genesis.json
+              subPath: genesis.json
+            - name: config
+              mountPath: /config/config.toml
+              subPath: config.toml
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8545
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8545
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: nexachain-data
+        - name: genesis
+          configMap:
+            name: nexachain-genesis
+        - name: config
+          configMap:
+            name: nexachain-config
+
+---
+# NexaChain Full Node Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexachain-fullnode
+  namespace: nexastream-testnet
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nexachain
+      component: fullnode
+  template:
+    metadata:
+      labels:
+        app: nexachain
+        component: fullnode
+    spec:
+      containers:
+        - name: nexachain
+          image: railancosta/nexachain:testnet
+          ports:
+            - containerPort: 30303
+              name: p2p
+            - containerPort: 8545
+              name: rpc
+          env:
+            - name: NODE_ROLE
+              value: "fullnode"
+            - name: CHAIN_ID
+              value: "9999"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: 1000m
+              memory: 4Gi
+          volumeMounts:
+            - name: genesis
+              mountPath: /config/genesis.json
+              subPath: genesis.json
+            - name: config
+              mountPath: /config/config.toml
+              subPath: config.toml
+      volumes:
+        - name: genesis
+          configMap:
+            name: nexachain-genesis
+        - name: config
+          configMap:
+            name: nexachain-config
+
+---
+# Validator Service (Seed nodes)
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexachain-validator
+  namespace: nexastream-testnet
+spec:
+  type: ClusterIP
+  ports:
+    - port: 30303
+      targetPort: 30303
+      name: p2p
+    - port: 8545
+      targetPort: 8545
+      name: rpc
+    - port: 8546
+      targetPort: 8546
+      name: ws
+  selector:
+    app: nexachain
+    component: validator
+
+---
+# Full Node Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexachain-fullnode
+  namespace: nexastream-testnet
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8545
+      targetPort: 8545
+      name: rpc
+  selector:
+    app: nexachain
+    component: fullnode
+
+---
+# Ingress for RPC
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nexachain-rpc
+  namespace: nexastream-testnet
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+    - hosts:
+        - rpc.testnet.nexastream.org
+      secretName: nexachain-tls
+  rules:
+    - host: rpc.testnet.nexastream.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nexachain-validator
+                port:
+                  number: 8545
+
+---
+# Horizontal Pod Autoscaler for Validators
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nexachain-validator-hpa
+  namespace: nexastream-testnet
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexachain-validator
+  minReplicas: 4
+  maxReplicas: 9
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nexachain-validator-pdb
+  namespace: nexastream-testnet
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      app: nexachain
+      component: validator
+
+---
+# Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nexachain-network-policy
+  namespace: nexastream-testnet
+spec:
+  podSelector:
+    matchLabels:
+      app: nexachain
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: 30303
+        - port: 8545
+        - port: 8546
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: nexachain
+      ports:
+        - port: 30303
+    - ports:
+        - port: 53
+        - port: 443

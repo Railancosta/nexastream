@@ -1,0 +1,115 @@
+# NexaStream Prometheus Configuration
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'nexastream'
+    environment: 'production'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+
+  # NexaStream Backend API
+  - job_name: 'nexastream-backend'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['nexastream-backend.nexastream.svc.cluster.local:3001']
+    metrics_path: /api/metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'backend-${1}'
+
+  # NexaStream Frontend
+  - job_name: 'nexastream-frontend'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['nexastream-frontend.nexastream.svc.cluster.local:3000']
+    metrics_path: /metrics
+
+  # NexaChain Blockchain Node
+  - job_name: 'nexachain-node'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['nexachain-node.nexastream.svc.cluster.local:8545']
+    metrics_path: /metrics
+
+  # PostgreSQL Exporter
+  - job_name: 'postgresql'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['postgres-exporter.nexastream.svc.cluster.local:9187']
+
+  # Redis Exporter
+  - job_name: 'redis'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['redis-exporter.nexastream.svc.cluster.local:9121']
+
+  # Nginx Ingress Controller
+  - job_name: 'nginx-ingress'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['nginx-ingress-controller.metrics:10254']
+
+  # Kubernetes API Server
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  # Kubernetes Pods
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Node Exporter
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: node
+        replacement: ${1}
+
+  # MinIO Storage
+  - job_name: 'minio'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['nexastream-minio.nexastream.svc.cluster.local:9000']
+
+  # RTMP Streaming Server
+  - job_name: 'rtmp-server'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['rtmp-server.nexastream.svc.cluster.local:1975']

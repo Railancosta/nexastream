@@ -1,0 +1,7 @@
+name = "nexastream-api"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# CHANGE THIS to your Railway public URL after deployment
+[vars]
+RAILWAY_BACKEND_URL = "https://nexastream.railway.internal"

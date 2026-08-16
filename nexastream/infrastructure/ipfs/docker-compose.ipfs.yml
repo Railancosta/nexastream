@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  ipfs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs-data:/data/ipfs
+    restart: unless-stopped
+    environment:
+      IPFS_PROFILE: server
+    healthcheck:
+      test: ["CMD", "ipfs", "id"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+volumes:
+  ipfs-data:

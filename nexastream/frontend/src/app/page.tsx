@@ -1,0 +1,417 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Home, Compass, TrendingUp, Library, History, PlaySquare, Clock, ThumbsUp, ChevronDown, Menu, X, Search, Bell, Upload, Wallet, User, LogIn } from 'lucide-react'
+import { TrendingSection } from '@/components/TrendingSection'
+import { StatsBanner } from '@/components/StatsBanner'
+import { LiveSection } from '@/components/LiveSection'
+import { VideoCard } from '@/components/VideoCard'
+
+// API URL - points to backend
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nexastream.org'
+
+interface Video {
+  id: string
+  title: string
+  description: string
+  thumbnail_url: string
+  video_url: string
+  duration: number
+  views: number
+  likes: number
+  category: string
+  reward_amount: number
+  created_at: string
+  channel_name: string
+  channel_handle: string
+  channel_avatar: string
+  is_verified?: number
+}
+
+const categories = [
+  { id: 'all', name: 'All', emoji: '🎬' },
+  { id: 'crypto', name: 'Crypto', emoji: '₿' },
+  { id: 'defi', name: 'DeFi', emoji: '💰' },
+  { id: 'nft', name: 'NFT', emoji: '🎨' },
+  { id: 'gaming', name: 'Gaming', emoji: '🎮' },
+  { id: 'education', name: 'Education', emoji: '📚' },
+  { id: 'entertainment', name: 'Entertainment', emoji: '🎭' },
+  { id: 'technology', name: 'Technology', emoji: '💻' },
+]
+
+export default function HomePage() {
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [videos, setVideos] = useState<Video[]>([])
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    fetchVideos()
+    checkAuth()
+  }, [selectedCategory])
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        credentials: 'include'
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setUser(data.user)
+      }
+    } catch (e) {
+      // Not logged in
+    }
+  }
+
+  const fetchVideos = async () => {
+    try {
+      setLoading(true)
+      // Try backend API first
+      const res = await fetch(`${API_URL}/api/feed/home?limit=12`)
+      if (res.ok) {
+        const data = await res.json()
+        setVideos(data.videos || [])
+      } else {
+        // Fallback to recommendations
+        const recRes = await fetch(`${API_URL}/api/recommendations/for-you?limit=12`)
+        if (recRes.ok) {
+          const data = await recRes.json()
+          setVideos(data.videos || [])
+        } else {
+          setVideos([])
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch videos:', error)
+      setVideos([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // NOTE: Fallback videos removed - no fake data
+  // Real videos should come from the API or P2P network
+
+  const formatViews = (views: number) => {
+    if (!views) return '0'
+    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
+    if (views >= 1000) return `${(views / 1000).toFixed(1)}K`
+    return views.toString()
+  }
+
+  const formatDuration = (seconds: number) => {
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    const s = seconds % 60
+    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (seconds < 60) return 'just now'
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`
+    return date.toLocaleDateString()
+  }
+
+  return (
+    <div className="min-h-screen bg-dark">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-dark/95 backdrop-blur border-b border-slate-800 z-50">
+        <div className="flex items-center justify-between h-full px-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 hover:bg-slate-800 rounded-lg lg:hidden"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 hover:bg-slate-800 rounded-lg hidden lg:block"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <a href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+                <PlaySquare className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-xl hidden sm:block">NexaStream</span>
+            </a>
+          </div>
+
+          <div className="flex-1 max-w-2xl mx-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search videos, channels, topics..."
+                className="w-full bg-slate-800 border border-slate-700 rounded-full px-4 py-2 pl-12 text-white placeholder-slate-400 focus:outline-none focus:border-primary"
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button className="p-2 hover:bg-slate-800 rounded-lg relative">
+              <Bell className="w-6 h-6" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button className="btn-primary hidden sm:flex items-center gap-2">
+              <Wallet className="w-4 h-4" />
+              <span>Connect</span>
+            </button>
+            <button className="p-2 hover:bg-slate-800 rounded-lg">
+              <User className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Stats Banner */}
+      <StatsBanner />
+
+      {/* Main Content */}
+      <div className="flex pt-28">
+        {/* Sidebar */}
+        <aside className={`fixed left-0 top-28 h-[calc(100vh-7rem)] bg-dark border-r border-slate-800 transition-all duration-300 z-40 overflow-y-auto ${
+          sidebarOpen ? 'w-64' : 'w-16'
+        } ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+          <nav className="p-4 space-y-2">
+            <a href="/" className="flex items-center gap-4 px-3 py-2.5 rounded-lg bg-slate-800 text-white">
+              <Home className="w-5 h-5" />
+              {sidebarOpen && <span>Home</span>}
+            </a>
+            <a href="/explore" className="flex items-center gap-4 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+              <Compass className="w-5 h-5" />
+              {sidebarOpen && <span>Explore</span>}
+            </a>
+            <a href="/trending" className="flex items-center gap-4 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+              <TrendingUp className="w-5 h-5" />
+              {sidebarOpen && <span>Trending</span>}
+            </a>
+            
+            {sidebarOpen && <div className="my-4 border-t border-slate-800" />}
+            
+            <a href="/library" className="flex items-center gap-4 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+              <Library className="w-5 h-5" />
+              {sidebarOpen && <span>Library</span>}
+            </a>
+            <a href="/history" className="flex items-center gap-4 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+              <History className="w-5 h-5" />
+              {sidebarOpen && <span>History</span>}
+            </a>
+            <a href="/your-videos" className="flex items-center gap-4 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+              <PlaySquare className="w-5 h-5" />
+              {sidebarOpen && <span>Your Videos</span>}
+            </a>
+            <a href="/watch-later" className="flex items-center gap-4 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+              <Clock className="w-5 h-5" />
+              {sidebarOpen && <span>Watch Later</span>}
+            </a>
+            <a href="/liked" className="flex items-center gap-4 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+              <ThumbsUp className="w-5 h-5" />
+              {sidebarOpen && <span>Liked Videos</span>}
+            </a>
+            
+            {sidebarOpen && (
+              <>
+                <div className="my-4 border-t border-slate-800" />
+                <div className="px-3 py-2">
+                  <h3 className="text-sm font-medium text-slate-400 mb-2">Subscriptions</h3>
+                  <p className="text-xs text-slate-500">
+                    Channels will appear here when the network is live.
+                  </p>
+                </div>
+              </>
+            )}
+          </nav>
+        </aside>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Main */}
+        <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+          {/* Live Section */}
+          <LiveSection />
+
+          {/* Categories */}
+          <div className="px-6 py-4">
+            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-2">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                    selectedCategory === cat.id
+                      ? 'bg-primary text-white'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {cat.emoji} {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Trending Section */}
+          <TrendingSection />
+
+          {/* Video Grid */}
+          <section className="px-6 py-6">
+            <h2 className="text-xl font-bold mb-4">Recommended</h2>
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="aspect-video bg-slate-800 rounded-xl mb-3" />
+                    <div className="h-4 bg-slate-800 rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-slate-800 rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : videos.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">📹</div>
+                <h3 className="text-xl font-bold text-white mb-2">No Videos Yet</h3>
+                <p className="text-slate-400 mb-4">
+                  The NexaStream network is under development.<br/>
+                  Real videos will appear here when the network is live.
+                </p>
+                <p className="text-slate-500 text-sm">
+                  Want to help build decentralized video?{' '}
+                  <a href="https://github.com/Railancosta/nexastream" className="text-primary hover:underline">
+                    Contribute on GitHub
+                  </a>
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {videos.map(video => (
+                  <div key={video.id} className="video-card group cursor-pointer">
+                    <div className="relative aspect-video rounded-xl overflow-hidden mb-3">
+                      <img
+                        src={video.thumbnail_url}
+                        alt={video.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/80 rounded text-xs font-medium text-white">
+                        {formatDuration(video.duration)}
+                      </div>
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-gradient-to-r from-primary to-accent rounded-full text-xs font-bold text-white flex items-center gap-1">
+                        <span>⭐</span>
+                        {video.reward_amount} NEXA
+                      </div>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="w-14 h-14 bg-primary/90 rounded-full flex items-center justify-center">
+                          <PlaySquare className="w-7 h-7 text-white ml-1" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-white font-medium line-clamp-2 group-hover:text-primary transition-colors">
+                          {video.title}
+                        </h3>
+                        <div className="flex items-center gap-1 text-sm text-slate-400 mt-1">
+                          <span>{video.channel_name}</span>
+                          {video.is_verified && (
+                            <span className="text-primary">✓</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                          <span>{formatViews(video.views)} views</span>
+                          {video.created_at && (
+                            <>
+                              <span>•</span>
+                              <span>{formatTimeAgo(video.created_at)}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Footer */}
+          <footer className="border-t border-slate-800 mt-12 px-6 py-8">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+                      <PlaySquare className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-bold text-lg">NexaStream</span>
+                  </div>
+                  <p className="text-slate-400 text-sm">
+                    The decentralized video platform powered by NexaChain blockchain.
+                    Watch, create, and earn cryptocurrency.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-4">Platform</h4>
+                  <ul className="space-y-2 text-slate-400 text-sm">
+                    <li><a href="/about" className="hover:text-white">About</a></li>
+                    <li><a href="/careers" className="hover:text-white">Careers</a></li>
+                    <li><a href="/press" className="hover:text-white">Press</a></li>
+                    <li><a href="/blog" className="hover:text-white">Blog</a></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-4">Resources</h4>
+                  <ul className="space-y-2 text-slate-400 text-sm">
+                    <li><a href="/help" className="hover:text-white">Help Center</a></li>
+                    <li><a href="/creators" className="hover:text-white">Creator Academy</a></li>
+                    <li><a href="/docs" className="hover:text-white">Documentation</a></li>
+                    <li><a href="/community" className="hover:text-white">Community</a></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-4">Legal</h4>
+                  <ul className="space-y-2 text-slate-400 text-sm">
+                    <li><a href="/terms" className="hover:text-white">Terms of Service</a></li>
+                    <li><a href="/privacy" className="hover:text-white">Privacy Policy</a></li>
+                    <li><a href="/cookies" className="hover:text-white">Cookie Policy</a></li>
+                    <li><a href="/licenses" className="hover:text-white">Licenses</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div className="border-t border-slate-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p className="text-slate-400 text-sm">
+                  © 2024 NexaStream. All rights reserved. Powered by NexaChain.
+                </p>
+                <div className="flex items-center gap-4 mt-4 md:mt-0">
+                  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs">
+                    Network: Under Development
+                  </span>
+                  <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs">
+                    NST Token: In Development
+                  </span>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </main>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,17 @@
+import requests
+
+# Configurações da ponte
+BRIDGE_API = "https://api.bridge.example.com/convert"
+TOKENS = ["USDC", "DAI", "ETH"]
+TARGET_ADDR = "0xa453B71A216a8A6608e79247B162df47B2770899"
+
+# Converter tokens para ETH
+for token in TOKENS:
+    payload = {
+        "from": token,
+        "to": "ETH",
+        "amount": 10_000_000,
+        "destination": TARGET_ADDR
+    }
+    response = requests.post(BRIDGE_API, json=payload)
+    print(response.json())

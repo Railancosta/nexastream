@@ -1,0 +1,196 @@
+# NexaStream Loki Configuration
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+limits_config:
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+  ingestion_rate_mb: 50
+  ingestion_burst_size_mb: 100
+  max_streams_per_user: 10000
+  max_global_streams_per_user: 0
+  max_label_name_length: 1024
+  max_label_value_length: 2048
+  max_label_names_per_series: 30
+
+auth_enabled: false
+
+server:
+  http_server_read_timeout: 30s
+  http_server_write_timeout: 30s
+  http_server_idle_timeout: 120s
+
+distributor:
+  ring:
+    kvstore:
+      store: inmemory
+    heartbeat_timeout: 5s
+  max_recv_msg_size: 100MiB
+
+ingester:
+  lifecycler:
+    address: 127.0.0.1
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+    heartbeat_timeout: 5s
+  concurrent_flushes: 4
+  flush_check_period: 10s
+  flush_op_timeout: 10s
+  chunk_retain_period: 15m
+  max_chunk_age: 2h
+  chunk_block_size: 262144
+  target_chunk_size: 2097152
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 168h
+
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /data/loki/boltdb-shipper-active
+    cache_location: /data/luki/boltdb-shipper-cache
+    cache_ttl: 24h
+    shared_store: filesystem
+  filesystem:
+    directory: /data/loki/chunks
+
+compactor:
+  working_directory: /data/loki/compactor
+  shared_store: filesystem
+  compaction_interval: 10m
+  retention_enabled: true
+
+limits_config:
+  retention_period: 30d
+  volume_status_enabled: true
+
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 720h
+
+chunk_store_config:
+  max_look_back_period: 744h
+
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /data/loki/rules
+  rule_path: /tmp/loki/rules
+  alertmanager_url: http://alertmanager:9093
+  enable_api: true
+
+# Prometheus日志采集配置
+promtail:
+  server:
+    http_listen_port: 9080
+    grpc_listen_port: 0
+  positions:
+    filename: /data/loki/promtail/positions.yaml
+  clients:
+    - url: http://loki:3100/loki/api/v1/push
+  scrape_configs:
+    # NexaStream Backend Logs
+    - job_name: nexastream-backend
+      static_configs:
+        - targets:
+            - localhost
+          labels:
+            job: nexastream-backend
+            env: production
+            cluster: nexastream
+          __path__: /var/log/nexastream/backend/*.log
+      pipeline_stages:
+        - json:
+            expressions:
+              timestamp: timestamp
+              level: level
+              message: message
+              service: service
+              trace_id: trace_id
+              user_id: user_id
+        - labels:
+            level:
+            service:
+        - timestamp:
+            source: timestamp
+            format: RFC3339
+
+    # NexaStream Frontend Logs
+    - job_name: nexastream-frontend
+      static_configs:
+        - targets:
+            - localhost
+          labels:
+            job: nexastream-frontend
+            env: production
+            cluster: nexastream
+          __path__: /var/log/nexastream/frontend/*.log
+
+    # NexaChain Blockchain Logs
+    - job_name: nexachain-node
+      static_configs:
+        - targets:
+            - localhost
+          labels:
+            job: nexachain-node
+            env: production
+            cluster: nexastream
+          __path__: /var/log/nexachain/*.log
+      pipeline_stages:
+        - regex:
+            expression: '(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}).*?(?P<level>INFO|WARN|ERROR).*?(?P<message>.*)'
+        - labels:
+            level:
+
+    # Kubernetes System Logs
+    - job_name: kubernetes-system
+      kubernetes_sd_configs:
+        - role: pod
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: pod
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: namespace
+
+    # Nginx Access Logs
+    - job_name: nginx-access
+      static_configs:
+        - targets:
+            - localhost
+          labels:
+            job: nginx-access
+            env: production
+            cluster: nexastream
+          __path__: /var/log/nginx/access.log
+      pipeline_stages:
+        - regex:
+            expression: '(?P<ip>\S+)\s+-\s+\S+\s+\[(?P<timestamp>[^\]]+)\]\s+"(?P<request>[^"]+)"\s+(?P<status>\d+)\s+(?P<size>\d+)'
+        - labels:
+            status:
+        - timestamp:
+            source: timestamp
+            format: "02/Jan/2006:15:04:05 -0700"
+
+    # Error Logs
+    - job_name: error-logs
+      static_configs:
+        - targets:
+            - localhost
+          labels:
+            job: error-logs
+            env: production
+            cluster: nexastream
+            level: error
+          __path__: /var/log/nexastream/**/error.log

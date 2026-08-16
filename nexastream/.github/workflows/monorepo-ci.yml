@@ -1,0 +1,66 @@
+name: Monorepo CI
+
+on:
+  push:
+    branches: [main, "vibe/**"]
+    paths:
+      - "apps/**"
+      - "packages/**"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+      - ".github/workflows/monorepo-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/**"
+      - "packages/**"
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Typecheck
+        run: pnpm -r run typecheck
+
+      - name: Build
+        run: pnpm -r run build
+
+      - name: Test
+        run: pnpm -r run test
+
+  security:
+    name: Secret & Dependency Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          set -e
+          # Fail if a .env with secrets is committed.
+          ! git ls-files | grep -E '^\.(env)$' && echo "no .env committed"
+          # Fail if obvious private keys appear in source.
+          ! grep -rEn "PRIVATE_KEY\s*=\s*['\"]0x[0-9a-fA-F]+" apps packages || (echo "hardcoded private key found" && exit 1)
+          echo "secret scan ok"

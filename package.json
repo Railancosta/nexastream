@@ -15,5 +15,8 @@
     "typecheck": "pnpm -r run typecheck",
     "dev": "pnpm -r --parallel run dev",
     "clean": "pnpm -r exec rm -rf dist node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
   }
 }

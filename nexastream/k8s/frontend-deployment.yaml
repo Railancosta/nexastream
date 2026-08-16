@@ -1,0 +1,525 @@
+# NexaStream Kubernetes Configuration
+# Production-ready Kubernetes manifests
+
+---
+# ===========================================
+# NAMESPACES
+# ===========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexastream
+  labels:
+    name: nexastream
+    environment: production
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexastream-monitoring
+  labels:
+    name: monitoring
+
+---
+# ===========================================
+# FRONTEND - Next.js Application
+# ===========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexastream-frontend
+  namespace: nexastream
+  labels:
+    app: nexastream-frontend
+    tier: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nexastream-frontend
+  template:
+    metadata:
+      labels:
+        app: nexastream-frontend
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: nexastream/frontend:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: NEXT_PUBLIC_API_URL
+              value: "https://api.nexastream.org/api"
+            - name: NEXT_PUBLIC_WS_URL
+              value: "wss://api.nexastream.org"
+            - name: NEXT_PUBLIC_APP_URL
+              value: "https://nexastream.org"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          envFrom:
+            - secretRef:
+                name: nexastream-secrets
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: nexastream-frontend
+                topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexastream-frontend-service
+  namespace: nexastream
+spec:
+  selector:
+    app: nexastream-frontend
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nexastream-ingress
+  namespace: nexastream
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+spec:
+  tls:
+    - hosts:
+        - nexastream.org
+        - www.nexastream.org
+        - api.nexastream.org
+      secretName: nexastream-tls
+  rules:
+    - host: nexastream.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nexastream-frontend-service
+                port:
+                  number: 80
+    - host: api.nexastream.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nexastream-api-service
+                port:
+                  number: 80
+
+---
+# ===========================================
+# API BACKEND - Node.js/Express
+# ===========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexastream-api
+  namespace: nexastream
+  labels:
+    app: nexastream-api
+    tier: backend
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: nexastream-api
+  template:
+    metadata:
+      labels:
+        app: nexastream-api
+        tier: backend
+    spec:
+      containers:
+        - name: api
+          image: nexastream/api:latest
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3001"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nexastream-secrets
+                  key: database-url
+            - name: REDIS_URL
+              value: "redis://nexastream-redis:6379"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: nexastream-secrets
+                  key: jwt-secret
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: nexastream-api
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexastream-api-service
+  namespace: nexastream
+spec:
+  selector:
+    app: nexastream-api
+  ports:
+    - port: 80
+      targetPort: 3001
+  type: ClusterIP
+
+---
+# ===========================================
+# WEBSOCKET SERVER
+# ===========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexastream-websocket
+  namespace: nexastream
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nexastream-websocket
+  template:
+    metadata:
+      labels:
+        app: nexastream-websocket
+    spec:
+      containers:
+        - name: websocket
+          image: nexastream/websocket:latest
+          ports:
+            - containerPort: 3002
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: REDIS_URL
+              value: "redis://nexastream-redis:6379"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexastream-websocket-service
+  namespace: nexastream
+spec:
+  selector:
+    app: nexastream-websocket
+  ports:
+    - port: 3002
+      targetPort: 3002
+  type: ClusterIP
+
+---
+# ===========================================
+# POSTGRESQL
+# ===========================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nexastream-postgres
+  namespace: nexastream
+spec:
+  serviceName: nexastream-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexastream-postgres
+  template:
+    metadata:
+      labels:
+        app: nexastream-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nexastream-secrets
+                  key: postgres-password
+            - name: POSTGRES_DB
+              value: nexastream
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: nexastream-postgres-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexastream-postgres-pvc
+  namespace: nexastream
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexastream-postgres
+  namespace: nexastream
+spec:
+  clusterIP: None
+  selector:
+    app: nexastream-postgres
+  ports:
+    - port: 5432
+
+---
+# ===========================================
+# REDIS
+# ===========================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nexastream-redis
+  namespace: nexastream
+spec:
+  serviceName: nexastream-redis
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nexastream-redis
+  template:
+    metadata:
+      labels:
+        app: nexastream-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          command:
+            - redis-server
+            - --requirepass
+            - $(REDIS_PASSWORD)
+            - --appendonly
+            - "yes"
+          ports:
+            - containerPort: 6379
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nexastream-secrets
+                  key: redis-password
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: nexastream-redis-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexastream-redis-pvc
+  namespace: nexastream
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexastream-redis
+  namespace: nexastream
+spec:
+  clusterIP: None
+  selector:
+    app: nexastream-redis
+  ports:
+    - port: 6379
+
+---
+# ===========================================
+# HORIZONTAL POD AUTOSCALER
+# ===========================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nexastream-api-hpa
+  namespace: nexastream
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexastream-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nexastream-frontend-hpa
+  namespace: nexastream
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexastream-frontend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+# ===========================================
+# SECRETS
+# ===========================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nexastream-secrets
+  namespace: nexastream
+type: Opaque
+stringData:
+  database-url: "postgresql://postgres:CHANGE_ME@nexastream-postgres:5432/nexastream"
+  jwt-secret: "CHANGE_ME_32_CHARS_MIN"
+  postgres-password: "CHANGE_ME"
+  redis-password: "CHANGE_ME"
+  supabase-url: "https://CHANGE_ME.supabase.co"
+  supabase-key: "CHANGE_ME"
+
+---
+# ===========================================
+# CONFIGMAP
+# ===========================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexastream-config
+  namespace: nexastream
+data:
+  APP_ENV: "production"
+  LOG_LEVEL: "info"
+  API_TIMEOUT: "30000"
+  MAX_UPLOAD_SIZE: "500MB"

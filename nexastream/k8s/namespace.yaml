@@ -1,0 +1,812 @@
+# NexaStream Kubernetes Manifests - Complete Deployment
+# Version: 1.0.0
+
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexastream
+  labels:
+    name: nexastream
+    environment: production
+    app.kubernetes.io/name: nexastream
+    app.kubernetes.io/managed-by: kubectl
+---
+# Storage Classes
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nexastream-gp3
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  fsType: ext4
+  encrypted: "true"
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+---
+# Persistent Volume Claims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexachain-data
+  namespace: nexastream
+  labels:
+    app: nexachain
+    component: blockchain
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nexastream-gp3
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: nexastream
+  labels:
+    app: postgres
+    component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nexastream-gp3
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data
+  namespace: nexastream
+  labels:
+    app: redis
+    component: cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nexastream-gp3
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: storage-uploads
+  namespace: nexastream
+  labels:
+    app: nexastream
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nexastream-gp3
+  resources:
+    requests:
+      storage: 500Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-data
+  namespace: nexastream
+  labels:
+    app: minio
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nexastream-gp3
+  resources:
+    requests:
+      storage: 1Ti
+---
+# ConfigMaps
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexachain-config
+  namespace: nexastream
+data:
+  config.json: |
+    {
+      "chain_id": 1,
+      "network_name": "nexastream-mainnet",
+      "consensus": "hybrid_pow_pos",
+      "block_time": 3,
+      "max_supply": 55000000000000000000000000,
+      "pos_blocks_ratio": 9,
+      "pow_reward": "10000000000000000000",
+      "pos_reward": "2000000000000000000"
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: nexastream
+data:
+  NODE_ENV: "production"
+  PORT: "3001"
+  CORS_ORIGIN: "https://nexastream.org"
+  RATE_LIMIT_WINDOW: "1"
+  RATE_LIMIT_MAX: "100"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: nexastream
+data:
+  NEXT_PUBLIC_API_URL: "https://api.nexastream.org"
+  NEXT_PUBLIC_WS_URL: "wss://api.nexastream.org"
+  NEXT_PUBLIC_CHAIN_ID: "1"
+---
+# Secrets (Reference - Use External Secrets Operator in production)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nexastream-secrets
+  namespace: nexastream
+type: Opaque
+stringData:
+  # Database
+  DB_HOST: "postgres.nexastream.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "nexastream"
+  # Redis
+  REDIS_URL: "redis://redis.nexastream.svc.cluster.local:6379"
+  # JWT
+  JWT_SECRET: "CHANGE_ME_IN_PRODUCTION"
+  # Blockchain
+  BLOCKCHAIN_RPC: "http://nexachain-node.nexastream.svc.cluster.local:8545"
+  # Storage
+  STORAGE_ACCESS_KEY: "CHANGE_ME"
+  STORAGE_SECRET_KEY: "CHANGE_ME"
+---
+# Network Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-network-policy
+  namespace: nexastream
+spec:
+  podSelector:
+    matchLabels:
+      app: nexastream
+      component: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3001
+    - from:
+        - podSelector:
+            matchLabels:
+              app: nexastream
+              component: frontend
+      ports:
+        - protocol: TCP
+          port: 3001
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    - to:
+        - podSelector:
+            matchLabels:
+              app: nexachain
+      ports:
+        - protocol: TCP
+          port: 8545
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-network-policy
+  namespace: nexastream
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: nexastream
+              component: backend
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-network-policy
+  namespace: nexastream
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: nexastream
+      ports:
+        - protocol: TCP
+          port: 6379
+---
+# Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexastream
+  namespace: nexastream
+---
+# Role-Based Access Control
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nexastream-role
+  namespace: nexastream
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "services", "pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "watch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nexastream-role-binding
+  namespace: nexastream
+subjects:
+  - kind: ServiceAccount
+    name: nexastream
+    namespace: nexastream
+roleRef:
+  kind: Role
+  name: nexastream-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# PostgreSQL StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: nexastream
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        component: database
+    spec:
+      serviceAccountName: nexastream
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: nexastream-secrets
+                  key: DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nexastream-secrets
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nexastream-secrets
+                  key: DB_PASSWORD
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - nexastream
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - nexastream
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: nexastream
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        component: cache
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+              name: redis
+          command:
+            - redis-server
+            - --appendonly
+            - "yes"
+            - --maxmemory
+            - 256mb
+            - --maxmemory-policy
+            - allkeys-lru
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: redis-data
+---
+# Backend API Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexastream-backend
+  namespace: nexastream
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nexastream
+      component: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: nexastream
+        component: backend
+    spec:
+      serviceAccountName: nexastream
+      containers:
+        - name: backend
+          image: railancosta/nexastream-backend:latest
+          ports:
+            - containerPort: 3001
+              name: http
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: nexastream-secrets
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nexastream-secrets
+                  key: DATABASE_URL
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3001
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 3001
+            failureThreshold: 30
+            periodSeconds: 10
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: nexastream
+                    component: backend
+                topologyKey: kubernetes.io/hostname
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexastream-frontend
+  namespace: nexastream
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nexastream
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: nexastream
+        component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: railancosta/nexastream-frontend:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: frontend-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+# NexaChain Blockchain Node
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexachain-node
+  namespace: nexastream
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nexachain
+      component: node
+  template:
+    metadata:
+      labels:
+        app: nexachain
+        component: node
+    spec:
+      containers:
+        - name: nexachain
+          image: railancosta/nexachain:latest
+          ports:
+            - containerPort: 30303
+              name: p2p
+            - containerPort: 8545
+              name: rpc
+            - containerPort: 8546
+              name: ws
+          env:
+            - name: NODE_ROLE
+              value: "validator"
+            - name: DATA_DIR
+              value: "/data"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: 2000m
+              memory: 8Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8545
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8545
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: nexachain-data
+        - name: config
+          configMapRef:
+            name: nexachain-config
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: nexachain
+                    component: node
+                topologyKey: kubernetes.io/hostname
+---
+# Horizontal Pod Autoscalers
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: nexastream
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexastream-backend
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend-hpa
+  namespace: nexastream
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexastream-frontend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: blockchain-hpa
+  namespace: nexastream
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexachain-node
+  minReplicas: 3
+  maxReplicas: 9
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: nexastream
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: nexastream
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexastream-backend
+  namespace: nexastream
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3001
+      targetPort: 3001
+      name: http
+  selector:
+    app: nexastream
+    component: backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexastream-frontend
+  namespace: nexastream
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http
+  selector:
+    app: nexastream
+    component: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexachain-node
+  namespace: nexastream
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8545
+      targetPort: 8545
+      name: rpc
+    - port: 8546
+      targetPort: 8546
+      name: ws
+    - port: 30303
+      targetPort: 30303
+      name: p2p
+  selector:
+    app: nexachain
+    component: node
+---
+# Pod Disruption Budgets
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: backend-pdb
+  namespace: nexastream
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: nexastream
+      component: backend
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: blockchain-pdb
+  namespace: nexastream
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: nexachain
+      component: node

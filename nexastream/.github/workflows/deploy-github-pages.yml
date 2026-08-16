@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare static site
+        run: |
+          mkdir -p ./site
+          # Root files
+          cp index.html ./site/index.html
+          cp platform.html ./site/platform.html
+          cp app.js ./site/app.js
+          cp 404.html ./site/404.html
+          cp _redirects ./site/_redirects
+          cp _headers ./site/_headers
+          cp .nojekyll ./site/.nojekyll
+          # Frontend public assets
+          cp frontend/public/manifest.json ./site/manifest.json 2>/dev/null || true
+          cp frontend/public/sw.js ./site/sw.js 2>/dev/null || true
+          # CNAME
+          echo "nexastream.org" > ./site/CNAME
+          # Verify
+          echo "=== FILES IN SITE ==="
+          ls -la ./site/
+          echo "=== index.html first line ==="
+          head -1 ./site/index.html
+          echo "=== platform.html first line ==="
+          head -1 ./site/platform.html
+          echo "=== app.js size ==="
+          wc -c ./site/app.js
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
