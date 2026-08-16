@@ -2,11 +2,12 @@ name: Monorepo CI
 
 on:
   push:
-    branches: [main, "vibe/**"]
+    branches: [main, "vibe/**", "production-hardening-2026-08"]
     paths:
       - "apps/**"
       - "packages/**"
       - "package.json"
+      - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "tsconfig.base.json"
       - ".github/workflows/monorepo-ci.yml"
@@ -15,14 +16,24 @@ on:
     paths:
       - "apps/**"
       - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+      - ".github/workflows/monorepo-ci.yml"
+
+permissions:
+  contents: read
 
 env:
   NODE_VERSION: "22"
+  PNPM_VERSION: "10.26.1"
 
 jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,6 +41,8 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -38,7 +51,7 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install --frozen-lockfile=false
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm -r run typecheck
@@ -52,15 +65,32 @@ jobs:
   security:
     name: Secret & Dependency Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check for hardcoded secrets
+      - name: Check for committed environment files
+        shell: bash
         run: |
-          set -e
-          # Fail if a .env with secrets is committed.
-          ! git ls-files | grep -E '^\.(env)$' && echo "no .env committed"
-          # Fail if obvious private keys appear in source.
-          ! grep -rEn "PRIVATE_KEY\s*=\s*['\"]0x[0-9a-fA-F]+" apps packages || (echo "hardcoded private key found" && exit 1)
-          echo "secret scan ok"
+          set -euo pipefail
+          if git ls-files -z | grep -zqE '(^|/)\.env$|(^|/)\.env\.(production|development|local)$'; then
+            echo "A real environment file is tracked in Git. Remove secrets from the repository."
+            exit 1
+          fi
+          echo "environment-file scan ok"
+
+      - name: Check for obvious private keys
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE --exclude-dir=.git --exclude='*.lock' --exclude='*.md' 'PRIVATE_KEY[[:space:]]*=[[:space:]]*["'"']0x[0-9a-fA-F]{32,}["'"']' apps packages 2>/dev/null; then
+            echo "hardcoded private key found"
+            exit 1
+          fi
+          echo "private-key scan ok"
+
+      - name: Dependency audit
+        run: pnpm audit --audit-level high --prod
