@@ -1,0 +1,10 @@
+const API = 'http://localhost:3008';
+const post = (u, o) => fetch(API + u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(o) }).then(r => r.json());
+const a = await post('/api/chain/wallet', {});
+const b = await post('/api/chain/wallet', {});
+console.log('wallet A:', a.address);
+console.log('faucet 100 NST:', await post('/api/chain/faucet', { to: a.address, amount: 100 }));
+console.log('tx A->B 40 NST:', await post('/api/chain/tx', { from: a.address, to: b.address, amount: 40, privateKey: a.privateKey }));
+console.log('mine bloco:', await post('/api/chain/mine', { miner: 'validator-1' }));
+console.log('VERIFY:', await fetch(API + '/api/chain/verify').then(r => r.json()));
+console.log('saldos:', await fetch(API + '/api/chain/balances').then(r => r.json()));
