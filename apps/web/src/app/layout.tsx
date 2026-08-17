@@ -13,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/studio" className="hover:text-indigo-300">Estúdio</Link>
             <Link href="/wallet" className="hover:text-indigo-300">Carteira</Link>
             <Link href="/explorer" className="hover:text-indigo-300">Explorer</Link>
+            <Link href="/notifications" className="hover:text-indigo-300">Notificações</Link>
             <Link href="/metrics" className="hover:text-indigo-300">Métricas</Link>
             <Link href="/login" className="px-3 py-1 bg-indigo-600 rounded">Entrar</Link>
           </div>
