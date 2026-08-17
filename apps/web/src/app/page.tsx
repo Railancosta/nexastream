@@ -5,14 +5,15 @@ export default function Home() {
   const [videos, setVideos] = useState<any[]>([])
   const [mode, setMode] = useState('cronológico')
   useEffect(() => {
-    const chrono = () => fetch('http://localhost:3002/api/videos').then(r => r.json()).then(d => { setVideos(d.videos || []); setMode('cronológico') }).catch(() => {})
     const u = JSON.parse(localStorage.getItem('nst_user') || 'null')
-    if (u) {
-      fetch('http://localhost:3012/api/reco/feed?user=' + u.username)
-        .then(r => r.json())
-        .then(d => { setVideos(d.feed || []); setMode('personalizado • ' + d.signals.subscriptions + ' inscrições') })
-        .catch(chrono)
-    } else chrono()
+    Promise.all([
+      u ? fetch('http://localhost:3012/api/reco/feed?user=' + u.username).then(r => r.json()).then(d => { setMode('personalizado'); return d.feed || [] })
+        : fetch('http://localhost:3002/api/videos').then(r => r.json()).then(d => d.videos || []),
+      fetch('http://localhost:3014/api/mod/removed').then(r => r.json()).catch(() => ({ removed: [] }))
+    ]).then(([vids, m]) => {
+      const rm = new Set(m.removed || [])
+      setVideos(vids.filter((x: any) => !rm.has(x.id)))
+    }).catch(() => {})
   }, [])
   return (
     <main className="p-6 max-w-6xl mx-auto">

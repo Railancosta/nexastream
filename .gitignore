@@ -5,3 +5,5 @@ database/*.db
 *.log
 .env
 teste_video.mp4
+run/
+backups/
