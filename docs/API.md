@@ -12,3 +12,7 @@ POST /api/nft/buy {tokenId, buyer}
 POST /api/nft/transfer {tokenId, from, to}
 GET /api/nft/market | /api/nft/audit | /api/nft/:tokenId | /api/nft/by-video/:videoId
 Regra: TOKEN OWNERSHIP ≠ COPYRIGHT OWNERSHIP (Item 19).
+
+## KPI (3017)
+GET /api/kpi — unit economics + business KPIs medidos dos bancos reais (Itens 33/44).
+Campos null = telemetria ainda não implementada (declarado, não ocultado).
