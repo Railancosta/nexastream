@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  auth:
+    build: ..
+    command: node services/auth/index.js
+    ports: ["3001:3001"]
+  videos:
+    build: ..
+    command: node services/videos/index.js
+    ports: ["3002:3002"]
+  chain:
+    build: ..
+    command: node blockchain/node/index.js
+    ports: ["3008:3008"]
+  wallet:
+    build: ..
+    command: node blockchain/wallet/index.js
+    ports: ["3009:3009"]
+  reco:
+    build: ..
+    command: node services/recommendations/index.js
+    ports: ["3012:3012"]
+  live:
+    build: ..
+    command: node services/live/index.js
+    ports: ["3013:3013"]
+  mod:
+    build: ..
+    command: node services/moderation/index.js
+    ports: ["3014:3014"]
+  dao:
+    build: ..
+    command: node contracts/dao.js
+    ports: ["3015:3015"]
+  nft:
+    build: ..
+    command: node contracts/nft.js
+    ports: ["3016:3016"]
+  analytics:
+    build: ..
+    command: node services/analytics/index.js
+    ports: ["3018:3018"]

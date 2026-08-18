@@ -1,0 +1,28 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="NexaStream — Rede global descentralizada de video">
+<title>NexaStream v1.0 — Plataforma</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+</head><body>
+<header>
+  <h1>Nexa<span>Stream</span></h1>
+  <nav>
+    <button data-view="feed"   onclick="nav('feed')">Feed</button>
+    <button data-view="live"   onclick="nav('live')">Ao Vivo</button>
+    <button data-view="studio" onclick="nav('studio')">Studio</button>
+    <button data-view="wallet" onclick="nav('wallet')">Carteira</button>
+    <button data-view="dao"    onclick="nav('dao')">DAO</button>
+    <button data-view="nft"    onclick="nav('nft')">NFT</button>
+    <button data-view="dev"    onclick="nav('dev')">Dev</button>
+    <span id="net" class="net"></span>
+  </nav>
+</header>
+<main id="app"></main>
+<footer>
+  <small>NexaStream v1.0 · NST em <b>testnet</b> · Mainnet sob auditoria (Item 40)</small>
+  <small>· <a href="https://github.com/Railancosta/nexastream">Open Source</a>
+       · <a href="https://nexastream.org">Site Oficial</a></small>
+</footer>
+<script src="app.js"></script>
+</body></html>

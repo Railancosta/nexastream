@@ -1,0 +1,6 @@
+[package]
+name = "nexastream-p2p"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]

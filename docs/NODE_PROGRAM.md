@@ -1,22 +1,27 @@
-# Programa de Nos Comunitarios (Item 58)
+# Programa de Nós Comunitários (Item 58)
 
-## Participacao
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/Railancosta/nexastream/main/scripts/install-node.sh)"
+## Requisitos mínimos
+- Node >= 22
+- ffmpeg (para transcodificação)
+- 2GB RAM, 20GB disco
+- Banda estável
 
-## Requisitos minimos
-- Node >= 22 + ffmpeg (ou Docker em maquina com root)
-- 2GB RAM, 20GB disco, banda estavel
+## Instalação
+```bash
+bash -c "$(curl -fsSL https://nexastream.org/install-node.sh)"
+```
 
-## Responsabilidades do operador
-- Servir conteudo com integridade (hashes verificados)
-- Manter health-check verde (scripts/health-check.sh)
-- Nao modificar artefatos tagados (verifique o hash do release)
+## Responsabilidades
+1. Servir conteúdo com integridade (hashes verificáveis)
+2. Manter health-check verde (`scripts/health-check.sh`)
+3. Não modificar artefatos tagados
+4. Reportar bugs via GitHub Issues
 
 ## Incentivos
-- Testnet: participacao e reputacao (sem promessa de ganho)
-- Mainnet: incentivos NST somente apos auditoria independente (Itens 14/40/61)
+- **Testnet**: participação, reputação, acesso antecipado
+- **Mainnet**: apenas após auditoria (Itens 14/40/61)
 
 ## Honestidade (Item 61)
-Rodar um nodo NAO garante renda. A rede existe porque operadores
-contribuem recursos; o protocolo recompensa apenas quando o
-sistema gerar receita real auditavel.
+Rodar um nó **NÃO garante renda**. A rede existe porque operadores
+contribuem recursos. Recompensas só acontecem quando o sistema
+gerar receita real auditável.

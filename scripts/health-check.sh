@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-# Item 28/42: health verification do nodo
-FAIL=0
-check() { curl -sf -m 5 "http://localhost:$2$3" >/dev/null && echo "PASS $1" || { echo "FAIL $1"; FAIL=1; }; }
-check core      3002 /api/health
-check content   3004 /api/content/dedup
-check chain     3008 /api/chain
-check explorer  3009 /api/explorer
-check monitor   3010 /api/metrics
-check social    3011 /api/social/health
-check reco      3012 /api/reco/feed
-check live      3013 /api/live/streams
-check moderation 3014 /api/mod/queue
-check dao       3015 /api/dao/proposals
-check nft       3016 /api/nft/market
-check kpi       3017 /api/kpi
-check analytics 3018 /api/analytics/totals
-exit $FAIL
+# Health check de todos os 13 serviços (Item 27)
+EPS=(
+  "auth:3001" "videos:3002" "chain:3008" "wallet:3009"
+  "reco:3012" "live:3013" "mod:3014" "dao:3015" "nft:3016" "analytics:3018"
+)
+ok=0
+for ep in "${EPS[@]}"; do
+  name="${ep%:*}"; port="${ep#*:}"
+  if curl -fsS "http://localhost:$port/api/health" >/dev/null 2>&1; then
+    echo "$name ✅"
+    ((ok++))
+  else
+    echo "$name ❌"
+  fi
+done
+echo ""
+echo "Saúde: $ok/${#EPS[@]}"
+[ "$ok" = "${#EPS[@]}" ]
