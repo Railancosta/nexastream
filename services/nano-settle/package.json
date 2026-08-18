@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "nanocurrency": "^2.5.0"
+  }
+}

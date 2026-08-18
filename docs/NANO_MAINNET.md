@@ -15,3 +15,10 @@ STATUS: INTEGRACAO (nao lancamos mainnet propria — Item 40 respeitado).
 ## NST
 - NST permanece como contabilidade interna TESTNET.
 - Nano = liquidacao/ancoragem publica; nenhuma promessa de ganho (Item 61).
+
+## Status do deployment (ciclo atual)
+- Rede efetiva: TESTNET (mainnet travado em codigo via run/mainnet-gate-unlocked ausente).
+- Taxas: 0 (Nano e feeless em qualquer rede).
+- Ancoragem: send de 1 raw para endereco derivado do content hash.
+- Offline-first: sem RPC, blocos sao assinados localmente e enfileirados (status queued-network-offline).
+- Funding testnet: faucet oficial Nano (custo zero). Mainnet exige saldo real => permanece FECHADO (Item 40/61).
