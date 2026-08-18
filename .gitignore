@@ -11,3 +11,5 @@ __pycache__/
 *.pyc
 contracts/.env
 database/nano.wallet.json
+scripts/node_modules/
+scripts/treasury-output.txt
