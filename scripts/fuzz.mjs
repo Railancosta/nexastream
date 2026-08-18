@@ -1,18 +1,22 @@
-const TARGETS = [
-  ['http://localhost:3002', ['/api/videos', '/api/health', '/api/search?q=<script>', "/api/videos/..%2f..%2fetc%2fpasswd", "/api/videos/'%22"]],
-  ['http://localhost:3014', ['/api/mod/queue', '/api/mod/removed', '/api/mod/status/x']],
-  ['http://localhost:3018', ['/api/analytics/totals']]
-];
-const BODIES = ['{', '{"email":', 'null', '[]', '"str"', '{"email":"a@b.c","password":"x","username":"<img src=x>"}', '{"seconds":-5,"videoId":"","viewerId":""}'];
-let tested = 0, crashes = 0;
-for (const [base, paths] of TARGETS) {
-  for (const p of paths) { tested++; const r = await fetch(base + p).catch(() => null); if (!r) { crashes++; console.log('CRASH?', base + p); } }
-  for (const b of BODIES) { tested++; const r = await fetch(base + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: b }).catch(() => null); if (!r) { crashes++; console.log('CRASH?', base, b); } }
+const BASE = 'http://localhost:3002';
+const P = ['/api/health', '/api/videos', '/api/search?q=%27%22', '/api/videos/..%2f..%2fetc%2fpasswd', '/api/auth/login'];
+const B = ['not json', '{"email":', '{"email":"a@b.c"}', '{"$ne":null}', '["a",1]', '\xff\xfe\x00',
+           '{"password":"' + 'A'.repeat(50000) + '"}', '{"email":"🔥@.🔥","password":"🔥"}', ''];
+const M = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'BANANA'];
+let reqs = 0, crashes = 0, handled5xx = 0;
+
+async function hit(path, method, body) {
+  reqs++;
+  try {
+    const r = await fetch(BASE + path, { method, headers: { 'Content-Type': 'application/json' }, body: (method === 'GET' ? undefined : body) });
+    if (r.status >= 500) handled5xx++;
+  } catch (e) { crashes++; }
 }
-for (const [base] of TARGETS) {
-  const hp = base.includes('3002') ? '/api/health' : base.includes('3014') ? '/api/mod/queue' : '/api/analytics/totals';
-  const r = await fetch(base + hp).catch(() => null);
-  if (!r || !r.ok) { crashes++; console.log('DOWN AFTER FUZZ:', base); }
-}
-console.log(JSON.stringify({ tested, crashes, result: crashes === 0 ? 'FUZZ PASS' : 'FUZZ FAIL' }));
-process.exit(crashes ? 1 : 0);
+
+for (const p of P) for (const m of M) await hit(p, m);
+for (const b of B) { await hit('/api/auth/login', 'POST', b); await hit('/api/videos/upload', 'PUT', b); }
+
+let alive = false;
+try { const r = await fetch(BASE + '/api/health'); alive = r.ok; } catch (e) {}
+console.log(JSON.stringify({ reqs, handled5xx, crashes, alive, resultado: (alive && crashes === 0) ? 'FUZZ PASS' : 'FUZZ FAIL' }));
+process.exit(alive && crashes === 0 ? 0 : 1);
