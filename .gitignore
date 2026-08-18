@@ -9,3 +9,5 @@ run/
 backups/
 __pycache__/
 *.pyc
+contracts/.env
+database/nano.wallet.json
