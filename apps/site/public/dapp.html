@@ -1,0 +1,62 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexaStream — Web3 Dapp</title>
+<style>
+body{background:#0a0e13;color:#e5e7eb;font-family:system-ui;margin:0;padding:24px;line-height:1.6}
+.wrap{max-width:900px;margin:0 auto}
+h1{color:#818cf8}
+.card{background:#121821;border:1px solid #1f2937;border-radius:12px;padding:20px;margin:16px 0}
+.warn{background:#7f1d1d33;border:1px solid #b91c1c;border-radius:12px;padding:16px;margin:16px 0;color:#fca5a5}
+code{background:#000;padding:2px 6px;border-radius:4px;word-break:break-all}
+a{color:#818cf8}
+button{background:#6366f1;border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer}
+.small{color:#9ca3af;font-size:.85rem}
+</style></head><body><div class="wrap">
+<h1>NexaStream Web3 Dapp</h1>
+<div class="warn">⚠️ <b>Transparência (Itens 13/15/40/61):</b> a blockchain Nano <b>não suporta tokens nem smart contracts</b> — NST <b>não é</b> um token Nano. Nano é usada como <b>trilho de liquidação feeless</b> (tesouraria + âncoras de conteúdo). A mainnet NST da plataforma continua <b>gateada</b> até auditoria independente (Item 40). Nenhuma promessa de ganho.</div>
+
+<div class="card"><h2>🪙 NST — NexaStream Token</h2>
+<p>Supply máximo: <b>55.000.000</b> • Status: <b>TESTNET</b> (ledger da plataforma)</p>
+<p class="small">Mainnet NST = decisão de alto risco, somente após: auditoria independente, consensus testing, DR validado, infraestrutura de validadores (Item 40).</p></div>
+
+<div class="card"><h2>💧 Tesouraria Nano (feeless)</h2>
+<p id="addr">carregando snapshot…</p>
+<button onclick="checkBalance()">Consultar saldo (RPC público)</button>
+<p id="bal" class="small"></p>
+<p class="small">Verificação independente: <a id="looker" href="#" target="_blank" rel="noopener">NanoLooker ↗</a></p></div>
+
+<div class="card"><h2>⚓ Âncoras de conteúdo (snapshot)</h2>
+<p class="small">Hashes SHA-256 ancorados localmente; snapshot atualizado a cada commit. Integridade verificável no explorador quando liquidada on-chain.</p>
+<ul id="anchors"></ul></div>
+
+<div class="card"><h2>🔍 Consultar qualquer endereço Nano</h2>
+<input id="q" placeholder="nano_..." style="width:70%;padding:8px;border-radius:8px;border:1px solid #1f2937;background:#000;color:#e5e7eb">
+<button onclick="lookup()">Explorer ↗</button>
+<p id="fmt" class="small"></p></div>
+
+<script>
+let snap = { address: null, anchors: [] };
+fetch('nano-snapshot.json').then(r => r.json()).then(j => {
+  snap = j;
+  document.getElementById('addr').innerHTML = 'Endereço: <code>' + (j.address || 'offline') + '</code>';
+  document.getElementById('looker').href = 'https://www.nanolooker.com/account/' + (j.address || '');
+  const ul = document.getElementById('anchors');
+  (j.anchors || []).forEach(a => { const li = document.createElement('li'); li.innerHTML = '<code>' + a.contentHash + '</code> <span class="small">' + (a.ts || '') + '</span>'; ul.appendChild(li); });
+  if (!(j.anchors || []).length) ul.innerHTML = '<li class="small">nenhuma âncora no snapshot</li>';
+}).catch(() => { document.getElementById('addr').textContent = 'snapshot indisponível'; });
+
+async function checkBalance() {
+  const el = document.getElementById('bal'); el.textContent = 'consultando…';
+  try {
+    const r = await fetch('https://mynano.ninja/api/node', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'account_balance', account: snap.address }) });
+    const j = await r.json();
+    el.textContent = j.error ? 'RPC respondeu erro: ' + j.error : 'saldo: ' + (Number(j.balance || 0) / 1e30).toFixed(6) + ' NANO';
+  } catch (e) { el.textContent = 'RPC bloqueado no navegador (CORS) — use o NanoLooker acima (fonte independente).'; }
+}
+function lookup() {
+  const v = document.getElementById('q').value.trim();
+  const ok = /^(nano_|xrb_)[13][0-9a-z]{59}$/.test(v);
+  document.getElementById('fmt').textContent = ok ? 'formato válido — abrindo explorador…' : 'formato inválido (verificação básica de formato apenas)';
+  if (ok) window.open('https://www.nanolooker.com/account/' + v, '_blank');
+}
+</script></div></body></html>
