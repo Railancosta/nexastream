@@ -1,23 +1,24 @@
-# Mainnet Readiness Gate (Item 40)
-STATUS: **NAO PRONTO.** "MAINNET IS NOT A BUTTON."
+# Mainnet Readiness Gate — NST (Item 40)
 
-## Validado em testnet
-- [x] Testnet estavel (servicos + consenso 2 validadores)
-- [x] Consensus testing (consensus-test.mjs: acordo, finalidade, liveness, sync)
-- [x] Security testing (security-test.mjs, fuzz.mjs)
-- [x] Wallet testing (wallet-test.mjs)
-- [x] Disaster recovery validado (backup.sh + restore-test.sh)
-- [x] Documentacao (README, API, CONSENSUS_SPEC, THREAT_MODEL)
-- [x] Monitoramento (monitor, kpi, analytics)
+STATUS: **GATEADA** — mainnet NÃO será ativada enquanto houver bloqueante.
 
-## Bloqueantes (antes de mainnet)
-- [ ] Auditoria independente externa
-- [ ] Fuzzing + verificacao formal do consenso
-- [ ] Infraestrutura de validadores multi-regiao
-- [ ] Configuracao final de genesis
-- [ ] Procedimentos de emergencia testados com terceiros
-- [ ] Deploy em ambiente real com usuarios reais
+| Pré-requisito (Item 40) | Status | Evidência |
+|---|---|---|
+| Testnet estável | PARCIAL | testnet local + chain testnet operando; falta soak ≥ 30 dias |
+| Auditorias independentes | **NÃO INICIADO (bloqueante)** | exige firma externa; ver docs/SECURITY.md |
+| Consensus testing | PASS | scripts/consensus-test.mjs (acordo, finalidade, liveness, sync, falha de validador) |
+| Security testing | PASS | scripts/security-test.mjs (7 checks), fuzz, rate limits, anti-fraud |
+| Disaster-recovery validation | PASS | scripts/backup.sh + restore-test.sh (integrity_check ok) |
+| Documentação | PASS | docs/ (API, threat model, bridge NST↔Nano, runbooks) |
+| Monitoring | PASS | services/monitor + services/kpi + /metrics |
+| Procedimentos de emergência | PARCIAL | runbooks existem; falta simulacro rehearsed |
+| Genesis final configurado | **NÃO INICIADO (bloqueante)** | supply 55M definido; parâmetros finais pendentes |
+| Infraestrutura de validadores | PARCIAL | 2 nós testnet; falta multi-região |
 
-## Decisao
-Mainnet so ativa com todos os bloqueantes fechados e auditoria
-independente aprovando. Ate la: TESTNET. (Itens 40/61)
+## Decisão
+Enquanto "Auditorias independentes" e "Genesis final" estiverem em aberto,
+a mainnet permanece DESLIGADA. NST opera apenas como ledger de testnet;
+liquidação real usa trilho feeless (Nano) conforme docs/NST_NANO_BRIDGE.md.
+
+## Regra de ouro (Item 15/61)
+- Sem criptografia inventada; sem promessa de ganho; sem alegação de prontidão sem evidência.

@@ -4,6 +4,12 @@ export const metadata = { title: 'NexaStream', description: 'Rede de video desce
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
+      <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <meta name="theme-color" content="#6366f1" />
+        <script src="/register-sw.js" defer />
+      </head>
       <body className="bg-gray-950 text-gray-100">
         <nav className="flex items-center justify-between p-4 border-b border-gray-800 flex-wrap gap-2">
           <Link href="/" className="text-xl font-bold text-indigo-400">NexaStream</Link>
