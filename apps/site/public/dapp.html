@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<!doctype html><html lang="pt-BR"><head><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#6366f1"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NexaStream — Web3 Dapp</title>
 <style>
@@ -59,4 +59,4 @@ function lookup() {
   document.getElementById('fmt').textContent = ok ? 'formato válido — abrindo explorador…' : 'formato inválido (verificação básica de formato apenas)';
   if (ok) window.open('https://www.nanolooker.com/account/' + v, '_blank');
 }
-</script></div></body></html>
+</script></div><script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){})}</script></body></html>

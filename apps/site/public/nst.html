@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<!doctype html><html lang="pt-BR"><head><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#6366f1"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NexaStream — NST & Nano</title>
 <style>
@@ -32,4 +32,4 @@ a{color:#818cf8}
 </div>
 </div>
 <script>fetch('nst-address.txt').then(r=>r.text()).then(t=>{document.getElementById('addr').textContent=t.trim();});</script>
-</body></html>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){})}</script></body></html>
