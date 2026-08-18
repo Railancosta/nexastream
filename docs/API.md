@@ -16,3 +16,7 @@ Regra: TOKEN OWNERSHIP ≠ COPYRIGHT OWNERSHIP (Item 19).
 ## KPI (3017)
 GET /api/kpi — unit economics + business KPIs medidos dos bancos reais (Itens 33/44).
 Campos null = telemetria ainda não implementada (declarado, não ocultado).
+
+## Nano Settlement (3021) — não-custodial, feeless
+GET /api/nano/health | /api/nano/treasury | /api/nano/validate?address= | /api/nano/creator/:username | /api/nano/balance/:address | /api/nano/tips
+POST /api/nano/register {username,address} | /api/nano/tip-log {username,amount_raw}
