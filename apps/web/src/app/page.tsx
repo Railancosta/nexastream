@@ -7,9 +7,9 @@ export default function Home() {
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem('nst_user') || 'null')
     Promise.all([
-      u ? fetch('http://localhost:3012/api/reco/feed?user=' + u.username).then(r => r.json()).then(d => { setMode('personalizado'); return d.feed || [] })
-        : fetch('http://localhost:3002/api/videos').then(r => r.json()).then(d => d.videos || []),
-      fetch('http://localhost:3014/api/mod/removed').then(r => r.json()).catch(() => ({ removed: [] }))
+      u ? fetch('https://nexastream.org/api/reco/feed?user=' + u.username).then(r => r.json()).then(d => { setMode('personalizado'); return d.feed || [] })
+        : fetch('https://nexastream.org/api/videos').then(r => r.json()).then(d => d.videos || []),
+      fetch('https://nexastream.org/api/mod/removed').then(r => r.json()).catch(() => ({ removed: [] }))
     ]).then(([vids, m]) => {
       const rm = new Set(m.removed || [])
       setVideos(vids.filter((x: any) => !rm.has(x.id)))
@@ -26,7 +26,7 @@ export default function Home() {
         {videos.map((v: any) => (
           <Link key={v.id} href={'/video/' + v.id} className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
             <div className="aspect-video bg-gray-800">
-              <img src={'http://localhost:3002/storage/thumbs/' + v.id + '.jpg'} alt={v.title} className="w-full h-full object-cover" />
+              <img src={'https://nexastream.org/storage/thumbs/' + v.id + '.jpg'} alt={v.title} className="w-full h-full object-cover" />
             </div>
             <div className="p-3">
               <h3 className="font-semibold line-clamp-2">{v.title}</h3>

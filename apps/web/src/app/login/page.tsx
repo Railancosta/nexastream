@@ -6,7 +6,7 @@ export default function Login() {
   const router = useRouter()
   async function go(e: React.FormEvent) {
     e.preventDefault()
-    const r = await fetch('http://localhost:3002/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw }) })
+    const r = await fetch('https://nexastream.org/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw }) })
     const d = await r.json()
     if (!r.ok) { setErr(d.error || 'erro'); return }
     localStorage.setItem('nst_token', d.token); localStorage.setItem('nst_user', JSON.stringify(d.user))

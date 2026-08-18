@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-const MOD = 'http://localhost:3014'
+const MOD = 'https://nexastream.org'
 export default function ModPage() {
   const [queue, setQueue] = useState<any[]>([])
   const [audit, setAudit] = useState<any[]>([])

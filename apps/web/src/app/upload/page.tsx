@@ -9,7 +9,7 @@ export default function Upload() {
     if (!file) { setMsg('Escolha um arquivo de vídeo'); return }
     setMsg('Enviando... aguarde')
     try {
-      const r = await fetch('http://localhost:3002/api/videos/upload?title=' + encodeURIComponent(title || file.name), { method: 'PUT', headers: { Authorization: 'Bearer ' + token }, body: file })
+      const r = await fetch('https://nexastream.org/api/videos/upload?title=' + encodeURIComponent(title || file.name), { method: 'PUT', headers: { Authorization: 'Bearer ' + token }, body: file })
       const d = await r.json()
       setMsg(r.ok ? 'Upload OK! ID: ' + d.videoId + ' — transcodando em segundo plano...' : (d.error || 'erro'))
     } catch { setMsg('Erro de conexão com a API') }

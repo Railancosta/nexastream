@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 
-const api = axios.create({ baseURL: 'http://localhost:3001' });
+const api = axios.create({ baseURL: 'https://nexastream.org' });
 
 interface User { id: string; email: string; username: string; }
 interface AuthContextType {
