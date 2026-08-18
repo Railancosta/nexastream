@@ -1,0 +1,25 @@
+services:
+  node:
+    build: .
+    container_name: nexastream-node
+    ports:
+      - "3002:3002"
+      - "3004:3004"
+      - "3008:3008"
+      - "3009:3009"
+      - "3010:3010"
+      - "3011:3011"
+      - "3012:3012"
+      - "3013:3013"
+      - "3014:3014"
+      - "3015:3015"
+      - "3016:3016"
+      - "3017:3017"
+      - "3018:3018"
+    volumes:
+      - nxdata:/opt/nexastream/storage
+      - nxdb:/opt/nexastream/database
+    restart: unless-stopped
+volumes:
+  nxdata:
+  nxdb:
