@@ -1,0 +1,53 @@
+{
+  "root": true,
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:security/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": [
+    "security"
+  ],
+  "rules": {
+    // Segurança
+    "security/detect-object-injection": "error",
+    "security/detect-child-process": "warn",
+    "security/detect-disable-mustache-escape": "error",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-new-function": "error",
+    "security/detect-non-literal-fs-filename": "error",
+    "security/detect-non-literal-require": "error",
+    "security/detect-non-literal-regexp": "error",
+    "security/detect-pseudoRandomBytes": "error",
+    "security/detect-unsafe-regex": "error",
+    
+    // Boas práticas
+    "no-console": "warn",
+    "no-unused-vars": "warn",
+    "no-undef": "error",
+    
+    // Prevenir hardcoded secrets
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "Literal[value=/JWT_SECRET|SECRET|API_KEY|PASSWORD/]",
+        "message": "Nunca use segredos hardcoded. Use variáveis de ambiente."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["*.test.js", "*.spec.js"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

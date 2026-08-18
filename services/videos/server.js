@@ -6,9 +6,32 @@ const initSqlJs = require('sql.js');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
-app.use(cors());
+
+// Configurar CORS restritivo
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://nexastream.org',
+  'https://nexastream.org'
+];
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 50, // limite de 50 requisições por IP (upload é pesado)
+  message: { error: 'Muitas requisições, tente novamente mais tarde.' }
+});
+app.use(limiter);
+
 app.use(express.json());
 
 const DB_PATH = path.join(__dirname, '../../database/nexastream.db');
@@ -30,7 +53,17 @@ function saveDB() {
   fs.writeFileSync(DB_PATH, Buffer.from(data));
 }
 
-// Configurar Upload
+// Sanitizar inputs para prevenir XSS
+function sanitizeInput(input) {
+  if (typeof input !== 'string') return input;
+  return input
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// Configurar Upload com validações seguras
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(__dirname, '../../storage/videos');
@@ -38,27 +71,53 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    cb(null, `${uuidv4()}${path.extname(file.originalname)}`);
+    // Gerar nome seguro para o arquivo
+    const ext = path.extname(file.originalname).toLowerCase();
+    // Validar extensão
+    const allowedExts = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
+    if (!allowedExts.includes(ext)) {
+      return cb(new Error('Tipo de arquivo não permitido'));
+    }
+    cb(null, `${uuidv4()}${ext}`);
   }
 });
 
-const upload = multer({ 
+// Configurações de upload seguras
+const upload = multer({
   storage,
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB (limite seguro)
+    files: 1 // Apenas 1 arquivo por requisição
+  },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('video/')) cb(null, true);
-    else cb(new Error('Apenas arquivos de vídeo'));
+    // Validar MIME type
+    const allowedMimes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return cb(new Error('Tipo de vídeo não permitido'));
+    }
+    cb(null, true);
   }
 });
 
 // Rota de Upload
 app.post('/api/videos/upload', upload.single('video'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+  if (!req.file) {
+    return res.status(400).json({ error: 'Nenhum arquivo enviado ou tipo inválido' });
+  }
   
   const videoId = uuidv4();
   const { channelId, title, description } = req.body;
   
-  db.run(`INSERT INTO videos (id, channel_id, title, description, video_path, status) VALUES ('${videoId}', '${channelId}', '${title}', '${description}', '${req.file.path}', 'processing')`);
+  // Sanitizar inputs
+  const sanitizedChannelId = sanitizeInput(channelId || '');
+  const sanitizedTitle = sanitizeInput(title || 'Sem título');
+  const sanitizedDescription = sanitizeInput(description || '');
+  
+  // Usar prepared statements para prevenir SQL Injection
+  db.run(
+    `INSERT INTO videos (id, channel_id, title, description, video_path, status) VALUES (?, ?, ?, ?, ?, ?)`,
+    [videoId, sanitizedChannelId, sanitizedTitle, sanitizedDescription, req.file.path, 'processing']
+  );
   saveDB();
   
   // Iniciar transcoding em background
@@ -77,7 +136,7 @@ function transcodeVideo(videoId, inputPath) {
   const thumbPath = path.join(thumbDir, `${videoId}.jpg`);
 
   ffmpeg(inputPath)
-    .outputOptions(['-c:v libx264', '-preset ultrafast', '-crf 28', '-c:a aac']) // ultrafast para Termux
+    .outputOptions(['-c:v libx264', '-preset ultrafast', '-crf 28', '-c:a aac'])
     .size('640x360')
     .output(outputPath)
     .on('end', () => {
@@ -90,21 +149,28 @@ function transcodeVideo(videoId, inputPath) {
         folder: path.dirname(thumbPath),
         size: '320x180'
       }).on('end', () => {
-        db.run(`UPDATE videos SET status = 'ready', video_path = '${outputPath}', thumbnail_path = '${thumbPath}' WHERE id = '${videoId}'`);
+        // Usar prepared statements
+        db.run(
+          `UPDATE videos SET status = ?, video_path = ?, thumbnail_path = ? WHERE id = ?`,
+          ['ready', outputPath, thumbPath, videoId]
+        );
         saveDB();
       });
       
       // Obter duração
       ffmpeg.ffprobe(inputPath, (err, metadata) => {
         if (!err && metadata.format.duration) {
-          db.run(`UPDATE videos SET duration = ${Math.floor(metadata.format.duration)} WHERE id = '${videoId}'`);
+          db.run(
+            `UPDATE videos SET duration = ? WHERE id = ?`,
+            [Math.floor(metadata.format.duration), videoId]
+          );
           saveDB();
         }
       });
     })
     .on('error', (err) => {
       console.error(`❌ Erro no transcoding: ${err.message}`);
-      db.run(`UPDATE videos SET status = 'failed' WHERE id = '${videoId}'`);
+      db.run(`UPDATE videos SET status = ? WHERE id = ?`, ['failed', videoId]);
       saveDB();
     })
     .run();
@@ -121,6 +187,7 @@ app.get('/api/videos', (req, res) => {
     })) : [];
     res.json({ videos });
   } catch (error) {
+    console.error('Erro ao buscar vídeos:', error);
     res.status(500).json({ error: 'Erro ao buscar vídeos' });
   }
 });

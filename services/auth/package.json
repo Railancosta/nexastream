@@ -1,3 +1,16 @@
-{"name":"@nexastream/auth","version":"1.0.0","main":"index.js","type":"module",
- "scripts":{"start":"node index.js","test":"node --test test.js"},
- "dependencies":{"express":"^4.19.0","pino":"^9.0.0"}}
+{
+  "name": "@nexastream/auth",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "pino": "^9.0.0",
+    "express-rate-limit": "^7.1.5",
+    "cors": "^2.8.5"
+  }
+}

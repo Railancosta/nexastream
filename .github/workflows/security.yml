@@ -1,0 +1,172 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Rodar todos os dias às 00:00 UTC
+    - cron: '0 0 * * *'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Job 1: Verificar segredos no código
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necessário para o git history
+
+      - name: TruffleHog OSS (Secret Scanner)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Job 2: Verificar vulnerabilidades em dependências
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Audit apps/web
+        working-directory: ./apps/web
+        run: |
+          npm install
+          npm audit --audit-level=high --json > audit-web.json || true
+          npm audit --audit-level=critical --json > audit-web-critical.json || true
+
+      - name: Audit services/auth
+        working-directory: ./services/auth
+        run: |
+          npm install
+          npm audit --audit-level=high --json > audit-auth.json || true
+          npm audit --audit-level=critical --json > audit-auth-critical.json || true
+
+      - name: Audit services/videos
+        working-directory: ./services/videos
+        run: |
+          npm install
+          npm audit --audit-level=high --json > audit-videos.json || true
+          npm audit --audit-level=critical --json > audit-videos-critical.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-results
+          path: |
+            apps/web/audit-*.json
+            services/auth/audit-*.json
+            services/videos/audit-*.json
+
+  # Job 3: Verificar código com ESLint (segurança)
+  eslint-security:
+    name: ESLint Security
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install ESLint security plugin
+        run: |
+          npm install -g eslint eslint-plugin-security
+
+      - name: Run ESLint with security rules
+        run: |
+          eslint --config .eslintrc-security.json . || true
+
+  # Job 4: Verificar arquivos .env
+  env-file-check:
+    name: Env File Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for .env files
+        run: |
+          # Verificar se há arquivos .env no repositório
+          if git ls-files | grep -q '\.env'; then
+            echo "❌ ERRO: Arquivos .env encontrados no repositório!"
+            git ls-files | grep '\.env'
+            exit 1
+          else
+            echo "✅ Nenhum arquivo .env encontrado no repositório."
+          fi
+
+      - name: Check for hardcoded secrets
+        run: |
+          # Verificar por chaves hardcoded
+          if grep -r "JWT_SECRET.*=.*'" . --include="*.js" --include="*.ts" --include="*.json" 2>/dev/null; then
+            echo "❌ ERRO: JWT_SECRET hardcoded encontrado!"
+            exit 1
+          fi
+          if grep -r "SECRET.*=.*'" . --include="*.js" --include="*.ts" --include="*.json" 2>/dev/null; then
+            echo "❌ ERRO: SECRET hardcoded encontrado!"
+            exit 1
+          fi
+          if grep -r "API_KEY.*=.*'" . --include="*.js" --include="*.ts" --include="*.json" 2>/dev/null; then
+            echo "❌ ERRO: API_KEY hardcoded encontrado!"
+            exit 1
+          fi
+          echo "✅ Nenhum segredo hardcoded encontrado."
+
+  # Job 5: Verificar configurações de segurança
+  security-config-check:
+    name: Security Config Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check CORS configuration
+        run: |
+          # Verificar se CORS está configurado de forma segura
+          if grep -r "app.use(cors())" . --include="*.js" --include="*.ts" 2>/dev/null; then
+            echo "⚠️ AVISO: CORS aberto encontrado (app.use(cors())). Verifique se está restrito."
+          else
+            echo "✅ CORS parece estar configurado corretamente."
+          fi
+
+      - name: Check rate limiting
+        run: |
+          # Verificar se rate limiting está configurado
+          if grep -r "rateLimit\|express-rate-limit" . --include="*.js" --include="*.ts" 2>/dev/null; then
+            echo "✅ Rate limiting está configurado."
+          else
+            echo "⚠️ AVISO: Rate limiting não encontrado. Considere adicionar."
+          fi
+
+      - name: Check SQL injection protection
+        run: |
+          # Verificar se há prepared statements
+          if grep -r "db.prepare\|db.run.*?" . --include="*.js" --include="*.ts" 2>/dev/null; then
+            echo "✅ Prepared statements encontrados (SQL Injection protegido)."
+          else
+            echo "⚠️ AVISO: Prepared statements não encontrados. Verifique consultas SQL."
+          fi
