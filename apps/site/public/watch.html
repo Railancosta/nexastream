@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexaStream Watch</title>
+<script src="https://cdn.jsdelivr.net/npm/webtorrent@2.8.4/webtorrent.min.js"></script>
+<style>body{background:#0a0e13;color:#e5e7eb;font-family:system-ui;margin:0;padding:16px}video{width:100%;max-width:960px;background:#000;border-radius:8px}p{color:#9ca3af;font-size:13px}</style>
+</head><body>
+<h1 id="t">NexaStream</h1>
+<video id="v" controls></video>
+<p id="st">conectando ao registry…</p><p id="sw"></p>
+<script>
+const qs=new URLSearchParams(location.search),id=qs.get('id'),direct=qs.get('m');
+const st=document.getElementById('st'),sw=document.getElementById('sw');
+function start(magnet,title,cid){
+  document.getElementById('t').textContent=title||'NexaStream';
+  const client=new WebTorrent();
+  st.textContent='procurando peers…';
+  let fell=false;
+  const fb=setTimeout(()=>{ if(cid&&!fell){ st.textContent='swarm vazio → fallback IPFS (pin recomendado)';
+    const v=document.getElementById('v'); v.src='https://w3s.link/ipfs/'+cid; } },9000);
+  client.add(magnet,t=>{
+    const f=t.files.find(f=>/\.(mp4|webm|mkv)$/i.test(f.name))||t.files[0];
+    if(!f){st.textContent='torrent sem arquivo reproduzível';return;}
+    fell=true;clearTimeout(fb);
+    f.renderTo('video',{autoplay:true,controls:true});
+    st.textContent='reproduzindo via P2P (WebTorrent)';
+    setInterval(()=>{sw.textContent='peers: '+t.numPeers+' · ↓ '+(t.downloadSpeed/1024).toFixed(0)+' KB/s · '+(t.progress*100).toFixed(0)+'% · seeders mantêm o vídeo 24/7';},1000);
+  });
+  client.on('error',e=>st.textContent='erro: '+e.message);
+}
+if(direct)start(direct);
+else fetch('registry.json').then(r=>r.json()).then(r=>{
+  const v=r.videos.find(v=>v.id===id)||r.videos[0];
+  v&&v.magnet?start(v.magnet,v.title,v.cid):(st.textContent='vídeo não encontrado');
+}).catch(e=>st.textContent='erro de registry: '+e.message);
+</script></body></html>

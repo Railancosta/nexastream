@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NexaStream Feed</title>
+<style>body{background:#0a0e13;color:#e5e7eb;font-family:system-ui;padding:16px}a{color:#818cf8;text-decoration:none}.c{border:1px solid #1f2937;border-radius:8px;padding:12px;margin:8px 0}</style>
+</head><body><h1>Feed descentralizado</h1><p style="color:#9ca3af">Conteúdo servido por swarm WebTorrent + gateways IPFS — nenhum servidor central.</p>
+<div id="l"></div>
+<script>
+fetch('registry.json').then(r=>r.json()).then(r=>{
+  document.getElementById('l').innerHTML=r.videos.map(v=>
+    '<div class="c"><a href="watch.html?id='+v.id+'">▶ '+v.title+'</a><br><small>'+(v.size/1048576).toFixed(1)+' MB · por '+v.author+' · '+v.ts.slice(0,10)+'</small></div>').join('');
+});
+</script></body></html>

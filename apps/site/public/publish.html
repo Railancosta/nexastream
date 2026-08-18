@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Publicar</title>
+<script src="https://cdn.jsdelivr.net/npm/webtorrent@2.8.4/webtorrent.min.js"></script>
+<style>body{background:#0a0e13;color:#e5e7eb;font-family:system-ui;padding:16px}pre{background:#111827;padding:10px;border-radius:8px;overflow:auto}</style>
+</head><body><h1>Publicar vídeo</h1>
+<p style="color:#9ca3af">O navegador vira o primeiro seeder. Copie o JSON e registre com <code>scripts/publish.sh</code>. Recomendado: também faça pin IPFS gratuito para redundância 24/7.</p>
+<input type="file" id="f"><button onclick="go()">Criar torrent</button>
+<pre id="o">…</pre>
+<script>
+const c=new WebTorrent();
+function go(){const f=document.getElementById('f').files[0];if(!f)return;
+document.getElementById('o').textContent='seeding…';
+c.seed(f,t=>{document.getElementById('o').textContent=JSON.stringify({id:Date.now().toString(36),title:f.name,magnet:t.magnetURI,size:t.length,infoHash:t.infoHash},null,2);});}
+</script></body></html>
