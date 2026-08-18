@@ -1,0 +1,29 @@
+PASS wallet criada (address + pub + priv)
+PASS faucet creditado (>=100)
+PASS tx assinada aceita na mempool
+PASS destino recebeu 40
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+[TypeError: fetch failed] {
+  [cause]: SocketError: other side closed
+      at Socket.onHttpSocketEnd (node:internal/deps/undici/undici:7741:26)
+      at Socket.emit (node:events:521:24)
+      at endReadableNT (node:internal/streams/readable:1744:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'UND_ERR_SOCKET',
+    socket: {
+      localAddress: '127.0.0.1',
+      localPort: 37588,
+      remoteAddress: '127.0.0.1',
+      remotePort: 3008,
+      remoteFamily: 'IPv4',
+      timeout: undefined,
+      bytesWritten: 1360,
+      bytesRead: 1942
+    }
+  }
+}
+
+Node.js v26.3.1

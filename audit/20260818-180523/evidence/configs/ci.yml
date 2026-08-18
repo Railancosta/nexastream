@@ -1,0 +1,38 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check dos servicos
+        run: |
+          for f in services/core/server.js services/content/server.js services/chain/server.js services/chain/explorer.js services/monitor/server.js p2p/p2p.js; do
+            node --check "$f" && echo "OK $f"
+          done
+      - name: Teste unitario da blockchain
+        run: |
+          cd services/chain
+          node server.js &
+          sleep 2
+          node test-chain.mjs
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run build

@@ -1,0 +1,30 @@
+597f5b9 fase 5+: simulacro de emergencia DR (RTO/RPO medidos) + runbook (Itens 40/52/53)
+cf7ddf0 fase 7: PWA instalavel + mainnet readiness gate formal + scale 10k (Itens 5/40/50)
+eef8090 NST: tesouraria Nano mainnet (feeless) + pagina /nst.html + bridge spec (honesto, Itens 14/15/40/61)
+6a07076 site: registry.json no build publico (P2P registry, Item 10)
+61df7e7 nano: ancoragem mainnet taxa zero (sign-only ate funding) + pagina /nano + docs (Itens 10/14/15/20/40/61)
+c314d87 p2p: camada WebTorrent 24/7 (watch/feed/publish + registry) sem servidor proprio
+4aabc14 chore: snapshot diario
+058a4a9 release: v1.0 — plataforma completa, mainnet bloqueada (Itens 1-65)
+78d78e9 ui: base de API configuravel por nodo (modelo descentralizado)
+79d3f35 ecosistema: programa de nos comunitarios + instalador one-liner (Item 58)
+68075ec deploy production: nodo dockerizado (health/rollback) + UI estatica em /app/ (Itens 28/42)
+a6b8557 fase 5+: appeals completam moderacao (Item 31) + fuzz testing + mainnet readiness gate (Item 40)
+90128b7 fase 7: telemetria watch-time (analytics 3018) + reco/kpi com sinais reais + higiene pycache (Itens 23/27/44)
+6e586b0 fase 7: SDK python (Item 26) + mainnet readiness gate honesto (Item 40)
+32d4cb0 fase 5: wallet testing automatizado - criacao, sign, chave invalida, double-spend, recovery (Item 39)
+0cc8ec4 fase 4+: consenso testnet 2 validadores (Ed25519, skip blocks, sync, finalidade) + CONSENSUS_SPEC (Itens 16/39/52/54)
+683ec11 fase 5+: chaos test (falha/recuperacao sem cascata) + scale gate 10/100/1000 (Itens 29/50/52)
+8b6ae55 fase 7: KPI dashboard - unit economics + business KPIs de dados reais, null declarado sem telemetria (Itens 33/44/46)
+0b4b7ea fase 7: NFT infrastructure + marketplace com license explicita TOKEN!=COPYRIGHT (Item 19)
+4e1ccea fase 7: SDK javascript + DAO governance (voto ponderado por NST, tesouraria, timelock, auditoria) (Itens 18/26/58)
+920348a fase 5: security gate - enforcement frontend, DR backup/restore, security tests, threat model (Itens 31/39/53)
+6f439b3 fase 2: moderacao de conteudo - reports, fila, auto-review, enforcement, auditoria (Item 31)
+2602b01 fase 2: live streaming HLS com LIVE->VOD (Itens 8/36); fix typescript local
+bc110c3 site: build webpack + CNAME nexastream.org + pitch.pdf
+5e9d9bd ci: deploy automatico do site via GitHub Pages
+864f6dd fase 2+: notificacoes fix + recommendation engine com ranking e diversidade (Item 23)
+6087be9 fase 2: comentarios, inscricoes e notificacoes com rate limit (Item 36)
+9ba5661 docs: README + API spec (Item 49); CI: syntax check + blockchain test + web build (Item 28)
+1862ee2 NexaStream: web app como diretorio normal; remover .env e video de teste do repo (Item 61)
+f98b091 NexaStream testnet: core video, content addressing, P2P, blockchain NST, explorer, creator economy, observability

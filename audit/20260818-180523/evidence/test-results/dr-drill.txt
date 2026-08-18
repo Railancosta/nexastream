@@ -1,0 +1,15 @@
+== FASE 0: baseline (servicos UP)
+PASS baseline core UP
+baseline: videos=1 users=1 blocks=5 vid=868c5cf6-4d40-404a-b02f-4d9e3a891536
+== FASE 1: backup (marca RPO)
+PASS backup executado
+== FASE 2: DESASTRE (kill total + perda dos DBs)
+PASS desastre confirmado: servicos DOWN + DBs perdidos
+== FASE 3: RESTAURACAO (do backup 20260818-180544)
+PASS core UP apos restore
+== FASE 4: VERIFICACAO de integridade
+PASS contagens integrais (V/U/B)
+PASS chain valida apos restore
+PASS content integrity apos restore
+== FASE 5: RELATORIO
+RESULTADO FINAL: PASS=7 FAIL=0 RTO=2s → APROVADO

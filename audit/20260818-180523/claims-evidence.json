@@ -1,0 +1,16 @@
+{
+  "claims": [
+    {"claim":"Auth rejeita credenciais invalidas e tokens forjados","evidence":"evidence/test-results/security.txt","test":"scripts/security-test.mjs"},
+    {"claim":"Chain NST verifica integridade apos restore","evidence":"evidence/test-results/dr-drill.txt","test":"scripts/dr-drill.sh"},
+    {"claim":"DR com RTO <= 900s e RPO ~0 no drill","evidence":"evidence/test-results/dr-drill.txt + docs/DR_DRILL_LOG.md","test":"scripts/dr-drill.sh"},
+    {"claim":"API aguenta carga com 0 erros (1k no pack; 10k no historico)","evidence":"evidence/test-results/scale-1k.txt","test":"scripts/scale-10k.mjs"},
+    {"claim":"Sem segredos reais no repo (placeholders exigem revisao humana)","evidence":"evidence/secrets-scan.txt","test":"grep patterns"},
+    {"claim":"Mainnet NST NAO ativa (gate Item 40)","evidence":"evidence/docs (MAINNET/BRIDGE)","test":"politica"}
+  ],
+  "open_items_for_auditor": [
+    "Revisar secrets-scan.txt (placeholder vs segredo real)",
+    "Validar parametros PoW da testnet (reorg, Sybil, timestamp)",
+    "Tentar bypass do anti-fraud (rate limits)",
+    "Confirmar reproducibilidade via checksums.sha256"
+  ]
+}

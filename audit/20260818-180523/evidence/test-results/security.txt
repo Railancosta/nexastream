@@ -1,0 +1,21 @@
+PASS  upload sem auth => 401
+PASS  token JWT forjado => 401
+PASS  path traversal bloqueado
+PASS  login invalido => 401
+PASS  tx com chave invalida rejeitada
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+[TypeError: fetch failed] {
+  [cause]: Error: connect ECONNREFUSED 127.0.0.1:3014
+      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1706:16) {
+    errno: -111,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 3014
+  }
+}
+
+Node.js v26.3.1

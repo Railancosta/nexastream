@@ -1,0 +1,10 @@
+{
+  "project": "NexaStream",
+  "generated_at": "2026-08-18T21:05:23Z",
+  "git_commit": "597f5b9",
+  "git_branch": "main",
+  "node": "v26.3.1",
+  "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "platform": "Linux 6.6.50-android15-8-abA055MUBSFDZA1-4k aarch64",
+  "scope": "evidence pack (testnet/local) para auditoria independente"
+}
