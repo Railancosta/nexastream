@@ -1,9 +1,10 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 const API = 'http://localhost:3002'
 const SOC = 'http://localhost:3011'
 const MOD = 'http://localhost:3014'
+const ANA = 'http://localhost:3018'
 export default function VideoPage() {
   const { id } = useParams()
   const [v, setV] = useState<any>(null)
@@ -14,7 +15,16 @@ export default function VideoPage() {
   const [text, setText] = useState('')
   const [user, setUser] = useState<any>(null)
   const [reward, setReward] = useState('')
+  const vidRef = useRef<HTMLVideoElement>(null)
+  const lastPos = useRef(0)
+  const viewerRef = useRef('')
+
   useEffect(() => { setUser(JSON.parse(localStorage.getItem('nst_user') || 'null')) }, [])
+  useEffect(() => {
+    let viewer = localStorage.getItem('nst_viewer')
+    if (!viewer) { viewer = 'viewer-' + Math.random().toString(36).slice(2, 10); localStorage.setItem('nst_viewer', viewer) }
+    viewerRef.current = viewer
+  }, [])
   useEffect(() => {
     fetch(API + '/api/videos/' + id).then(r => r.json()).then(d => setV(d.video)).catch(() => {})
     fetch(MOD + '/api/mod/status/' + id).then(r => r.json()).then(d => setSt(d.status)).catch(() => {})
@@ -27,11 +37,28 @@ export default function VideoPage() {
   }, [user, channel])
   useEffect(() => {
     if (!v || st !== 'ok') return
-    let viewer = localStorage.getItem('nst_viewer')
-    if (!viewer) { viewer = 'viewer-' + Math.random().toString(36).slice(2, 10); localStorage.setItem('nst_viewer', viewer) }
-    fetch('http://localhost:3009/api/explorer/reward', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ videoId: String(id), viewerId: viewer }) })
+    fetch('http://localhost:3009/api/explorer/reward', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ videoId: String(id), viewerId: viewerRef.current }) })
       .then(r => r.json()).then(d => setReward(d.txId ? '✅ +1 NST ao criador' : 'ℹ️ ' + d.error)).catch(() => {})
   }, [v, st])
+
+  function sendWatch(seconds: number, completed: number) {
+    if (seconds <= 0) return
+    const payload = { videoId: String(id), viewerId: viewerRef.current, user: user?.username || '', seconds, completed }
+    try { navigator.sendBeacon(ANA + '/api/analytics/watch', new Blob([JSON.stringify(payload)], { type: 'application/json' })) } catch (e) {}
+  }
+  useEffect(() => {
+    if (!v) return
+    lastPos.current = 0
+    const t = setInterval(() => {
+      const el = vidRef.current
+      if (!el || el.paused) return
+      const delta = el.currentTime - lastPos.current
+      if (delta > 0) sendWatch(delta, 0)
+      lastPos.current = el.currentTime
+    }, 15000)
+    return () => clearInterval(t)
+  }, [v])
+
   async function toggleSub() {
     if (!user) { alert('Faça login primeiro'); return }
     const r = await fetch(SOC + (sub ? '/api/social/unsubscribe' : '/api/social/subscribe'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriber: user.username, channel }) }).then(x => x.json())
@@ -48,17 +75,24 @@ export default function VideoPage() {
     const reason = prompt('Motivo da denúncia:')
     if (!reason) return
     await fetch(MOD + '/api/mod/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetType: 'video', targetId: String(id), reason, reporter: user ? user.username : 'anon' }) })
-    alert('Denúncia registrada (3 denúncias = auto-review)')
+    alert('Denúncia registrada')
   }
+
   if (st === 'removed') return (
     <main className="p-6 max-w-4xl mx-auto">
-      <div className="p-6 bg-gray-900 border border-red-800 rounded text-red-300">🚫 Este vídeo foi removido pela moderação (Item 31 — creator enforcement).</div>
+      <div className="p-6 bg-gray-900 border border-red-800 rounded text-red-300">🚫 Este vídeo foi removido pela moderação (Item 31).</div>
     </main>
   )
   if (!v) return <p className="p-6">Carregando...</p>
   return (
     <main className="p-6 max-w-4xl mx-auto">
-      <video controls className="w-full rounded-lg bg-black" src={API + v.video_path} />
+      <video
+        ref={vidRef}
+        controls
+        className="w-full rounded-lg bg-black"
+        src={API + v.video_path}
+        onEnded={() => { const el = vidRef.current; sendWatch(Math.max(0, (el?.currentTime || 0) - lastPos.current), 1) }}
+      />
       <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
         <h1 className="text-xl font-bold">{v.title}</h1>
         <button onClick={report} className="px-3 py-1 rounded bg-gray-800 text-xs text-red-300">⚠️ Denunciar</button>
