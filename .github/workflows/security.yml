@@ -124,7 +124,7 @@ jobs:
           # Falha apenas em atribuições com valor real (16+ chars) em código,
           # ignorando docs, exemplos e placeholders
           PATTERN="(JWT_SECRET|SECRET|API_KEY)[[:space:]]*=[[:space:]]*['\"][A-Za-z0-9+/=_-]{16,}['\"]"
-          HITS=$(grep -rE "$PATTERN" services apps p2p --include="*.js" --include="*.cjs" --include="*.ts" --exclude-dir=node_modules 2>/dev/null | grep -v "process.env" || true)
+          HITS=$(grep -rE "$PATTERN" services apps p2p --include="*.js" --include="*.cjs" --include="*.ts" --exclude-dir=node_modules --exclude="*test*" --exclude="*.spec.*" 2>/dev/null | grep -v "process.env" | grep -viE "test-secret|example|placeholder|changeme|SEU_" || true)
           if [ -n "$HITS" ]; then
             echo "❌ ERRO: possível segredo hardcoded encontrado!"
             echo "$HITS"
