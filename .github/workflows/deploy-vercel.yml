@@ -1,0 +1,25 @@
+name: Deploy Vercel (dinâmico SSR)
+# Deploy dinâmico do apps/web (Next.js SSR) na Vercel — a plataforma completa
+# na raiz do domínio. Só roda quando o usuário criar a variável de repo
+# VERCEL_ENABLED=true e os secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# (Settings → Secrets and variables → Actions). Sem eles, o job é ignorado.
+on:
+  push:
+    branches: [main]
+    paths: ['apps/web/**', '.github/workflows/deploy-vercel.yml']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: vars.VERCEL_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy para Vercel (produção)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./apps/web

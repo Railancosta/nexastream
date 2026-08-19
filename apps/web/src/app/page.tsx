@@ -36,7 +36,7 @@ function ShortCard({ v, viewsLabel }: { v: Video; viewsLabel: string }) {
 
 function VideoCard({ v, lang, viewsLabel }: { v: Video; lang: string; viewsLabel: string }) {
   return (
-    <Link href={'/video/' + v.id} className="group block">
+    <Link href={'/video?id=' + v.id} className="group block">
       <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800">
         <img src={thumbUrl(v)} alt={v.title} loading="lazy"
           className="w-full h-full object-cover group-active:scale-[1.02] transition"

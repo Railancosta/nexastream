@@ -71,7 +71,7 @@ function ShortSlide({ v, active }: { v: Short; active: boolean }) {
           </span>
           <span className="text-[11px] font-semibold">{formatViews(likes)}</span>
         </button>
-        <Link href={'/video/' + v.id} className="flex flex-col items-center gap-1 active:scale-90 transition">
+        <Link href={'/video?id=' + v.id} className="flex flex-col items-center gap-1 active:scale-90 transition">
           <span className="w-11 h-11 rounded-full bg-gray-800/80 flex items-center justify-center">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8m-8 4h5m7-2a9 9 0 1 1-4.4-7.7L21 3l-.7 3.6A8.96 8.96 0 0 1 21 12Z" />

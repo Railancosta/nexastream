@@ -1,0 +1,35 @@
+<!doctype html><html lang="pt-BR"><head><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#6366f1"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexaStream — NST & Nano</title>
+<style>
+body{background:#0a0e13;color:#e5e7eb;font-family:system-ui;margin:0;padding:24px;line-height:1.6}
+.wrap{max-width:860px;margin:0 auto}
+h1{color:#818cf8} .card{background:#121821;border:1px solid #1f2937;border-radius:12px;padding:20px;margin:16px 0}
+.warn{background:#7f1d1d33;border:1px solid #b91c1c;border-radius:12px;padding:16px;margin:16px 0}
+code{background:#000;padding:2px 6px;border-radius:4px;word-break:break-all}
+a{color:#818cf8}
+</style></head><body><div class="wrap">
+<h1>NST — NexaStream Token</h1>
+<div class="card">
+<h2>Tokenomics</h2>
+<p>Ticker: <b>NST</b> · Supply máximo: <b>55.000.000</b> · Modelo: infraestrutura econômica (não marketing).</p>
+<p>Status do token NST: <b>TESTNET</b> (chain própria). Mainnet gateada pelo Item 40 — auditoria independente obrigatória.</p>
+</div>
+<div class="card">
+<h2>Integração Nano (trilho feeless)</h2>
+<p>Tesouraria oficial na mainnet da Nano (liquidação com <b>zero taxas</b>):</p>
+<p><code id="addr">carregando…</code></p>
+<p>Verifique em qualquer explorador Nano buscando o endereço acima.</p>
+</div>
+<div class="warn">
+<h2>Transparência técnica (Item 61)</h2>
+<p>A mainnet da Nano <b>não suporta tokens nem smart contracts</b>. O NST <b>não é</b> um token nativo da Nano.</p>
+<p>Modelo real: NST = token de ledger da plataforma (testnet); Nano = trilho de pagamento/liquidação sem taxas para payouts de criadores e doações.</p>
+<p>Nenhuma promessa de ganho. Nenhum pagamento é devido por possuir NST.</p>
+</div>
+<div class="card">
+<p><a href="/">← Início</a> · <a href="https://github.com/Railancosta/nexastream">GitHub</a> · <a href="https://github.com/Railancosta/nexastream/blob/main/docs/NST_NANO_BRIDGE.md">Especificação da ponte</a></p>
+</div>
+</div>
+<script>fetch('nst-address.txt').then(r=>r.text()).then(t=>{document.getElementById('addr').textContent=t.trim();});</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){})}</script></body></html>

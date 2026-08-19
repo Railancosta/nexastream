@@ -42,7 +42,7 @@ function SearchInner() {
       )}
       <div className="mt-4 space-y-4">
         {results.map((v) => (
-          <Link key={v.id} href={v.is_short ? '/shorts?start=' + v.id : '/video/' + v.id} className="flex gap-3 active:bg-gray-900 rounded-xl p-1">
+          <Link key={v.id} href={v.is_short ? '/shorts?start=' + v.id : '/video?id=' + v.id} className="flex gap-3 active:bg-gray-900 rounded-xl p-1">
             <div className={'relative shrink-0 rounded-lg overflow-hidden bg-gray-800 ' + (v.is_short ? 'w-20 h-36' : 'w-40 aspect-video')}>
               <img src={thumbUrl(v)} alt={v.title} loading="lazy" className="w-full h-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />

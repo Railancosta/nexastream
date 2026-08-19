@@ -120,17 +120,13 @@ jobs:
 
       - name: Check for hardcoded secrets
         run: |
-          # Verificar por chaves hardcoded
-          if grep -r "JWT_SECRET.*=.*'" . --include="*.js" --include="*.ts" --include="*.json" 2>/dev/null; then
-            echo "❌ ERRO: JWT_SECRET hardcoded encontrado!"
-            exit 1
-          fi
-          if grep -r "SECRET.*=.*'" . --include="*.js" --include="*.ts" --include="*.json" 2>/dev/null; then
-            echo "❌ ERRO: SECRET hardcoded encontrado!"
-            exit 1
-          fi
-          if grep -r "API_KEY.*=.*'" . --include="*.js" --include="*.ts" --include="*.json" 2>/dev/null; then
-            echo "❌ ERRO: API_KEY hardcoded encontrado!"
+          # Falha apenas em atribuições com valor real (16+ chars) em código,
+          # ignorando docs, exemplos e placeholders
+          PATTERN="(JWT_SECRET|SECRET|API_KEY)[[:space:]]*=[[:space:]]*['\"][A-Za-z0-9+/=_-]{16,}['\"]"
+          HITS=$(grep -rE "$PATTERN" services apps p2p --include="*.js" --include="*.cjs" --include="*.ts" --exclude-dir=node_modules 2>/dev/null | grep -v "process.env" || true)
+          if [ -n "$HITS" ]; then
+            echo "❌ ERRO: possível segredo hardcoded encontrado!"
+            echo "$HITS"
             exit 1
           fi
           echo "✅ Nenhum segredo hardcoded encontrado."

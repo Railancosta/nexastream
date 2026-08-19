@@ -44,3 +44,24 @@ PORT=3000 npm start
 ```
 
 O Termux serve para **desenvolver e testar**. Produção = GitHub + Cloudflare + nós da comunidade.
+
+## ⚠️ DNS do domínio (passo manual obrigatório — só o dono do domínio pode fazer)
+
+O domínio `nexastream.org` está no GoDaddy (`ns67.domaincontrol.com`) e **não tem nenhum registro A/CNAME** — por isso o site não abre. Em GoDaddy → Meus produtos → DNS, adicione:
+
+### Opção A — Dinâmico (Vercel, SSR Next.js) — RECOMENDADO
+1. Na Vercel (grátis): importe o repo `Railancosta/nexastream`, root = `apps/web`, framework Next.js. Adicione o domínio `nexastream.org`.
+2. No GitHub: Settings → Secrets and variables → Actions → crie a variável `VERCEL_ENABLED=true` e os secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (a Vercel mostra os IDs no `.vercel/project.json` após o primeiro link). A partir daí, todo push na `main` faz deploy automático (`.github/workflows/deploy-vercel.yml`).
+3. DNS no GoDaddy:
+   - `A` → `@` → `76.76.21.21`
+   - `CNAME` → `www` → `cname.vercel-dns.com`
+4. Na Vercel → Project → Environment Variables: `SERVICES_HOST` = URL pública do nó de API (ver abaixo).
+
+### Opção B — Estático (GitHub Pages) — já configurado como fallback
+- `A` → `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+- `CNAME` → `www` → `railancosta.github.io`
+- Resultado: `nexastream.org` = portal, `nexastream.org/app` = plataforma (build estático via `deploy-site.yml`).
+
+## Backend (API) público
+
+O frontend (estático ou SSR) chama a API via proxy same-origin (`next.config.ts` → `SERVICES_HOST`). Em produção, aponte `SERVICES_HOST` para um nó público que rode os serviços (`node services/core/server.js` etc.). Qualquer PC/VM/Raspberry sempre ligado da comunidade serve — **não precisa ser o celular**. Sem nó público, o site abre mas o feed fica vazio (degradação graciosa).

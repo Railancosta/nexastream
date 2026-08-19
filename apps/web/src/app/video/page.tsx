@@ -1,13 +1,15 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { apiBase } from '../../../lib/api'
+import { Suspense, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { apiBase } from '../../lib/api'
 const API = typeof window !== 'undefined' ? apiBase() : ''
 const SOC = ''
 const MOD = ''
 const ANA = ''
-export default function VideoPage() {
-  const { id } = useParams()
+
+function VideoPlayer() {
+  const params = useSearchParams()
+  const id = params.get('id') || ''
   const [v, setV] = useState<any>(null)
   const [st, setSt] = useState('ok')
   const [channel, setChannel] = useState('')
@@ -27,6 +29,7 @@ export default function VideoPage() {
     viewerRef.current = viewer
   }, [])
   useEffect(() => {
+    if (!id) return
     fetch(API + '/api/videos/' + id).then(r => r.json()).then(d => setV(d.video)).catch(() => {})
     fetch(MOD + '/api/mod/status/' + id).then(r => r.json()).then(d => setSt(d.status)).catch(() => {})
     fetch(SOC + '/api/social/channel?videoId=' + id).then(r => r.json()).then(d => setChannel(d.channel || '')).catch(() => {})
@@ -79,6 +82,7 @@ export default function VideoPage() {
     alert('Denúncia registrada')
   }
 
+  if (!id) return <p className="p-6 text-gray-400">Vídeo não informado.</p>
   if (st === 'removed') return (
     <main className="p-6 max-w-4xl mx-auto">
       <div className="p-6 bg-gray-900 border border-red-800 rounded text-red-300">🚫 Este vídeo foi removido pela moderação (Item 31).</div>
@@ -119,5 +123,13 @@ export default function VideoPage() {
         ))}
       </div>
     </main>
+  )
+}
+
+export default function VideoPage() {
+  return (
+    <Suspense fallback={<p className="p-6">Carregando...</p>}>
+      <VideoPlayer />
+    </Suspense>
   )
 }
