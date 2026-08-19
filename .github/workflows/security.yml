@@ -28,7 +28,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
+          base: ${{ github.event.before || github.event.repository.default_branch }}
           head: HEAD
           extra_args: --debug --only-verified
 
@@ -110,9 +110,10 @@ jobs:
       - name: Check for .env files
         run: |
           # Verificar se há arquivos .env no repositório
-          if git ls-files | grep -q '\.env'; then
+          # Templates (.env.example/.env.sample) são permitidos
+          if git ls-files | grep -E '(^|/)\.env(\.[a-z]+)?$' | grep -vE '\.(example|sample|template)$' | grep -q .; then
             echo "❌ ERRO: Arquivos .env encontrados no repositório!"
-            git ls-files | grep '\.env'
+            git ls-files | grep -E '(^|/)\.env(\.[a-z]+)?$' | grep -vE '\.(example|sample|template)$'
             exit 1
           else
             echo "✅ Nenhum arquivo .env encontrado no repositório."
