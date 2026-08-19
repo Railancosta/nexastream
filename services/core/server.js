@@ -25,6 +25,18 @@ db.exec(`CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, email TEXT UNIQUE
 CREATE TABLE IF NOT EXISTS channels(id TEXT PRIMARY KEY, owner_id TEXT, name TEXT, handle TEXT UNIQUE);
 CREATE TABLE IF NOT EXISTS videos(id TEXT PRIMARY KEY, channel_id TEXT, title TEXT, description TEXT, video_path TEXT, thumbnail_path TEXT, duration INTEGER DEFAULT 0, status TEXT DEFAULT 'processing', views INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')));`);
 
+// Migrações incrementais (feed inteligente: engajamento + shorts)
+for (const col of [
+  "ALTER TABLE videos ADD COLUMN likes INTEGER DEFAULT 0",
+  "ALTER TABLE videos ADD COLUMN watch_seconds REAL DEFAULT 0",
+  "ALTER TABLE videos ADD COLUMN completions INTEGER DEFAULT 0",
+  "ALTER TABLE videos ADD COLUMN is_short INTEGER DEFAULT 0",
+  "ALTER TABLE videos ADD COLUMN width INTEGER DEFAULT 0",
+  "ALTER TABLE videos ADD COLUMN height INTEGER DEFAULT 0"
+]) {
+  try { db.exec(col); } catch { /* coluna já existe */ }
+}
+
 const b64url = (s) => Buffer.from(s).toString('base64url');
 
 // Funções JWT seguras
@@ -127,19 +139,69 @@ function checkRateLimit(ip) {
   return true;
 }
 
-function transcode(id, input) {
+function transcode(id, input, meta) {
   const out = path.join(STORAGE, 'videos', id + '_360p.mp4');
   const thumb = path.join(STORAGE, 'thumbs', id + '.jpg');
-  execFile('ffmpeg', ['-y', '-i', input, '-vf', 'scale=640:360', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28', '-c:a', 'aac', out], (err) => {
-    if (err) { 
-      db.prepare("UPDATE videos SET status='failed' WHERE id=?").run(id); 
-      return; 
+  const isShort = meta.isShort ? 1 : 0;
+  const scale = isShort ? 'scale=360:640:force_original_aspect_ratio=decrease' : 'scale=640:360';
+  execFile('ffmpeg', ['-y', '-i', input, '-vf', scale, '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28', '-c:a', 'aac', out], (err) => {
+    if (err) {
+      db.prepare("UPDATE videos SET status='failed' WHERE id=?").run(id);
+      return;
     }
-    execFile('ffmpeg', ['-y', '-i', input, '-ss', '1', '-frames:v', '1', '-vf', 'scale=320:180', thumb], () => {
-      db.prepare("UPDATE videos SET status='ready', video_path=?, thumbnail_path=? WHERE id=?").run('/storage/videos/' + id + '_360p.mp4', '/storage/thumbs/' + id + '.jpg', id);
-      console.log('VIDEO PRONTO: ' + id);
+    const thumbScale = isShort ? 'scale=180:320:force_original_aspect_ratio=increase,crop=180:320' : 'scale=320:180';
+    execFile('ffmpeg', ['-y', '-i', input, '-ss', '1', '-frames:v', '1', '-vf', thumbScale, thumb], () => {
+      db.prepare("UPDATE videos SET status='ready', video_path=?, thumbnail_path=?, duration=?, width=?, height=?, is_short=? WHERE id=?")
+        .run('/storage/videos/' + id + '_360p.mp4', '/storage/thumbs/' + id + '.jpg', meta.duration, meta.width, meta.height, isShort, id);
+      console.log('VIDEO PRONTO: ' + id + (isShort ? ' (short)' : ''));
     });
   });
+}
+
+function probe(input) {
+  return new Promise((resolve) => {
+    execFile('ffprobe', ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', input], (err, stdout) => {
+      if (err) return resolve(null);
+      try {
+        const d = JSON.parse(stdout);
+        const vs = (d.streams || []).find((s) => s.codec_type === 'video') || {};
+        resolve({
+          duration: Math.round(parseFloat(d.format && d.format.duration) || 0),
+          width: vs.width || 0,
+          height: vs.height || 0
+        });
+      } catch { resolve(null); }
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Algoritmo do feed inteligente (Item 23 do plano):
+// score = engajamento (likes, conclusões) + taxa de conclusão + views (log)
+//       + decaimento de recência + jitter determinístico por espectador
+//       (exploração/diversidade) + impulso para vídeos novos
+// ---------------------------------------------------------------------------
+const ALGO_INFO = 'engagement(likes*3+completions*2)+completion_rate+log(views)+recency_decay+exploration_jitter+new_boost';
+
+function hash32(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+function rankFeed(rows, viewer) {
+  const now = Date.now();
+  const dayBucket = Math.floor(now / 86400000);
+  return rows.map((v) => {
+    const ageHours = Math.max(1, (now - new Date((v.created_at || '').replace(' ', 'T') + 'Z').getTime()) / 36e5);
+    const recency = Math.exp(-ageHours / (24 * 7)); // meia-vida ~1 semana
+    const completionRate = (v.completions || 0) / Math.max(1, v.views || 0);
+    const engagement = (v.likes || 0) * 3 + (v.completions || 0) * 2;
+    const base = Math.log1p(v.views || 0) * 2 + engagement + completionRate * 10;
+    const jitter = (hash32(v.id + ':' + viewer + ':' + dayBucket) % 1000) / 1000; // 0..1
+    const score = base * (0.5 + recency) + jitter * (v.views ? 1 : 5);
+    return { ...v, score: Math.round(score * 100) / 100 };
+  }).sort((a, b) => b.score - a.score);
 }
 
 const server = http.createServer(async (req, res) => {
@@ -204,6 +266,35 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { videos: rows });
     }
 
+    // Feed inteligente: ranking por engajamento + recência + exploração
+    if (p === '/api/feed' && req.method === 'GET') {
+      const tab = url.searchParams.get('tab') || 'all';
+      const viewer = url.searchParams.get('viewer') || 'anon';
+      const rows = db.prepare("SELECT v.*, c.name AS channel_name FROM videos v LEFT JOIN channels c ON c.id=v.channel_id WHERE v.status='ready'").all();
+      const ranked = rankFeed(rows, viewer);
+      const shorts = ranked.filter((v) => v.is_short);
+      const videos = ranked.filter((v) => !v.is_short);
+      if (tab === 'shorts') return json(res, 200, { shorts, videos: [], algorithm: ALGO_INFO });
+      if (tab === 'videos') return json(res, 200, { shorts: [], videos, algorithm: ALGO_INFO });
+      return json(res, 200, { shorts, videos, algorithm: ALGO_INFO });
+    }
+
+    if (/^\/api\/videos\/[^/]+\/like$/.test(p) && req.method === 'POST') {
+      const id = p.split('/')[3];
+      db.prepare('UPDATE videos SET likes=likes+1 WHERE id=?').run(id);
+      const v = db.prepare('SELECT likes FROM videos WHERE id=?').get(id);
+      return json(res, 200, { likes: v ? v.likes : 0 });
+    }
+
+    if (/^\/api\/videos\/[^/]+\/watch$/.test(p) && req.method === 'POST') {
+      const id = p.split('/')[3];
+      const b = JSON.parse(await readBody(req) || '{}');
+      const seconds = Math.min(Math.max(Number(b.seconds) || 0, 0), 3600);
+      db.prepare('UPDATE videos SET watch_seconds=watch_seconds+?, completions=completions+? WHERE id=?')
+        .run(seconds, b.completed ? 1 : 0, id);
+      return json(res, 200, { ok: true });
+    }
+
     if (p === '/api/search') {
       const q = url.searchParams.get('q') || '';
       // Sanitizar input de busca
@@ -251,13 +342,26 @@ const server = http.createServer(async (req, res) => {
       
       const ch = db.prepare('SELECT id FROM channels WHERE owner_id=?').get(a.userId);
       db.prepare('INSERT INTO videos (id, channel_id, title, description, video_path) VALUES (?,?,?,?,?)').run(
-        id, 
-        ch ? ch.id : 'x', 
-        sanitizedTitle, 
+        id,
+        ch ? ch.id : 'x',
+        sanitizedTitle,
         sanitizedDescription,
         '/storage/videos/' + id + '.mp4'
       );
-      transcode(id, file);
+
+      // Detectar duração/dimensões e classificar Short (≤60s ou vertical 9:16)
+      const hint = {
+        type: url.searchParams.get('type') || '',
+        duration: Math.round(Number(url.searchParams.get('duration')) || 0)
+      };
+      probe(file).then((meta) => {
+        const duration = (meta && meta.duration) || hint.duration || 0;
+        const width = (meta && meta.width) || 0;
+        const height = (meta && meta.height) || 0;
+        const vertical = height > 0 && width > 0 && height > width;
+        const isShort = hint.type === 'short' || (duration > 0 && duration <= 60) || vertical;
+        transcode(id, file, { duration, width, height, isShort });
+      });
       return json(res, 200, { videoId: id, status: 'processing' });
     }
 

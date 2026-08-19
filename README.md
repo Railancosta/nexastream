@@ -93,6 +93,20 @@ docker-compose up -d
 | **web** | 3000 | Frontend Next.js |
 | **p2p** | 3005+ | Nós P2P: discovery, chunks, integridade, sobrevivência a falha |
 
+### Endpoints principais (core)
+
+| Endpoint | Método | Função |
+|---|---|---|
+| `/api/feed?tab=all\|shorts\|videos&viewer=<id>` | GET | Feed inteligente: ranking por engajamento (likes, conclusões), taxa de conclusão, views, recência e jitter de exploração por espectador. Separa `shorts` (≤60s ou vertical 9:16) de `videos` |
+| `/api/videos` | GET | Últimos vídeos prontos (cronológico) |
+| `/api/videos/:id` | GET | Detalhe + incrementa views |
+| `/api/videos/:id/like` | POST | Curtir (alimenta o ranking) |
+| `/api/videos/:id/watch` | POST | Telemetria de watch time/conclusão (alimenta o ranking) |
+| `/api/videos/upload?title=&description=&type=short\|video&duration=` | PUT | Upload (auth). Detecta duração/resolução via ffprobe e classifica Short automaticamente |
+| `/api/search?q=` | GET | Busca textual em título/descrição |
+
+No desenvolvimento, o Next.js faz proxy same-origin de `/api/*` e `/storage/*` para o core (`CORE_API_URL`, padrão `http://localhost:3002`) — sem CORS e sem configuração extra no celular.
+
 ---
 
 ## 🔒 Segurança

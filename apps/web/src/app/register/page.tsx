@@ -1,12 +1,13 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { API } from '../../lib/api'
 export default function Register() {
   const [email, setEmail] = useState(''); const [pw, setPw] = useState(''); const [un, setUn] = useState(''); const [err, setErr] = useState('')
   const router = useRouter()
   async function go(e: React.FormEvent) {
     e.preventDefault()
-    const r = await fetch('https://nexastream.org/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw, username: un }) })
+    const r = await fetch(API() + '/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw, username: un }) })
     const d = await r.json()
     if (!r.ok) { setErr(d.error || 'erro'); return }
     localStorage.setItem('nst_token', d.token); localStorage.setItem('nst_user', JSON.stringify(d.user))

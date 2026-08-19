@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #030712;
+  --foreground: #f3f4f6;
 }
 
 @theme inline {
@@ -12,15 +12,48 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
   }
 }
 
+/* --- Otimizações mobile (Android) --- */
+html {
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  padding-top: env(safe-area-inset-top);
+  touch-action: manipulation;
+}
+
+video {
+  touch-action: manipulation;
+}
+
+/* esconder scrollbar em carrosséis mantendo o scroll por gesto */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* áreas de toque mínimas recomendadas (48dp) em botões de ícone */
+button, a {
+  touch-action: manipulation;
+}
+
+/* evita zoom acidental em inputs no Android/iOS */
+input, textarea, select {
+  font-size: 16px;
 }

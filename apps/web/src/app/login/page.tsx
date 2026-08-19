@@ -1,12 +1,14 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { API } from '../../lib/api'
 export default function Login() {
   const [email, setEmail] = useState(''); const [pw, setPw] = useState(''); const [err, setErr] = useState('')
   const router = useRouter()
   async function go(e: React.FormEvent) {
     e.preventDefault()
-    const r = await fetch('https://nexastream.org/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw }) })
+    const r = await fetch(API() + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw }) })
     const d = await r.json()
     if (!r.ok) { setErr(d.error || 'erro'); return }
     localStorage.setItem('nst_token', d.token); localStorage.setItem('nst_user', JSON.stringify(d.user))
@@ -21,6 +23,9 @@ export default function Login() {
         <input className="w-full p-2 rounded bg-gray-900 border border-gray-700" type="password" placeholder="senha" value={pw} onChange={e => setPw(e.target.value)} required />
         <button className="w-full p-2 rounded bg-indigo-600 font-semibold">Entrar</button>
       </form>
+      <p className="text-sm text-gray-400 mt-4 text-center">
+        Não tem conta? <Link href="/register" className="text-indigo-400 underline">Criar conta</Link>
+      </p>
     </main>
   )
 }

@@ -9,6 +9,15 @@ const nextConfig: NextConfig = staticExport
       trailingSlash: true
     }
   : {
+      // Proxy same-origin: o frontend consome /api e /storage sem CORS,
+      // encaminhando para o serviço core (JWT, vídeos, feed, storage)
+      async rewrites() {
+        const core = process.env.CORE_API_URL || 'http://localhost:3002';
+        return [
+          { source: '/api/:path*', destination: core + '/api/:path*' },
+          { source: '/storage/:path*', destination: core + '/storage/:path*' }
+        ];
+      },
       // Segurança: Forçar HTTPS em produção
       async headers() {
         return [

@@ -22,10 +22,10 @@ export default function MainnetPage() {
         <p className="font-semibold">Genesis final</p>
         <p>Token: {s.genesis?.token} • Supply máx: {s.genesis?.maxSupply?.toLocaleString()}</p>
         <p className="text-gray-500 break-all">hash: {s.genesis?.hash}</p>
-        <p className="text-gray-400">{(s.genesis?.allocations || []).map(a => a.name + ' ' + a.pct + '%').join(' · ')}</p>
+        <p className="text-gray-400">{(s.genesis?.allocations || []).map((a: any) => a.name + ' ' + a.pct + '%').join(' · ')}</p>
       </div>
       <div className="space-y-2">
-        {(s.gates || []).map(g => (
+        {(s.gates || []).map((g: any) => (
           <div key={g.id} className="p-3 bg-gray-900 rounded border border-gray-800 flex justify-between text-sm">
             <div><p className="font-semibold">{g.id}</p><p className="text-xs text-gray-500">{g.name}</p>{g.evidence && <p className="text-xs text-gray-600">{g.evidence}</p>}</div>
             <span className={g.passed ? 'text-green-400' : 'text-red-400'}>{g.passed ? 'PASS' : 'PENDENTE'}</span>
