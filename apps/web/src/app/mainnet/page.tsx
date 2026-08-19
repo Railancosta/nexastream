@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-const M = 'http://localhost:3024'
+const M = ''
 export default function MainnetPage() {
   const [s, setS] = useState<any>(null)
   const [msg, setMsg] = useState('')

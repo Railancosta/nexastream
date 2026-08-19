@@ -119,6 +119,50 @@ const auth = (req) => verifyToken((req.headers.authorization || '').replace('Bea
 
 // Rate limiting simples (em memória)
 const rateLimitMap = new Map();
+// Limpeza periódica: evita crescimento ilimitado do mapa (memory DoS)
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of rateLimitMap) {
+    if (now - v.lastReset > 15 * 60 * 1000) rateLimitMap.delete(k);
+  }
+  if (rateLimitMap.size > 100000) rateLimitMap.clear();
+}, 60 * 1000).unref();
+
+// ---------------------------------------------------------------------------
+// Detecção de idioma por IP/locale (zero custo):
+// 1) header CF-IPCountry (grátis atrás da Cloudflare)
+// 2) Accept-Language do navegador
+// ---------------------------------------------------------------------------
+const COUNTRY_LANG = {
+  BR: 'pt', PT: 'pt', AO: 'pt', MZ: 'pt',
+  US: 'en', GB: 'en', CA: 'en', AU: 'en', NZ: 'en', IE: 'en', IN: 'en',
+  ES: 'es', MX: 'es', AR: 'es', CO: 'es', CL: 'es', PE: 'es', VE: 'es', UY: 'es', PY: 'es', BO: 'es', EC: 'es',
+  FR: 'fr', BE: 'fr', CH: 'fr',
+  DE: 'de', AT: 'de',
+  IT: 'it',
+  JP: 'ja', KR: 'ko', CN: 'zh', TW: 'zh', HK: 'zh',
+  RU: 'ru', UA: 'uk', PL: 'pl', NL: 'nl', SE: 'sv', NO: 'no', DK: 'da', FI: 'fi',
+  TR: 'tr', SA: 'ar', EG: 'ar', ID: 'id', VN: 'vi', TH: 'th', PH: 'en', NG: 'en', ZA: 'en'
+};
+
+function detectLang(req) {
+  const cf = (req.headers['cf-ipcountry'] || '').toUpperCase();
+  if (cf && COUNTRY_LANG[cf]) return { lang: COUNTRY_LANG[cf], country: cf, source: 'cf-ipcountry' };
+  const al = req.headers['accept-language'] || '';
+  const primary = al.split(',')[0].trim().toLowerCase();
+  const lang = primary.split('-')[0];
+  if (lang) return { lang, country: cf || null, source: 'accept-language' };
+  return { lang: 'pt', country: null, source: 'default' };
+}
+
+// ---------------------------------------------------------------------------
+// Tradução de conteúdo (títulos/descrições) via LibreTranslate self-hosted
+// (100% open source, zero custo). Configure TRANSLATE_URL=http://host:5000
+// Sem configuração, o endpoint devolve o texto original (fallback honesto).
+// ---------------------------------------------------------------------------
+const TRANSLATE_URL = process.env.TRANSLATE_URL || '';
+const translateCache = new Map();
+setInterval(() => { if (translateCache.size > 5000) translateCache.clear(); }, 10 * 60 * 1000).unref();
 function checkRateLimit(ip) {
   const now = Date.now();
   const window = 15 * 60 * 1000; // 15 minutos
@@ -228,6 +272,39 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (p === '/api/health') return json(res, 200, { ok: true, service: 'nexastream-core', deps: 'zero' });
+
+    // Detecção de idioma por IP (CF-IPCountry) / Accept-Language
+    if (p === '/api/geo' && req.method === 'GET') {
+      return json(res, 200, detectLang(req));
+    }
+
+    // Tradução de conteúdo via LibreTranslate self-hosted (TRANSLATE_URL)
+    if (p === '/api/translate' && req.method === 'POST') {
+      const body = await readBody(req);
+      let data = {};
+      try { data = JSON.parse(body.toString() || '{}'); } catch (e) {}
+      const texts = Array.isArray(data.texts) ? data.texts.slice(0, 50).map(t => String(t).slice(0, 500)) : [];
+      const target = String(data.target || '').slice(0, 10);
+      if (!texts.length || !target) return json(res, 400, { error: 'texts[] e target obrigatórios' });
+      if (!TRANSLATE_URL) return json(res, 200, { translations: texts, translated: false, notice: 'TRANSLATE_URL não configurado — texto original' });
+      const out = [];
+      for (const t of texts) {
+        const key = target + ':' + t;
+        if (translateCache.has(key)) { out.push(translateCache.get(key)); continue; }
+        try {
+          const r = await fetch(TRANSLATE_URL.replace(/\/$/, '') + '/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q: t, source: 'auto', target, format: 'text' })
+          });
+          const j = await r.json();
+          const tr = j.translatedText || t;
+          translateCache.set(key, tr);
+          out.push(tr);
+        } catch (e) { out.push(t); }
+      }
+      return json(res, 200, { translations: out, translated: true });
+    }
 
     if (p === '/api/auth/register' && req.method === 'POST') {
       const b = JSON.parse(await readBody(req) || '{}');

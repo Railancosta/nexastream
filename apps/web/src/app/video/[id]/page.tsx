@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { apiBase } from '../../../lib/api'
 const API = typeof window !== 'undefined' ? apiBase() : ''
-const SOC = 'https://nexastream.org'
-const MOD = 'https://nexastream.org'
-const ANA = 'https://nexastream.org'
+const SOC = ''
+const MOD = ''
+const ANA = ''
 export default function VideoPage() {
   const { id } = useParams()
   const [v, setV] = useState<any>(null)
@@ -38,7 +38,7 @@ export default function VideoPage() {
   }, [user, channel])
   useEffect(() => {
     if (!v || st !== 'ok') return
-    fetch('https://nexastream.org/api/explorer/reward', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ videoId: String(id), viewerId: viewerRef.current }) })
+    fetch('/api/explorer/reward', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ videoId: String(id), viewerId: viewerRef.current }) })
       .then(r => r.json()).then(d => setReward(d.txId ? '✅ +1 NST ao criador' : 'ℹ️ ' + d.error)).catch(() => {})
   }, [v, st])
 

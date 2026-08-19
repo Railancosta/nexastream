@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 export default function KpiPage() {
   const [k, setK] = useState<any>(null)
-  useEffect(() => { fetch('https://nexastream.org/api/kpi').then(r => r.json()).then(setK).catch(() => {}) }, [])
+  useEffect(() => { fetch('/api/kpi').then(r => r.json()).then(setK).catch(() => {}) }, [])
   if (!k) return <p className="p-6">Carregando KPIs...</p>
   const Card = ({ t, rows }: { t: string; rows: [string, any][] }) => (
     <div className="p-4 bg-gray-900 rounded border border-gray-800">

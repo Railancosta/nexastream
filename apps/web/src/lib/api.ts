@@ -48,13 +48,26 @@ export function formatDuration(s: number): string {
   return m + ':' + String(sec).padStart(2, '0')
 }
 
-export function timeAgo(dateStr: string): string {
+const TIMEAGO: Record<string, (n: number, u: string) => string> = {
+  pt: (n, u) => 'há ' + n + ' ' + u,
+  en: (n, u) => n + ' ' + u + ' ago',
+  es: (n, u) => 'hace ' + n + ' ' + u
+}
+const UNITS: Record<string, string[]> = {
+  pt: ['min', 'h', 'd', 'meses', 'anos'],
+  en: ['min', 'h', 'd', 'months', 'years'],
+  es: ['min', 'h', 'd', 'meses', 'años']
+}
+
+export function timeAgo(dateStr: string, lang = 'pt'): string {
   const t = new Date((dateStr || '').replace(' ', 'T') + 'Z').getTime()
   if (!t) return ''
+  const fmt = TIMEAGO[lang] || TIMEAGO.en
+  const u = UNITS[lang] || UNITS.en
   const diff = Math.max(0, Date.now() - t) / 1000
-  if (diff < 3600) return 'há ' + Math.max(1, Math.floor(diff / 60)) + ' min'
-  if (diff < 86400) return 'há ' + Math.floor(diff / 3600) + ' h'
-  if (diff < 2592000) return 'há ' + Math.floor(diff / 86400) + ' d'
-  if (diff < 31536000) return 'há ' + Math.floor(diff / 2592000) + ' meses'
-  return 'há ' + Math.floor(diff / 31536000) + ' anos'
+  if (diff < 3600) return fmt(Math.max(1, Math.floor(diff / 60)), u[0])
+  if (diff < 86400) return fmt(Math.floor(diff / 3600), u[1])
+  if (diff < 2592000) return fmt(Math.floor(diff / 86400), u[2])
+  if (diff < 31536000) return fmt(Math.floor(diff / 2592000), u[3])
+  return fmt(Math.floor(diff / 31536000), u[4])
 }

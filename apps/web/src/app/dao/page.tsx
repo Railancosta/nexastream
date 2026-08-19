@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-const DAO = 'https://nexastream.org'
+const DAO = ''
 export default function DaoPage() {
   const [rows, setRows] = useState<any[]>([])
   const [treasury, setTreasury] = useState(0)

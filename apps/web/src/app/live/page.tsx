@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-const LIVE = 'https://nexastream.org'
+const LIVE = ''
 export default function LivePage() {
   const [streams, setStreams] = useState<any[]>([])
   const [title, setTitle] = useState('')

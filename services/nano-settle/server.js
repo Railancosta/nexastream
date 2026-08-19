@@ -10,17 +10,18 @@ const ANCHORS = path.join(ROOT, 'database', 'nano-anchors.json');
 const RPCS = (process.env.NANO_RPC || 'https://mynano.ninja/api/node')
   .split(',').map(s => s.trim()).filter(u => /^https?:\/\/[^\s]+$/.test(u) && !u.includes('SEU_'));
 
-function loadWallet() {
+// nanocurrency v2: API async, index como número puro; xrb_/nano_ são o mesmo payload
+async function loadWallet() {
   try {
     const w = JSON.parse(fs.readFileSync(WALLET, 'utf8'));
-    nano.deriveSecretKey(w.seed, { index: 0 }); // valida; lança se inválida
+    await nano.deriveSecretKey(w.seed, 0); // valida; lança se inválida
     return w;
   } catch (e) {
     try { if (fs.existsSync(WALLET)) fs.renameSync(WALLET, WALLET + '.invalid'); } catch (_) {}
-    const seed = nano.generateSeed();
-    const sk = nano.deriveSecretKey(seed, { index: 0 });
-    const pk = nano.derivePublicKey(sk);
-    const w = { seed, publicKey: pk, address: nano.getAddress(pk), created: new Date().toISOString() };
+    const seed = await nano.generateSeed();
+    const sk = await nano.deriveSecretKey(seed, 0);
+    const pk = await nano.derivePublicKey(sk);
+    const w = { seed, publicKey: pk, address: nano.deriveAddress(pk).replace(/^xrb_/, 'nano_'), created: new Date().toISOString() };
     fs.mkdirSync(path.dirname(WALLET), { recursive: true });
     fs.writeFileSync(WALLET, JSON.stringify(w, null, 2));
     try { fs.chmodSync(WALLET, 0o600); } catch (_) {}
@@ -28,7 +29,8 @@ function loadWallet() {
     return w;
   }
 }
-const wallet = loadWallet();
+let wallet = null;
+const walletReady = loadWallet().then(w => { wallet = w; });
 const loadAnchors = () => { try { return JSON.parse(fs.readFileSync(ANCHORS, 'utf8')); } catch (e) { return []; } };
 const saveAnchors = a => fs.writeFileSync(ANCHORS, JSON.stringify(a, null, 2));
 
@@ -55,6 +57,7 @@ function readBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
+  await walletReady;
   const u = new URL(req.url, 'http://localhost');
   const p = u.pathname;
   if (req.method === 'OPTIONS') return json(res, 204, {});

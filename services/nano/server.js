@@ -14,14 +14,16 @@ const loadJSON = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8'))
 const saveJSON = (f, v) => fs.writeFileSync(f, JSON.stringify(v, null, 2));
 
 // Tesouraria da plataforma (endereco publico; chave fora do repo; producao = hardware/multisig)
+// generateSeed() e async na nanocurrency v2 — inicializacao via promise
 let treasury = loadJSON(TREASURY_F, null);
-if (!treasury) {
-  const seed = nano.generateSeed();
-  const sk = nano.deriveSecretKey(seed, { index: 0 });
-  treasury = { seed, address: nano.getAddress(sk), created: Date.now() };
+const treasuryReady = (async () => {
+  if (treasury && treasury.address && typeof treasury.seed === 'string' && treasury.seed.length === 64) return;
+  const seed = await nano.generateSeed();
+  const sk = await nano.deriveSecretKey(seed, 0);
+  treasury = { seed, address: nano.deriveAddress(sk).replace(/^xrb_/, 'nano_'), created: Date.now() };
   saveJSON(TREASURY_F, treasury);
   try { fs.chmodSync(TREASURY_F, 0o600); } catch (e) {}
-}
+})();
 
 async function rpc(body) {
   for (const url of RPCS) {
@@ -51,6 +53,7 @@ const server = http.createServer(async (req, res) => {
   const p = u.pathname;
   if (req.method === 'OPTIONS') return json(res, 204, {});
 
+  await treasuryReady;
   if (p === '/api/nano/health') return json(res, 200, { ok: true, treasury: treasury.address, custodial: false });
 
   if (p === '/api/nano/treasury') {

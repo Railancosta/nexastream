@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-const S = 'http://localhost:3023'
+const S = ''
 export default function SwapPage() {
   const [proof, setProof] = useState<any>(null)
   const [nst, setNst] = useState('100')

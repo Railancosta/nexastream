@@ -15,3 +15,4 @@ scripts/node_modules/
 scripts/treasury-output.txt
 audit/*.tar.gz
 database/nano-settle.wallet.json
+database/nano-treasury.json

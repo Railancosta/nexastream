@@ -6,11 +6,11 @@ export default function Notifications() {
   useEffect(() => { setUser(JSON.parse(localStorage.getItem('nst_user') || 'null')) }, [])
   useEffect(() => {
     if (!user) return
-    fetch('https://nexastream.org/api/social/notifications?to=' + user.username).then(r => r.json()).then(setRows).catch(() => {})
+    fetch('/api/social/notifications?to=' + user.username).then(r => r.json()).then(setRows).catch(() => {})
   }, [user])
   async function readAll() {
     if (!user) return
-    await fetch('https://nexastream.org/api/social/notifications/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: user.username }) })
+    await fetch('/api/social/notifications/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: user.username }) })
     setRows(rows.map(r => ({ ...r, read: 1 })))
   }
   if (!user) return <p className="p-6">Faça login para ver notificações.</p>

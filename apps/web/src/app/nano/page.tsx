@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-const N = 'http://localhost:3021'
+const N = ''
 const raw = (n: number) => (BigInt(Math.round(n * 1e6)) * 10n ** 24n).toString()
 export default function NanoPage() {
   const [treasury, setTreasury] = useState<any>(null)
@@ -28,7 +28,7 @@ export default function NanoPage() {
     <main className="p-6 max-w-3xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">Nano — Trilho Global de Pagamentos (feeless)</h1>
       <div className="p-3 bg-yellow-950 border border-yellow-800 rounded text-sm text-yellow-300">
-        ⚠️ Não-custodial: a plataforma NUNCA guarda sua chave. NST mainnet segue GATEADA (Item 40). Sem promessa de ganhos (Item 61). Tesouraria inicia com saldo 0.
+        ⚠️ Não-custodial: a plataforma NUNCA guarda sua chave. NST mainnet segue GATEADA (Item 40). Sem promessa de ganhos (Item 61). Tesouraria inicia com saldo 0. Nota técnica: a rede nano não suporta tokens/smart contracts — o NST vive na chain NexaStream e esta ponte move valor em XNO com taxa zero (ver docs/NST_NANO_BRIDGE.md).
       </div>
       {treasury && (
         <div className="p-4 bg-gray-900 rounded border border-gray-800 text-sm break-all">

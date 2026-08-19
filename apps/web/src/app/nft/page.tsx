@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-const NFT = 'https://nexastream.org'
+const NFT = ''
 export default function NftPage() {
   const [nfts, setNfts] = useState<any[]>([])
   const [market, setMarket] = useState<any[]>([])

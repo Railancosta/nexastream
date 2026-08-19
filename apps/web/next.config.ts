@@ -9,13 +9,35 @@ const nextConfig: NextConfig = staticExport
       trailingSlash: true
     }
   : {
-      // Proxy same-origin: o frontend consome /api e /storage sem CORS,
-      // encaminhando para o serviço core (JWT, vídeos, feed, storage)
+      // Proxy same-origin: o frontend consome /api e /storage sem CORS.
+      // Cada prefixo é roteado para o microsserviço correspondente.
       async rewrites() {
-        const core = process.env.CORE_API_URL || 'http://localhost:3002';
+        const host = process.env.SERVICES_HOST || 'http://localhost';
+        const svc = (port: number) => process.env['SVC_' + port + '_URL'] || host + ':' + port;
+        const route = (prefix: string, port: number) => ({
+          source: '/api/' + prefix + '/:path*',
+          destination: svc(port) + '/api/' + prefix + '/:path*'
+        });
         return [
-          { source: '/api/:path*', destination: core + '/api/:path*' },
-          { source: '/storage/:path*', destination: core + '/storage/:path*' }
+          route('analytics', 3018),
+          route('bounty', 3022),
+          route('chain', 3008),
+          route('content', 3004),
+          route('dao', 3015),
+          route('explorer', 3009),
+          route('kpi', 3017),
+          route('live', 3013),
+          route('mainnet', 3024),
+          route('metrics', 3010),
+          route('mod', 3014),
+          route('nano', 3021),
+          route('nft', 3016),
+          route('reco', 3012),
+          route('social', 3011),
+          route('swap', 3023),
+          // fallback: core (auth, videos, feed, search, geo, translate)
+          { source: '/api/:path*', destination: svc(3002) + '/api/:path*' },
+          { source: '/storage/:path*', destination: svc(3002) + '/storage/:path*' }
         ];
       },
       // Segurança: Forçar HTTPS em produção
@@ -52,7 +74,7 @@ const nextConfig: NextConfig = staticExport
               // Content Security Policy (CSP)
               {
                 key: 'Content-Security-Policy',
-                value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' http://localhost:3001 http://localhost:3002; frame-src 'none'; object-src 'none'"
+                value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self'; font-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
               },
               // Permissions Policy
               {

@@ -104,6 +104,8 @@ docker-compose up -d
 | `/api/videos/:id/watch` | POST | Telemetria de watch time/conclusão (alimenta o ranking) |
 | `/api/videos/upload?title=&description=&type=short\|video&duration=` | PUT | Upload (auth). Detecta duração/resolução via ffprobe e classifica Short automaticamente |
 | `/api/search?q=` | GET | Busca textual em título/descrição |
+| `/api/geo` | GET | Detecção de idioma por IP (CF-IPCountry) / Accept-Language |
+| `/api/translate` | POST | Tradução de títulos/descrições via LibreTranslate self-hosted (`TRANSLATE_URL`) |
 
 No desenvolvimento, o Next.js faz proxy same-origin de `/api/*` e `/storage/*` para o core (`CORE_API_URL`, padrão `http://localhost:3002`) — sem CORS e sem configuração extra no celular.
 
