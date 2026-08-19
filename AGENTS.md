@@ -21,3 +21,10 @@
 - Remova `.next/` e `tsconfig.tsbuildinfo` após mudar tsconfig ou instalar deps de PostCSS (cache de build fica stale).
 - package.json de apps/web originalmente não listava tailwind/typescript/video.js — já adicionados como deps.
 - Banco SQLite em `database/nexastream.db` (gitignored); migrações de colunas via ALTER TABLE com try/catch no boot do core.
+
+## Sessão 2 (i18n + proxy + fixes)
+- Proxy: next.config.ts roteia /api/<prefixo> para cada microsserviço (SERVICES_HOST/SVC_<porta>_URL). Nunca hardcodar URL absoluta em página — sempre same-origin.
+- i18n: src/lib/i18n.ts (useI18n, translateTexts, detectLang). Idioma: localStorage nst_lang > /api/geo (CF-IPCountry) > navigator.language. Conteúdo traduz via TRANSLATE_URL (LibreTranslate) no core.
+- Serviços com type:module + server.js CJS foram renomeados p/ server.cjs (moderation, kpi, live, analytics).
+- nanocurrency v2 é ASYNC: await generateSeed()/deriveSecretKey(seed, 0); endereço via deriveAddress (prefixo xrb_ -> trocar p/ nano_).
+- database/nano-treasury.json contém SEED — gitignored, nunca commitar.
