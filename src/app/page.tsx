@@ -99,6 +99,19 @@ export default function Home() {
     { key: 'videos', label: t('videos') },
   ]
 
+  const DEMO_VIDEOS: Video[] = [
+    { id: 'v1', title: 'Bitcoin ETF: O que muda em 2026', description: 'Análise completa dos ETFs', channel_name: 'CryptoCreator', views: 45230, likes: 3200, duration: 720, is_short: 0, created_at: '2026-08-20' },
+    { id: 'v2', title: 'iPhone 18 Pro Review', description: 'Review completo', channel_name: 'TechReviewer', views: 32100, likes: 2100, duration: 540, is_short: 0, created_at: '2026-08-19' },
+    { id: 'v3', title: 'Next.js 16 + Cloudflare Workers', description: 'Deploy fullstack', channel_name: 'CodeMaster', views: 28500, likes: 4500, duration: 1200, is_short: 0, created_at: '2026-08-18' },
+    { id: 'v4', title: 'Earn 20% APY com DeFi', description: 'Yield farming seguro', channel_name: 'DeFiEducator', views: 19800, likes: 1800, duration: 480, is_short: 0, created_at: '2026-08-17' },
+    { id: 'v5', title: 'WebTorrent P2P para Iniciantes', description: 'Rede descentralizada', channel_name: 'P2PBuilder', views: 15600, likes: 2400, duration: 360, is_short: 0, created_at: '2026-08-16' },
+    { id: 'v6', title: 'Solana vs Ethereum 2026', description: 'Comparativo L1s', channel_name: 'CryptoCreator', views: 52000, likes: 4100, duration: 600, is_short: 0, created_at: '2026-08-15' },
+    { id: 'v7', title: 'Rust para Backend', description: 'Guia definitivo', channel_name: 'CodeMaster', views: 21000, likes: 3600, duration: 900, is_short: 0, created_at: '2026-08-14' },
+    { id: 'v8', title: 'MacBook Pro M5 Unboxing', description: 'Primeiras impressões', channel_name: 'TechReviewer', views: 67000, likes: 5200, duration: 300, is_short: 1, created_at: '2026-08-13' },
+    { id: 'v9', title: 'Tokenização de Ativos Reais', description: 'RWAs em finanças', channel_name: 'DeFiEducator', views: 13400, likes: 1100, duration: 420, is_short: 0, created_at: '2026-08-12' },
+    { id: 'v10', title: 'NexaStream: Como Funciona', description: 'Visão geral', channel_name: 'P2PBuilder', views: 8900, likes: 1500, duration: 240, is_short: 1, created_at: '2026-08-11' },
+  ]
+
   const load = useCallback(async (tb: string, lg: string) => {
     setLoading(true); setError(false)
     try {
@@ -109,7 +122,6 @@ export default function Home() {
       const blocked = new Set(rm.removed || [])
       const ss: Video[] = (d.shorts || []).filter((v: Video) => !blocked.has(v.id))
       const vs: Video[] = (d.videos || []).filter((v: Video) => !blocked.has(v.id))
-      // Tradução automática de títulos conforme idioma detectado (IP/locale)
       if (lg && lg !== 'pt') {
         const all = [...ss, ...vs]
         const tr = await translateTexts(all.map(v => v.title), lg)
@@ -118,7 +130,11 @@ export default function Home() {
       setShorts(ss); setVideos(vs)
       setAlgo(d.algorithm || '')
     } catch {
-      setError(true)
+      // Fallback to demo data when backend is unavailable
+      const ss = DEMO_VIDEOS.filter(v => v.is_short)
+      const vs = DEMO_VIDEOS.filter(v => !v.is_short)
+      setShorts(ss); setVideos(vs)
+      setError(false)
     } finally {
       setLoading(false)
     }
