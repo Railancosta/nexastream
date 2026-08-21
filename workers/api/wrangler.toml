@@ -6,7 +6,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "nexastream-db"
-database_id = "YOUR_D1_DATABASE_ID"  # Replace after creating
+database_id = "8dddb504b7b6fe324ab172381c499c06"
 
 # R2 Bucket (Object Storage — 10GB free)
 [[r2_buckets]]
@@ -15,4 +15,4 @@ bucket_name = "nexastream-videos"
 
 # Environment variables
 [vars]
-JWT_SECRET = "CHANGE_THIS_TO_A_RANDOM_SECRET"
+JWT_SECRET = "ns_jwt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0"
