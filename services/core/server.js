@@ -32,7 +32,8 @@ for (const col of [
   "ALTER TABLE videos ADD COLUMN completions INTEGER DEFAULT 0",
   "ALTER TABLE videos ADD COLUMN is_short INTEGER DEFAULT 0",
   "ALTER TABLE videos ADD COLUMN width INTEGER DEFAULT 0",
-  "ALTER TABLE videos ADD COLUMN height INTEGER DEFAULT 0"
+  "ALTER TABLE videos ADD COLUMN height INTEGER DEFAULT 0",
+  "ALTER TABLE videos ADD COLUMN qualities TEXT DEFAULT '[]'"
 ]) {
   try { db.exec(col); } catch { /* coluna já existe */ }
 }
@@ -183,23 +184,67 @@ function checkRateLimit(ip) {
   return true;
 }
 
+// Pipeline de transcodificação multi-resolução (Item 7 do plano)
+// Suporta: 360p, 720p, 1080p — resoluções disponíveis dependem da fonte
 function transcode(id, input, meta) {
-  const out = path.join(STORAGE, 'videos', id + '_360p.mp4');
   const thumb = path.join(STORAGE, 'thumbs', id + '.jpg');
   const isShort = meta.isShort ? 1 : 0;
-  const scale = isShort ? 'scale=360:640:force_original_aspect_ratio=decrease' : 'scale=640:360';
-  execFile('ffmpeg', ['-y', '-i', input, '-vf', scale, '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28', '-c:a', 'aac', out], (err) => {
-    if (err) {
-      db.prepare("UPDATE videos SET status='failed' WHERE id=?").run(id);
-      return;
+  const srcW = meta.width || 0;
+  const srcH = meta.height || 0;
+
+  // Determinar resoluções de saída baseado na resolução da fonte
+  const resolutions = [];
+  // Sempre gerar 360p
+  resolutions.push({ suffix: '360p', height: 360, crf: 28 });
+  // 720p se fonte >= 480p de altura
+  if (srcH >= 480 || srcH === 0) resolutions.push({ suffix: '720p', height: 720, crf: 26 });
+  // 1080p se fonte >= 720p de altura
+  if (srcH >= 720 || srcH === 0) resolutions.push({ suffix: '1080p', height: 1080, crf: 23 });
+
+  let completed = 0;
+  const qualities = [];
+  const total = resolutions.length;
+
+  function onTranscodeDone(suffix, outPath) {
+    qualities.push(suffix);
+    completed++;
+    if (completed === total) {
+      // Gerar thumbnail
+      const thumbScale = isShort
+        ? 'scale=180:320:force_original_aspect_ratio=increase,crop=180:320'
+        : 'scale=320:180';
+      execFile('ffmpeg', ['-y', '-i', input, '-ss', '1', '-frames:v', '1', '-vf', thumbScale, thumb], () => {
+        const primaryPath = '/storage/videos/' + id + '_360p.mp4';
+        db.prepare(
+          `UPDATE videos SET status='ready', video_path=?, thumbnail_path=?, duration=?, width=?, height=?, is_short=?, qualities=? WHERE id=?`
+        ).run(primaryPath, '/storage/thumbs/' + id + '.jpg', meta.duration, meta.width, meta.height, isShort, JSON.stringify(qualities), id);
+        console.log('VIDEO PRONTO: ' + id + ' [' + qualities.join(', ') + ']' + (isShort ? ' (short)' : ''));
+      });
     }
-    const thumbScale = isShort ? 'scale=180:320:force_original_aspect_ratio=increase,crop=180:320' : 'scale=320:180';
-    execFile('ffmpeg', ['-y', '-i', input, '-ss', '1', '-frames:v', '1', '-vf', thumbScale, thumb], () => {
-      db.prepare("UPDATE videos SET status='ready', video_path=?, thumbnail_path=?, duration=?, width=?, height=?, is_short=? WHERE id=?")
-        .run('/storage/videos/' + id + '_360p.mp4', '/storage/thumbs/' + id + '.jpg', meta.duration, meta.width, meta.height, isShort, id);
-      console.log('VIDEO PRONTO: ' + id + (isShort ? ' (short)' : ''));
+  }
+
+  for (const res of resolutions) {
+    const outPath = path.join(STORAGE, 'videos', id + '_' + res.suffix + '.mp4');
+    const vf = isShort
+      ? 'scale=' + res.height + ':' + (res.height * 9 / 6) + ':force_original_aspect_ratio=decrease'
+      : 'scale=-2:' + res.height;
+    execFile('ffmpeg', [
+      '-y', '-i', input, '-vf', vf,
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', String(res.crf),
+      '-c:a', 'aac', '-b:a', '128k', outPath
+    ], (err) => {
+      if (err) {
+        console.error('Transcode falhou para ' + res.suffix + ':', err.message);
+        // Continua com outras resoluções — não falha o vídeo inteiro
+      } else {
+        onTranscodeDone(res.suffix, outPath);
+      }
+      // Se esta é a primeira e falhou, marca como failed
+      if (res.suffix === '360p' && err) {
+        db.prepare("UPDATE videos SET status='failed' WHERE id=?").run(id);
+      }
     });
-  });
+  }
 }
 
 function probe(input) {
@@ -271,7 +316,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    if (p === '/api/health') return json(res, 200, { ok: true, service: 'nexastream-core', deps: 'zero' });
+    if (p === '/api/health')  return json(res, 200, { ok: true, service: 'nexastream-core', deps: 'zero' });
 
     // Detecção de idioma por IP (CF-IPCountry) / Accept-Language
     if (p === '/api/geo' && req.method === 'GET') {
@@ -323,6 +368,14 @@ const server = http.createServer(async (req, res) => {
       const ch = crypto.randomUUID();
       db.prepare('INSERT INTO channels (id, owner_id, name, handle) VALUES (?,?,?,?)').run(ch, id, sanitizedUsername, sanitizedUsername);
       return json(res, 200, { token: signToken(id), user: { id, email: sanitizedEmail, username: sanitizedUsername } });
+    }
+
+    if (p === '/api/auth/me' && req.method === 'GET') {
+      const a = auth(req);
+      if (!a) return json(res, 401, { error: 'nao autorizado' });
+      const u = db.prepare('SELECT id, email, username FROM users WHERE id=?').get(a.userId);
+      if (!u) return json(res, 404, { error: 'usuario nao encontrado' });
+      return json(res, 200, { user: { id: u.id, email: u.email, username: u.username } });
     }
 
     if (p === '/api/auth/login' && req.method === 'POST') {
@@ -384,7 +437,14 @@ const server = http.createServer(async (req, res) => {
       const v = db.prepare('SELECT * FROM videos WHERE id=?').get(p.split('/')[3]);
       if (!v) return json(res, 404, { error: 'nao encontrado' });
       db.prepare('UPDATE videos SET views=views+1 WHERE id=?').run(v.id);
-      return json(res, 200, { video: v });
+      // Parse qualities JSON e gerar URLs de cada resolução
+      let qualities = [];
+      try { qualities = JSON.parse(v.qualities || '[]'); } catch {}
+      const sources = qualities.map(q => ({
+        label: q,
+        url: '/storage/videos/' + v.id + '_' + q + '.mp4'
+      }));
+      return json(res, 200, { video: { ...v, qualities: sources } });
     }
 
     if (p === '/api/videos/upload' && req.method === 'PUT') {

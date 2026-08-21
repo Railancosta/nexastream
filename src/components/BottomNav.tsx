@@ -53,8 +53,8 @@ export default function BottomNav() {
         </Link>
         {items.slice(2).map((it) => {
           const active = pathname === it.href
-          const href = it.href === '/login' && logged ? '/notifications' : it.href
-          const label = it.href === '/login' && logged ? t('profile') : t(it.key)
+          const href = it.href === '/login' && logged ? '/studio' : it.href
+          const label = it.href === '/login' && logged ? t('studio') : t(it.key)
           return (
             <Link key={it.href} href={href} className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] ${active ? 'text-white' : 'text-gray-400'}`}>
               {it.icon(active)}{label}

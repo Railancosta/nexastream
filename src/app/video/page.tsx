@@ -2,12 +2,13 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { apiBase } from '../../lib/api'
+import { VideoPlayer } from '../../components/VideoPlayer'
 const API = typeof window !== 'undefined' ? apiBase() : ''
 const SOC = ''
 const MOD = ''
 const ANA = ''
 
-function VideoPlayer() {
+function VideoPage() {
   const params = useSearchParams()
   const id = params.get('id') || ''
   const [v, setV] = useState<any>(null)
@@ -91,12 +92,10 @@ function VideoPlayer() {
   if (!v) return <p className="p-6">Carregando...</p>
   return (
     <main className="p-6 max-w-4xl mx-auto">
-      <video
-        ref={vidRef}
-        controls
-        className="w-full rounded-lg bg-black"
+      <VideoPlayer
         src={API + v.video_path}
-        onEnded={() => { const el = vidRef.current; sendWatch(Math.max(0, (el?.currentTime || 0) - lastPos.current), 1) }}
+        poster={v.thumbnail_path ? API + v.thumbnail_path : undefined}
+        sources={v.qualities || [{ label: '360p', url: API + v.video_path }]}
       />
       <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
         <h1 className="text-xl font-bold">{v.title}</h1>
@@ -126,10 +125,10 @@ function VideoPlayer() {
   )
 }
 
-export default function VideoPage() {
+export default function VideoPageWrapper() {
   return (
     <Suspense fallback={<p className="p-6">Carregando...</p>}>
-      <VideoPlayer />
+      <VideoPage />
     </Suspense>
   )
 }
