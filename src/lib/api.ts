@@ -1,6 +1,7 @@
 // Resolução da base da API NexaStream.
-// Prioridade: ?api=URL (persistido em localStorage ns_api) > mesmo domínio (same-origin).
-// Em desenvolvimento o Next.js faz proxy de /api e /storage para o core (:3002).
+// Prioridade: ?api=URL > env NEXT_PUBLIC_API_URL > localStorage ns_api > Cloudflare Workers (produção).
+const CLOUDFLARE_API = 'https://nexastream-api.railancosta.workers.dev';
+
 export function apiBase(): string {
   if (typeof window === 'undefined') return ''
   const q = new URLSearchParams(window.location.search).get('api')
@@ -8,9 +9,12 @@ export function apiBase(): string {
     window.localStorage.setItem('ns_api', q)
     return q.replace(/\/$/, '')
   }
+  if (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL
+  }
   const stored = window.localStorage.getItem('ns_api')
   if (stored) return stored.replace(/\/$/, '')
-  return ''
+  return CLOUDFLARE_API
 }
 
 export const API = () => apiBase()
