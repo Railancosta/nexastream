@@ -19,3 +19,8 @@ database/nano-treasury.json
 apps/site/out/
 isolate/
 start.sh
+
+# Cloudflare Pages
+.wrangler/
+.dev.vars
+.cloudflare/

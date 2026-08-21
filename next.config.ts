@@ -85,22 +85,7 @@ const nextConfig: NextConfig = staticExport
           }
         ];
       },
-      // Redirecionar HTTP para HTTPS em produção
-      async redirects() {
-        return [
-          {
-            source: '/:path*',
-            has: [
-              {
-                type: 'host',
-                value: process.env.NEXT_PUBLIC_DOMAIN || 'nexastream.org'
-              }
-            ],
-            destination: 'https://:host/:path*',
-            permanent: true
-          }
-        ];
-      },
+      // HTTPS redirect is handled by Cloudflare automatically
       // Configurações de imagem otimizadas
       images: {
         unoptimized: false,

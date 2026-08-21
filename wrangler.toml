@@ -1,0 +1,11 @@
+name = "nexastream"
+compatibility_date = "2026-08-21"
+pages_build_output_dir = "./out"
+
+# Cloudflare Pages — NexaStream
+# Deploy: wrangler pages deploy ./out --project-name=nexastream
+# Or via GitHub Actions (see .github/workflows/deploy-cloudflare.yml)
+#
+# Custom domain: nexastream.org
+# - Add CNAME: nexastream.org -> <project>.pages.dev
+# - Or use Cloudflare DNS: proxied CNAME to <project>.pages.dev
