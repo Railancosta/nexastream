@@ -48,8 +48,13 @@ export default function Upload() {
         type,
         duration: String(duration)
       })
+      const formData = new FormData()
+      formData.append('video', file)
+      formData.append('title', title || file.name)
+      formData.append('description', description)
+      
       const xhr = new XMLHttpRequest()
-      xhr.open('PUT', API() + '/api/videos/upload?' + qs.toString())
+      xhr.open('POST', API() + '/api/videos/upload')
       xhr.setRequestHeader('Authorization', 'Bearer ' + token)
       xhr.upload.onprogress = (ev) => {
         if (ev.lengthComputable) setProgress(Math.round((ev.loaded / ev.total) * 100))
@@ -57,7 +62,7 @@ export default function Upload() {
       const done = await new Promise<any>((resolve) => {
         xhr.onload = () => resolve({ ok: xhr.status < 400, body: safeJson(xhr.responseText) })
         xhr.onerror = () => resolve({ ok: false, body: null })
-        xhr.send(file)
+        xhr.send(formData)
       })
       setMsg(done.ok
         ? 'Upload concluído! ID: ' + done.body.videoId + ' — transcodificando em segundo plano.'
