@@ -2,16 +2,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { API } from '../../lib/api'
+import { localLogin } from '../../lib/auth'
 export default function Login() {
   const [email, setEmail] = useState(''); const [pw, setPw] = useState(''); const [err, setErr] = useState('')
   const router = useRouter()
-  async function go(e: React.FormEvent) {
+  function go(e: React.FormEvent) {
     e.preventDefault()
-    const r = await fetch(API() + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw }) })
-    const d = await r.json()
-    if (!r.ok) { setErr(d.error || 'erro'); return }
-    localStorage.setItem('nst_token', d.token); localStorage.setItem('nst_user', JSON.stringify(d.user))
+    const res = localLogin(email, pw)
+    if (!res.ok) { setErr(res.error || 'erro'); return }
     router.push('/')
   }
   return (
