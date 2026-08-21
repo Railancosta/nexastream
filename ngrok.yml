@@ -1,0 +1,88 @@
+version: "2"
+authtoken: ${NGROK_AUTHTOKEN}
+
+tunnels:
+  # Main Next.js frontend + API proxy
+  web:
+    addr: 3000
+    proto: http
+    inspect: true
+    hostname: ""
+
+  # Core API (auth, videos, feed, search, geo)
+  core:
+    addr: 3002
+    proto: http
+    inspect: true
+
+  # Content service
+  content:
+    addr: 3004
+    proto: http
+    inspect: true
+
+  # Blockchain chain service
+  chain:
+    addr: 3008
+    proto: http
+    inspect: true
+
+  # Blockchain explorer
+  explorer:
+    addr: 3009
+    proto: http
+    inspect: true
+
+  # Metrics / monitoring
+  metrics:
+    addr: 3010
+    proto: http
+    inspect: true
+
+  # Live streaming
+  live:
+    addr: 3013
+    proto: http
+    inspect: true
+
+  # Moderation
+  moderation:
+    addr: 3014
+    proto: http
+    inspect: true
+
+  # DAO governance
+  dao:
+    addr: 3015
+    proto: http
+    inspect: true
+
+  # NFT marketplace
+  nft:
+    addr: 3016
+    proto: http
+    inspect: true
+
+  # Analytics
+  analytics:
+    addr: 3018
+    proto: http
+    inspect: true
+
+  # Payment ledger
+  payments:
+    addr: 3019
+    proto: http
+    inspect: true
+
+  # P2P tracker
+  p2p:
+    addr: 3020
+    proto: http
+    inspect: true
+
+  # Search service
+  search:
+    addr: 3006
+    proto: http
+    inspect: true

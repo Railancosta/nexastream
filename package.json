@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "tunnel": "bash scripts/ngrok.sh",
+    "tunnel:all": "bash scripts/ngrok.sh all"
   },
   "dependencies": {
     "@types/video.js": "^7.3.58",

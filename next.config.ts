@@ -74,7 +74,7 @@ const nextConfig: NextConfig = staticExport
               // Content Security Policy (CSP)
               {
                 key: 'Content-Security-Policy',
-                value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self'; font-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+                value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self'; font-src 'self'; connect-src 'self' https://*.ngrok-free.app https://*.ngrok.io wss://*.ngrok-free.app wss://*.ngrok.io; frame-src 'self' https://*.ngrok-free.app https://*.ngrok.io; object-src 'none'; base-uri 'self'; form-action 'self'"
               },
               // Permissions Policy
               {
@@ -104,7 +104,7 @@ const nextConfig: NextConfig = staticExport
       // Configurações de imagem otimizadas
       images: {
         unoptimized: false,
-        domains: ['localhost'],
+        domains: ['localhost', '*.ngrok-free.app', '*.ngrok.io'],
         minimumCacheTTL: 60
       },
       // Compressão habilitada

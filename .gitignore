@@ -17,3 +17,5 @@ audit/*.tar.gz
 database/nano-settle.wallet.json
 database/nano-treasury.json
 apps/site/out/
+isolate/
+start.sh
