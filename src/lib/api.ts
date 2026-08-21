@@ -1,5 +1,6 @@
 // Resolução da base da API NexaStream.
 // Prioridade: ?api=URL > env NEXT_PUBLIC_API_URL > localStorage ns_api > Cloudflare Workers (produção).
+// v2.0 — deploy fix
 const CLOUDFLARE_API = 'https://nexastream-api.railancosta.workers.dev';
 
 export function apiBase(): string {
