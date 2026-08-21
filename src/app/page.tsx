@@ -128,6 +128,132 @@ export default function Home() {
 
   const empty = !loading && shorts.length === 0 && videos.length === 0
 
+  // Landing page profissional quando não há vídeos (backend offline ou sem conteúdo)
+  if (empty && !error && !loading) {
+    return (
+      <main className="min-h-screen">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950/50 to-gray-950 py-20 px-4">
+          <div className="absolute inset-0 bg-[url('/icon.svg')] bg-center bg-no-repeat bg-[length:200px] opacity-5" />
+          <div className="max-w-4xl mx-auto text-center relative z-10">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/25">
+              <span className="text-5xl">🎬</span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+              NexaStream
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 mb-3 font-medium">
+              {lang === 'pt' ? 'A Plataforma de Vídeo Descentralizada' : 'The Decentralized Video Platform'}
+            </p>
+            <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+              {lang === 'pt'
+                ? 'Streaming P2P, blockchain nativa, carteira NST e governança DAO. O futuro do conteúdo digital é aberto, distribuído e programável.'
+                : 'P2P streaming, native blockchain, NST wallet and DAO governance. The future of digital content is open, distributed and programmable.'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/login" className="px-8 py-3.5 rounded-full bg-indigo-600 hover:bg-indigo-500 font-semibold text-white transition active:scale-95 shadow-lg shadow-indigo-500/25">
+                {lang === 'pt' ? '🚀 Começar Agora' : '🚀 Get Started'}
+              </Link>
+              <Link href="/search" className="px-8 py-3.5 rounded-full bg-gray-800 hover:bg-gray-700 font-semibold text-gray-200 transition active:scale-95 border border-gray-700">
+                {lang === 'pt' ? '🔍 Explorar Vídeos' : '🔍 Explore Videos'}
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="py-16 px-4 bg-gray-950">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
+              {lang === 'pt' ? 'Por que NexaStream?' : 'Why NexaStream?'}
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: '⚡',
+                  title: lang === 'pt' ? 'Streaming P2P' : 'P2P Streaming',
+                  desc: lang === 'pt' ? 'Entrega descentralizada via WebTorrent. Sem CDN centralizado, mais resistente e econômico.' : 'Decentralized delivery via WebTorrent. No central CDN, more resilient and cost-effective.'
+                },
+                {
+                  icon: '🔗',
+                  title: lang === 'pt' ? 'Blockchain Nativa' : 'Native Blockchain',
+                  desc: lang === 'pt' ? 'Cadeia própria com PoA, NFTs e content addressing SHA-256. Transparência total.' : 'Own chain with PoA, NFTs and SHA-256 content addressing. Full transparency.'
+                },
+                {
+                  icon: '💰',
+                  title: lang === 'pt' ? 'Carteira NST' : 'NST Wallet',
+                  desc: lang === 'pt' ? 'Recompensas para criadores, pagamentos feeless via Nano bridge. Economia justa.' : 'Creator rewards, feeless payments via Nano bridge. Fair economy.'
+                },
+                {
+                  icon: '🗳️',
+                  title: lang === 'pt' ? 'Governança DAO' : 'DAO Governance',
+                  desc: lang === 'pt' ? 'Comunidade decide o futuro da plataforma. Propostas, votações e transparência.' : 'Community decides the platform future. Proposals, votes and transparency.'
+                },
+                {
+                  icon: '🎨',
+                  title: lang === 'pt' ? 'Creator Studio' : 'Creator Studio',
+                  desc: lang === 'pt' ? 'Dashboard completo: analytics, monetização, NFTs e gestão de conteúdo.' : 'Complete dashboard: analytics, monetization, NFTs and content management.'
+                },
+                {
+                  icon: '🌍',
+                  title: lang === 'pt' ? 'i18n Automático' : 'Auto i18n',
+                  desc: lang === 'pt' ? 'Tradução automática de títulos para 12 idiomas via IP. Alcance global.' : 'Auto-translation of titles to 12 languages via IP. Global reach.'
+                }
+              ].map((f, i) => (
+                <div key={i} className="p-6 rounded-2xl bg-gray-900/50 border border-gray-800 hover:border-indigo-500/50 transition group">
+                  <div className="text-4xl mb-4 group-hover:scale-110 transition">{f.icon}</div>
+                  <h3 className="text-lg font-bold mb-2">{f.title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Stats */}
+        <section className="py-16 px-4 bg-gradient-to-b from-gray-900 to-gray-950">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              {[
+                { value: '19', label: lang === 'pt' ? 'Páginas' : 'Pages' },
+                { value: '12', label: lang === 'pt' ? 'Idiomas' : 'Languages' },
+                { value: '55M', label: 'NST ' + (lang === 'pt' ? 'Oferta' : 'Supply') },
+                { value: '100%', label: lang === 'pt' ? 'Open Source' : 'Open Source' }
+              ].map((s, i) => (
+                <div key={i}>
+                  <div className="text-3xl md:text-4xl font-bold text-indigo-400 mb-1">{s.value}</div>
+                  <div className="text-sm text-gray-400">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-20 px-4 bg-gray-950">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              {lang === 'pt' ? 'Pronto para o Futuro?' : 'Ready for the Future?'}
+            </h2>
+            <p className="text-gray-400 mb-8">
+              {lang === 'pt'
+                ? 'Junte-se à revolução do conteúdo descentralizado. Crie, compartilhe e ganhe com NexaStream.'
+                : 'Join the decentralized content revolution. Create, share and earn with NexaStream.'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/register" className="px-8 py-3.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 font-semibold text-white transition active:scale-95 shadow-lg">
+                {lang === 'pt' ? 'Criar Conta Grátis' : 'Create Free Account'}
+              </Link>
+              <Link href="/upload" className="px-8 py-3.5 rounded-full bg-gray-800 hover:bg-gray-700 font-semibold text-gray-200 transition active:scale-95 border border-gray-700">
+                {lang === 'pt' ? '📤 Enviar Primeiro Vídeo' : '📤 Upload First Video'}
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main className="pb-24 md:pb-8">
       {/* Chips de filtro */}
@@ -164,17 +290,6 @@ export default function Home() {
           <div className="p-3 space-y-8">
             <Skeletons short />
             <Skeletons />
-          </div>
-        )}
-
-        {empty && !error && (
-          <div className="flex flex-col items-center text-center py-20 px-6">
-            <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-3xl mb-4">🎬</div>
-            <h2 className="text-lg font-bold">{t('emptyTitle')}</h2>
-            <p className="text-sm text-gray-400 mt-1 mb-6">{t('emptyBody')}</p>
-            <Link href="/upload" className="px-6 py-3 rounded-full bg-indigo-600 font-semibold text-sm active:scale-95 transition">
-              ⬆ {t('uploadFirst')}
-            </Link>
           </div>
         )}
 
