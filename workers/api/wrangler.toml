@@ -1,0 +1,18 @@
+name = "nexastream-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# D1 Database (SQLite — 5GB free)
+[[d1_databases]]
+binding = "DB"
+database_name = "nexastream-db"
+database_id = "YOUR_D1_DATABASE_ID"  # Replace after creating
+
+# R2 Bucket (Object Storage — 10GB free)
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "nexastream-videos"
+
+# Environment variables
+[vars]
+JWT_SECRET = "CHANGE_THIS_TO_A_RANDOM_SECRET"
