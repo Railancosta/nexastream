@@ -1,34 +1,33 @@
--- NexaStream Seed Data
--- Sample videos and users for testing
+-- Seed data for NexaStream
+-- Note: passwords are hashed with PBKDF2-SHA256, 100k iterations
+-- Default password for test users: "password123"
 
--- Sample users (passwords are hashed versions of 'password123')
-INSERT INTO users (id, username, email, password_hash, channel_name, nst_balance, created_at) VALUES
-('user-001', 'nexastream', 'admin@nexastream.org', 'salt.hashedpassword', 'NexaStream Official', 1000000, '2024-01-01T00:00:00Z'),
-('user-002', 'creator1', 'creator1@example.com', 'salt.hashedpassword', 'Creator One', 50000, '2024-01-15T00:00:00Z'),
-('user-003', 'creator2', 'creator2@example.com', 'salt.hashedpassword', 'Creator Two', 30000, '2024-02-01T00:00:00Z');
+-- Test users (password hashes will be regenerated on first real register)
+INSERT OR IGNORE INTO users (id, username, email, password_hash, password_salt, nst_balance, is_creator, bio, created_at) VALUES
+('user_demo001', 'CryptoCreator', 'demo@nexastream.org', 'placeholder', 'placeholder', 15000.0, 1, 'Criador de conteúdo crypto e Web3 na NexaStream', datetime('now')),
+('user_demo002', 'TechReviewer', 'tech@nexastream.org', 'placeholder', 'placeholder', 8500.0, 1, 'Reviews de tecnologia e gadgets', datetime('now')),
+('user_demo003', 'CodeMaster', 'code@nexastream.org', 'placeholder', 'placeholder', 22000.0, 1, 'Tutoriais de programação e arquitetura de software', datetime('now')),
+('user_demo004', 'DeFiEducator', 'defi@nexastream.org', 'placeholder', 'placeholder', 12000.0, 1, 'Educação financeira descentralizada', datetime('now')),
+('user_demo005', 'P2PBuilder', 'p2p@nexastream.org', 'placeholder', 'placeholder', 9800.0, 1, 'Construindo a internet descentralizada', datetime('now'));
 
 -- Sample videos
-INSERT INTO videos (id, title, description, channel_name, user_id, video_path, thumbnail_path, magnet_uri, info_hash, duration, size, is_short, views, likes, status, created_at) VALUES
-('v-001', 'Welcome to NexaStream', 'The future of decentralized video streaming', 'NexaStream Official', 'user-001', '/storage/videos/v-001.mp4', '/storage/thumbs/v-001.jpg', 'magnet:?xt=urn:btih:abc123&dn=Welcome+to+NexaStream', 'abc123def456', 180, 52428800, 0, 1500, 250, 'ready', '2024-01-01T12:00:00Z'),
-('v-002', 'How WebTorrent Works', 'Understanding P2P video distribution', 'Creator One', 'user-002', '/storage/videos/v-002.mp4', '/storage/thumbs/v-002.jpg', 'magnet:?xt=urn:btih:def456&dn=How+WebTorrent+Works', 'def456ghi789', 300, 104857600, 0, 800, 120, 'ready', '2024-01-15T12:00:00Z'),
-('v-003', 'NST Token Explained', 'Learn about the NexaStream Token economy', 'Creator Two', 'user-003', '/storage/videos/v-003.mp4', '/storage/thumbs/v-003.jpg', 'magnet:?xt=urn:btih:ghi789&dn=NST+Token+Explained', 'ghi789jkl012', 240, 78643200, 0, 600, 90, 'ready', '2024-02-01T12:00:00Z'),
-('v-004', 'Quick Tip #1', 'Short-form content on NexaStream', 'Creator One', 'user-002', '/storage/videos/v-004.mp4', '/storage/thumbs/v-004.jpg', 'magnet:?xt=urn:btih:jkl012&dn=Quick+Tip', 'jkl012mno345', 45, 10485760, 1, 2000, 300, 'ready', '2024-02-15T12:00:00Z'),
-('v-005', 'DAO Governance Deep Dive', 'How decentralized governance works', 'NexaStream Official', 'user-001', '/storage/videos/v-005.mp4', '/storage/thumbs/v-005.jpg', 'magnet:?xt=urn:btih:mno345&dn=DAO+Governance', 'mno345pqr678', 600, 209715200, 0, 400, 60, 'ready', '2024-03-01T12:00:00Z');
+INSERT OR IGNORE INTO videos (id, user_id, title, description, category, duration, is_short, views, likes, created_at) VALUES
+('v001', 'user_demo001', 'Bitcoin ETF: O que muda em 2026', 'Análise completa do impacto dos ETFs de Bitcoin no mercado', 'crypto', 720, 0, 45230, 3200, datetime('now')),
+('v002', 'user_demo002', 'iPhone 18 Pro Review', 'Review completo do novo iPhone com chip M5', 'tech', 540, 0, 32100, 2100, datetime('now')),
+('v003', 'user_demo003', 'Next.js 16 + Cloudflare Workers', 'Tutorial completo de deploy fullstack', 'code', 1200, 0, 28500, 4500, datetime('now')),
+('v004', 'user_demo004', 'Earn 20% APY com DeFi', 'Estratégias seguras de yield farming em 2026', 'finance', 480, 0, 19800, 1800, datetime('now')),
+('v005', 'user_demo005', 'WebTorrent P2P para Iniciantes', 'Como funciona a rede descentralizada de vídeos', 'tech', 360, 0, 15600, 2400, datetime('now')),
+('v006', 'user_demo001', 'Solana vs Ethereum 2026', 'Comparativo atualizado das duas maiores L1s', 'crypto', 600, 0, 52000, 4100, datetime('now')),
+('v007', 'user_demo003', 'Rust para Backend: Guia Definitivo', 'Por que Rust é o futuro dos sistemas distribuídos', 'code', 900, 0, 21000, 3600, datetime('now')),
+('v008', 'user_demo002', 'MacBook Pro M5 Unboxing', 'Primeiras impressões do novo MacBook', 'tech', 300, 1, 67000, 5200, datetime('now')),
+('v009', 'user_demo004', 'Tokenização de Ativos Reais', 'Como RWAs estão transformando finanças', 'finance', 420, 0, 13400, 1100, datetime('now')),
+('v010', 'user_demo005', 'NexaStream: Como Funciona', 'Visão geral da plataforma descentralizada', 'tech', 240, 1, 8900, 1500, datetime('now'));
 
--- Sample comments
-INSERT INTO comments (id, video_id, user_id, content, created_at) VALUES
-('c-001', 'v-001', 'user-002', 'Amazing platform! Love the decentralized approach.', '2024-01-02T12:00:00Z'),
-('c-002', 'v-001', 'user-003', 'Finally a video platform that respects creators.', '2024-01-03T12:00:00Z'),
-('c-003', 'v-002', 'user-001', 'Great explanation of WebTorrent!', '2024-01-16T12:00:00Z');
-
--- Sample subscriptions
-INSERT INTO subscriptions (subscriber_id, channel_id, created_at) VALUES
-('user-002', 'user-001', '2024-01-02T00:00:00Z'),
-('user-003', 'user-001', '2024-01-03T00:00:00Z'),
-('user-001', 'user-002', '2024-01-15T00:00:00Z');
-
--- Sample likes
-INSERT INTO likes (user_id, video_id, created_at) VALUES
-('user-002', 'v-001', '2024-01-02T12:00:00Z'),
-('user-003', 'v-001', '2024-01-03T12:00:00Z'),
-('user-001', 'v-002', '2024-01-16T12:00:00Z');
+-- Sample transactions (NST rewards)
+INSERT OR IGNORE INTO transactions (id, user_id, type, amount, description, created_at) VALUES
+('tx001', 'user_demo001', 'welcome_bonus', 1000, 'Bônus de boas-vindas NexaStream', datetime('now')),
+('tx002', 'user_demo002', 'welcome_bonus', 1000, 'Bônus de boas-vindas NexaStream', datetime('now')),
+('tx003', 'user_demo003', 'welcome_bonus', 1000, 'Bônus de boas-vindas NexaStream', datetime('now')),
+('tx004', 'user_demo001', 'like_reward', 50, 'Recompensa por 10 likes recebidos', datetime('now')),
+('tx005', 'user_demo003', 'comment_reward', 100, 'Recompensa por 10 comentários', datetime('now')),
+('tx006', 'user_demo005', 'seeding_reward', 500, 'Seeding de 50GB por 500 horas', datetime('now'));
