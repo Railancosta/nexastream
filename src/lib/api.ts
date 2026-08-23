@@ -22,12 +22,33 @@ export const API = () => apiBase()
 export const CORE = () => apiBase()
 export const VIDEO = () => apiBase()
 
-export function thumbUrl(v: any): string {
-  return v.thumbnail_path ? apiBase() + v.thumbnail_path : apiBase() + '/storage/thumbs/' + v.id + '.jpg'
+// Auth token for API calls (JWT from Worker, or local fallback token)
+export function authToken(): string {
+  if (typeof window === 'undefined') return ''
+  return window.localStorage.getItem('nst_token') || ''
 }
 
+// Resolve a video URL:
+//  - R2-backed uploads (v3.1) store an absolute or Worker-relative stream path in video_url
+//  - legacy rows use video_path relative to the API
 export function videoUrl(v: any): string {
+  if (!v) return ''
+  if (v.video_url) return v.video_url.startsWith('http') ? v.video_url : apiBase() + v.video_url
   return apiBase() + (v.video_path || '')
+}
+
+// Resolve a thumbnail URL:
+//  - R2-backed uploads (v3.1) store a Worker-relative stream path in thumbnail_url
+//  - legacy rows use thumbnail_path relative to the API
+export function thumbUrl(v: any): string {
+  if (!v) return ''
+  if (v.thumbnail_url) return v.thumbnail_url.startsWith('http') ? v.thumbnail_url : apiBase() + v.thumbnail_url
+  if (v.thumbnail_path) return apiBase() + v.thumbnail_path
+  return apiBase() + '/storage/thumbs/' + v.id + '.jpg'
+}
+
+export function channelName(v: any): string {
+  return v.channel_name || v.creator_name || 'NexaStream'
 }
 
 export function viewerId(): string {

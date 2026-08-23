@@ -1,11 +1,11 @@
 {
-  "name": "NexaStream",
+  "name": "NexaStream — Decentralized Video",
   "short_name": "NexaStream",
-  "description": "Rede de video descentralizada",
+  "description": "Rede de video descentralizada: shorts, vídeos, categorias, watchlist e economia do criador.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0a0e13",
+  "background_color": "#030712",
   "theme_color": "#6366f1",
   "icons": [
     {
@@ -30,5 +30,19 @@
   "display_override": [
     "standalone",
     "minimal-ui"
+  ],
+  "shortcuts": [
+    {
+      "name": "Categorias",
+      "short_name": "Categorias",
+      "url": "./categories/",
+      "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Minha Biblioteca",
+      "short_name": "Biblioteca",
+      "url": "./watchlist/",
+      "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
   ]
 }

@@ -28,6 +28,11 @@ CREATE TABLE IF NOT EXISTS videos (
   thumbnail_url TEXT DEFAULT '',
   torrent_hash TEXT DEFAULT '',
   web_seed_url TEXT DEFAULT '',
+  -- R2-backed upload columns (v3.1)
+  r2_key TEXT DEFAULT '',
+  file_size INTEGER DEFAULT 0,
+  mime_type TEXT DEFAULT '',
+  thumb_r2_key TEXT DEFAULT '',
   views INTEGER DEFAULT 0,
   likes INTEGER DEFAULT 0,
   comments_count INTEGER DEFAULT 0,
@@ -110,6 +115,50 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   FOREIGN KEY (creator_id) REFERENCES users(id)
 );
 
+-- Video uploads count for channels (incremented in completeUpload)
+CREATE TABLE IF NOT EXISTS channel_stats (
+  user_id TEXT PRIMARY KEY,
+  video_count INTEGER DEFAULT 0,
+  subscriber_count INTEGER DEFAULT 0,
+  total_views INTEGER DEFAULT 0,
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS watchlist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  video_id TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(user_id, video_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (video_id) REFERENCES videos(id)
+);
+
+CREATE TABLE IF NOT EXISTS favorites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  video_id TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(user_id, video_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (video_id) REFERENCES videos(id)
+);
+
+-- Pending uploads (v3.1 R2 upload flow)
+CREATE TABLE IF NOT EXISTS pending_uploads (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  r2_key TEXT NOT NULL,
+  thumb_r2_key TEXT DEFAULT '',
+  upload_id TEXT DEFAULT '',
+  mode TEXT DEFAULT 'single',
+  size INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_videos_user_id ON videos(user_id);
 CREATE INDEX IF NOT EXISTS idx_videos_category ON videos(category);
@@ -123,3 +172,10 @@ CREATE INDEX IF NOT EXISTS idx_comments_video_id ON comments(video_id);
 CREATE INDEX IF NOT EXISTS idx_peers_video_id ON peers(video_id);
 CREATE INDEX IF NOT EXISTS idx_peers_user_id ON peers(user_id);
 CREATE INDEX IF NOT EXISTS idx_watch_history_video_id ON watch_history(video_id);
+CREATE INDEX IF NOT EXISTS idx_watch_history_user_id ON watch_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_watchlist_user_id ON watchlist(user_id);
+CREATE INDEX IF NOT EXISTS idx_watchlist_video_id ON watchlist(video_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_video_id ON favorites(video_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_subscriber ON subscriptions(subscriber_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_creator ON subscriptions(creator_id);

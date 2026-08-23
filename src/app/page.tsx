@@ -5,9 +5,9 @@ import { API, thumbUrl, viewerId, formatViews, formatDuration, timeAgo } from '.
 import { useI18n, translateTexts } from '../lib/i18n'
 
 type Video = {
-  id: string; title: string; description?: string; channel_name?: string
+  id: string; title: string; description?: string; channel_name?: string; creator_name?: string
   views: number; likes: number; duration: number; is_short: number
-  created_at: string; score?: number; status?: string
+  created_at: string; score?: number; status?: string; category?: string
 }
 
 const LANG_OPTIONS = [
@@ -16,10 +16,20 @@ const LANG_OPTIONS = [
   ['zh', '中文'], ['ru', 'Русский'], ['ar', 'العربية'], ['hi', 'हिन्दी']
 ]
 
+const CATEGORIES = [
+  { name: '', labelPt: 'Tudo', labelEn: 'All', icon: '✨' },
+  { name: 'tech', labelPt: 'Tecnologia', labelEn: 'Tech', icon: '💻' },
+  { name: 'crypto', labelPt: 'Crypto', labelEn: 'Crypto', icon: '🪙' },
+  { name: 'finance', labelPt: 'Finanças', labelEn: 'Finance', icon: '📈' },
+  { name: 'code', labelPt: 'Programação', labelEn: 'Code', icon: '👨‍💻' },
+  { name: 'gaming', labelPt: 'Games', labelEn: 'Gaming', icon: '🎮' },
+  { name: 'web3', labelPt: 'Web3', labelEn: 'Web3', icon: '🔗' },
+]
+
 function ShortCard({ v, viewsLabel }: { v: Video; viewsLabel: string }) {
   return (
     <Link href={'/shorts?start=' + v.id} className="snap-start shrink-0 w-[132px] group">
-      <div className="relative w-[132px] h-[234px] rounded-xl overflow-hidden bg-gray-800">
+      <div className="relative w-[132px] h-[234px] rounded-xl overflow-hidden bg-gray-800 nx-lift">
         <img src={thumbUrl(v)} alt={v.title} loading="lazy"
           className="w-full h-full object-cover group-active:scale-105 transition"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
@@ -35,9 +45,10 @@ function ShortCard({ v, viewsLabel }: { v: Video; viewsLabel: string }) {
 }
 
 function VideoCard({ v, lang, viewsLabel }: { v: Video; lang: string; viewsLabel: string }) {
+  const ch = v.channel_name || v.creator_name || 'NexaStream'
   return (
     <Link href={'/video?id=' + v.id} className="group block">
-      <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800">
+      <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 nx-lift">
         <img src={thumbUrl(v)} alt={v.title} loading="lazy"
           className="w-full h-full object-cover group-active:scale-[1.02] transition"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
@@ -49,12 +60,12 @@ function VideoCard({ v, lang, viewsLabel }: { v: Video; lang: string; viewsLabel
       </div>
       <div className="flex gap-3 mt-2.5 px-1">
         <div className="shrink-0 w-9 h-9 rounded-full bg-indigo-900 flex items-center justify-center text-sm font-bold text-indigo-200">
-          {(v.channel_name || 'N')[0].toUpperCase()}
+          {ch[0].toUpperCase()}
         </div>
         <div className="min-w-0">
           <h3 className="font-semibold text-[15px] leading-snug line-clamp-2">{v.title}</h3>
           <p className="text-xs text-gray-400 mt-0.5 truncate">
-            {v.channel_name || 'NexaStream'} • {formatViews(v.views)} {viewsLabel} • {timeAgo(v.created_at, lang)}
+            {ch} • {formatViews(v.views)} {viewsLabel} • {timeAgo(v.created_at, lang)}
           </p>
         </div>
       </div>
@@ -86,6 +97,7 @@ function Skeletons({ short }: { short?: boolean }) {
 export default function Home() {
   const { lang, setLang, t } = useI18n()
   const [tab, setTab] = useState('all')
+  const [cat, setCat] = useState('')
   const [shorts, setShorts] = useState<Video[]>([])
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
@@ -100,28 +112,37 @@ export default function Home() {
   ]
 
   const DEMO_VIDEOS: Video[] = [
-    { id: 'v1', title: 'Bitcoin ETF: O que muda em 2026', description: 'Análise completa dos ETFs', channel_name: 'CryptoCreator', views: 45230, likes: 3200, duration: 720, is_short: 0, created_at: '2026-08-20' },
-    { id: 'v2', title: 'iPhone 18 Pro Review', description: 'Review completo', channel_name: 'TechReviewer', views: 32100, likes: 2100, duration: 540, is_short: 0, created_at: '2026-08-19' },
-    { id: 'v3', title: 'Next.js 16 + Cloudflare Workers', description: 'Deploy fullstack', channel_name: 'CodeMaster', views: 28500, likes: 4500, duration: 1200, is_short: 0, created_at: '2026-08-18' },
-    { id: 'v4', title: 'Earn 20% APY com DeFi', description: 'Yield farming seguro', channel_name: 'DeFiEducator', views: 19800, likes: 1800, duration: 480, is_short: 0, created_at: '2026-08-17' },
-    { id: 'v5', title: 'WebTorrent P2P para Iniciantes', description: 'Rede descentralizada', channel_name: 'P2PBuilder', views: 15600, likes: 2400, duration: 360, is_short: 0, created_at: '2026-08-16' },
-    { id: 'v6', title: 'Solana vs Ethereum 2026', description: 'Comparativo L1s', channel_name: 'CryptoCreator', views: 52000, likes: 4100, duration: 600, is_short: 0, created_at: '2026-08-15' },
-    { id: 'v7', title: 'Rust para Backend', description: 'Guia definitivo', channel_name: 'CodeMaster', views: 21000, likes: 3600, duration: 900, is_short: 0, created_at: '2026-08-14' },
-    { id: 'v8', title: 'MacBook Pro M5 Unboxing', description: 'Primeiras impressões', channel_name: 'TechReviewer', views: 67000, likes: 5200, duration: 300, is_short: 1, created_at: '2026-08-13' },
-    { id: 'v9', title: 'Tokenização de Ativos Reais', description: 'RWAs em finanças', channel_name: 'DeFiEducator', views: 13400, likes: 1100, duration: 420, is_short: 0, created_at: '2026-08-12' },
-    { id: 'v10', title: 'NexaStream: Como Funciona', description: 'Visão geral', channel_name: 'P2PBuilder', views: 8900, likes: 1500, duration: 240, is_short: 1, created_at: '2026-08-11' },
+    { id: 'v1', title: 'Bitcoin ETF: O que muda em 2026', description: 'Análise completa dos ETFs', channel_name: 'CryptoCreator', views: 45230, likes: 3200, duration: 720, is_short: 0, created_at: '2026-08-20', category: 'crypto' },
+    { id: 'v2', title: 'iPhone 18 Pro Review', description: 'Review completo', channel_name: 'TechReviewer', views: 32100, likes: 2100, duration: 540, is_short: 0, created_at: '2026-08-19', category: 'tech' },
+    { id: 'v3', title: 'Next.js 16 + Cloudflare Workers', description: 'Deploy fullstack', channel_name: 'CodeMaster', views: 28500, likes: 4500, duration: 1200, is_short: 0, created_at: '2026-08-18', category: 'code' },
+    { id: 'v4', title: 'Earn 20% APY com DeFi', description: 'Yield farming seguro', channel_name: 'DeFiEducator', views: 19800, likes: 1800, duration: 480, is_short: 0, created_at: '2026-08-17', category: 'finance' },
+    { id: 'v5', title: 'WebTorrent P2P para Iniciantes', description: 'Rede descentralizada', channel_name: 'P2PBuilder', views: 15600, likes: 2400, duration: 360, is_short: 0, created_at: '2026-08-16', category: 'tech' },
+    { id: 'v6', title: 'Solana vs Ethereum 2026', description: 'Comparativo L1s', channel_name: 'CryptoCreator', views: 52000, likes: 4100, duration: 600, is_short: 0, created_at: '2026-08-15', category: 'crypto' },
+    { id: 'v7', title: 'Rust para Backend', description: 'Guia definitivo', channel_name: 'CodeMaster', views: 21000, likes: 3600, duration: 900, is_short: 0, created_at: '2026-08-14', category: 'code' },
+    { id: 'v8', title: 'MacBook Pro M5 Unboxing', description: 'Primeiras impressões', channel_name: 'TechReviewer', views: 67000, likes: 5200, duration: 300, is_short: 1, created_at: '2026-08-13', category: 'tech' },
+    { id: 'v9', title: 'Tokenização de Ativos Reais', description: 'RWAs em finanças', channel_name: 'DeFiEducator', views: 13400, likes: 1100, duration: 420, is_short: 0, created_at: '2026-08-12', category: 'finance' },
+    { id: 'v10', title: 'NexaStream: Como Funciona', description: 'Visão geral', channel_name: 'P2PBuilder', views: 8900, likes: 1500, duration: 240, is_short: 1, created_at: '2026-08-11', category: 'tech' },
   ]
 
-  const load = useCallback(async (tb: string, lg: string) => {
+  const load = useCallback(async (tb: string, lg: string, ct: string) => {
     setLoading(true); setError(false)
     try {
-      const r = await fetch(API() + '/api/feed?tab=' + tb + '&viewer=' + viewerId())
+      const url = API() + '/api/feed?tab=' + tb + '&viewer=' + viewerId() + (ct ? '&category=' + encodeURIComponent(ct) : '')
+      const r = await fetch(url)
       if (!r.ok) throw new Error('http ' + r.status)
       const d = await r.json()
       const rm = await fetch(API() + '/api/mod/removed').then(x => x.json()).catch(() => ({ removed: [] }))
       const blocked = new Set(rm.removed || [])
-      const ss: Video[] = (d.shorts || []).filter((v: Video) => !blocked.has(v.id))
-      const vs: Video[] = (d.videos || []).filter((v: Video) => !blocked.has(v.id))
+      const list: Video[] = (d.videos || d.shorts || []).filter((v: Video) => !blocked.has(v.id))
+      let ss: Video[] = list.filter((v) => v.is_short === 1)
+      let vs: Video[] = list.filter((v) => v.is_short === 0)
+      if (ct) {
+        // Category filter on home rail
+        const catList = list.filter((v) => (v.category || '') === ct)
+        ss = catList.filter((v) => v.is_short === 1)
+        vs = catList.filter((v) => v.is_short === 0)
+        if (!vs.length && !ss.length) { ss = []; vs = list.filter((v) => v.is_short === 0).slice(0, 12) }
+      }
       if (lg && lg !== 'pt') {
         const all = [...ss, ...vs]
         const tr = await translateTexts(all.map(v => v.title), lg)
@@ -130,17 +151,17 @@ export default function Home() {
       setShorts(ss); setVideos(vs)
       setAlgo(d.algorithm || '')
     } catch {
-      // Fallback to demo data when backend is unavailable
-      const ss = DEMO_VIDEOS.filter(v => v.is_short)
-      const vs = DEMO_VIDEOS.filter(v => !v.is_short)
-      setShorts(ss); setVideos(vs)
+      let list = DEMO_VIDEOS
+      if (ct) list = DEMO_VIDEOS.filter((v) => v.category === ct)
+      if (!list.length) list = DEMO_VIDEOS
+      setShorts(list.filter(v => v.is_short)); setVideos(list.filter(v => !v.is_short))
       setError(false)
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => { load(tab, lang) }, [tab, lang, load])
+  useEffect(() => { load(tab, lang, cat) }, [tab, lang, cat, load])
 
   const empty = !loading && shorts.length === 0 && videos.length === 0
 
@@ -152,10 +173,10 @@ export default function Home() {
         <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950/50 to-gray-950 py-20 px-4">
           <div className="absolute inset-0 bg-[url('/icon.svg')] bg-center bg-no-repeat bg-[length:200px] opacity-5" />
           <div className="max-w-4xl mx-auto text-center relative z-10">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/25">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/25 nx-glow">
               <span className="text-5xl">🎬</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 nx-gradient-text">
               NexaStream
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 mb-3 font-medium">
@@ -167,11 +188,11 @@ export default function Home() {
                 : 'P2P streaming, native blockchain, NST wallet and DAO governance. The future of digital content is open, distributed and programmable.'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/login" className="px-8 py-3.5 rounded-full bg-indigo-600 hover:bg-indigo-500 font-semibold text-white transition active:scale-95 shadow-lg shadow-indigo-500/25">
+              <Link href="/login" className="px-8 py-3.5 rounded-full bg-indigo-600 hover:bg-indigo-500 font-semibold text-white transition active:scale-95 shadow-lg shadow-indigo-500/25 nx-glow">
                 {lang === 'pt' ? '🚀 Começar Agora' : '🚀 Get Started'}
               </Link>
-              <Link href="/search" className="px-8 py-3.5 rounded-full bg-gray-800 hover:bg-gray-700 font-semibold text-gray-200 transition active:scale-95 border border-gray-700">
-                {lang === 'pt' ? '🔍 Explorar Vídeos' : '🔍 Explore Videos'}
+              <Link href="/categories" className="px-8 py-3.5 rounded-full bg-gray-800 hover:bg-gray-700 font-semibold text-gray-200 transition active:scale-95 border border-gray-700">
+                {lang === 'pt' ? '🔍 Explorar Categorias' : '🔍 Explore Categories'}
               </Link>
             </div>
           </div>
@@ -196,7 +217,7 @@ export default function Home() {
                   desc: lang === 'pt' ? 'Cadeia própria com PoA, NFTs e content addressing SHA-256. Transparência total.' : 'Own chain with PoA, NFTs and SHA-256 content addressing. Full transparency.'
                 },
                 {
-                  icon: '💰',
+                  icon: '💎',
                   title: lang === 'pt' ? 'Carteira NST' : 'NST Wallet',
                   desc: lang === 'pt' ? 'Recompensas para criadores, pagamentos feeless via Nano bridge. Economia justa.' : 'Creator rewards, feeless payments via Nano bridge. Fair economy.'
                 },
@@ -216,7 +237,7 @@ export default function Home() {
                   desc: lang === 'pt' ? 'Tradução automática de títulos para 12 idiomas via IP. Alcance global.' : 'Auto-translation of titles to 12 languages via IP. Global reach.'
                 }
               ].map((f, i) => (
-                <div key={i} className="p-6 rounded-2xl bg-gray-900/50 border border-gray-800 hover:border-indigo-500/50 transition group">
+                <div key={i} className="p-6 rounded-2xl bg-gray-900/50 border border-gray-800 hover:border-indigo-500/50 transition group nx-lift">
                   <div className="text-4xl mb-4 group-hover:scale-110 transition">{f.icon}</div>
                   <h3 className="text-lg font-bold mb-2">{f.title}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
@@ -296,9 +317,22 @@ export default function Home() {
         {error && (
           <div className="m-4 p-4 rounded-xl bg-red-950/40 border border-red-900 text-sm flex items-center justify-between gap-3">
             <span>{t('errorLoading')}</span>
-            <button onClick={() => load(tab, lang)} className="px-3 py-1.5 rounded-lg bg-red-900 text-xs font-semibold shrink-0">
+            <button onClick={() => load(tab, lang, cat)} className="px-3 py-1.5 rounded-lg bg-red-900 text-xs font-semibold shrink-0">
               {t('retry')}
             </button>
+          </div>
+        )}
+
+        {/* Category rail */}
+        {!loading && tab !== 'shorts' && (
+          <div className="flex gap-2 overflow-x-auto no-scrollbar px-3 pt-3">
+            {CATEGORIES.map((c) => (
+              <button key={c.name || 'all'} onClick={() => setCat(cat === c.name ? '' : c.name)}
+                className={'shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1.5 ' +
+                  (cat === c.name ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700')}>
+                <span>{c.icon}</span>{lang === 'pt' ? c.labelPt : c.labelEn}
+              </button>
+            ))}
           </div>
         )}
 
@@ -311,7 +345,7 @@ export default function Home() {
 
         {/* Prateleira de Shorts */}
         {!loading && shorts.length > 0 && tab !== 'videos' && (
-          <section className="pt-4">
+          <section className="pt-4 nx-fade-up">
             <div className="flex items-center justify-between px-3 mb-2">
               <h2 className="flex items-center gap-2 font-bold text-base">
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-indigo-400">
@@ -329,8 +363,15 @@ export default function Home() {
 
         {/* Vídeos longos */}
         {!loading && videos.length > 0 && tab !== 'shorts' && (
-          <section className="pt-4 px-3">
-            {tab === 'all' && <h2 className="font-bold text-base mb-3">{t('recommended')}</h2>}
+          <section className="pt-4 px-3 nx-fade-up">
+            {tab === 'all' && (
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-bold text-base">{cat ? CATEGORIES.find(c => c.name === cat)?.icon + ' ' : ''}{t('recommended')}</h2>
+                <Link href="/categories" className="text-xs text-indigo-400 font-medium hidden sm:block">
+                  {lang === 'pt' ? 'Ver todas as categorias →' : 'View all categories →'}
+                </Link>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-7">
               {videos.map((v) => <VideoCard key={v.id} v={v} lang={lang} viewsLabel={t('views')} />)}
             </div>

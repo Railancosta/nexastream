@@ -3,6 +3,10 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   images: { unoptimized: true },
   trailingSlash: true,
+  output: 'export',
+  experimental: {
+    cpus: 4,
+  },
   async headers() {
     return [{
       source: '/:path*',

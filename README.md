@@ -2,6 +2,36 @@
 
 > ⚠️ **STATUS: EM DESENVOLVIMENTO** — Testnet local validada. **NÃO está pronto para produção** (Item 42).
 
+## 🎬 v3.1 — Real Upload via Cloudflare R2 (2026-08)
+
+Novidades nesta versão:
+
+- **Upload real para R2** — página `/upload/` reformulada com drag-and-drop, barra de progresso e metadados (título, descrição, categoria, thumbnail).
+- **Presigned uploads (S3 SigV4)** — o navegador envia o arquivo **direto para o R2** via URL assinada (sem passar pelo Worker), com suporte a **multipart upload** para arquivos grandes (partes de 25 MB, até 4 GB).
+- **Proxy fallback** — se as credenciais S3 não estiverem configuradas, o Worker recebe os bytes via `PUT /api/upload/proxy` e grava no bucket pela binding `BUCKET`.
+- **Streaming com Range** — `GET/HEAD /api/videos/stream/:r2Key` serve os vídeos do R2 com suporte a `Range` (seeking no player); thumbnails via `/api/videos/thumb/:r2Key`.
+- **Registro no D1** — `POST /api/upload/complete` registra o objeto no banco; o vídeo aparece automaticamente no feed, busca, categorias e relacionados.
+- **Backend v3.1** — módulo `workers/api/src/s3.ts` (assinatura SigV4 com WebCrypto, sem dependências), tabela `pending_uploads`, colunas `r2_key`/`file_size`/`mime_type`/`thumb_r2_key` em `videos`.
+
+**Deploy:** veja [DEPLOYMENT.md](DEPLOYMENT.md) — seção 7 cobre criação do bucket R2, CORS, secrets e verificação do fluxo.
+
+---
+
+## 🎬 v3.0 — Platform Update (2026-08)
+
+Novidades nesta versão:
+
+- **Categorias** — página `/categories` com navegação por gênero (Tecnologia, Crypto, Games, Web3…), chips com contagem e filtro no feed inicial.
+- **Minha Biblioteca** — página `/watchlist` com abas **Assistir depois** e **Favoritos** (localStorage-first, sincroniza com a API quando autenticado).
+- **Watch page reformulada** — botões Curtir / Assistir depois / Favoritar, seção **Relacionados** na sidebar, canal + inscrição.
+- **Busca avançada** — filtros por categoria, tipo (vídeo/short) e ordenação, além de termos em alta.
+- **Backend v3.0** — novos endpoints: `/api/categories`, `/api/videos/:id/related`, `/api/watchlist`, `/api/favorites`, `/api/history`; busca com filtros; feed `trending`; estado do viewer no detalhe do vídeo.
+- **Design system v2** — glassmorphism, hover lift, shimmer skeleton, animações, skin escura do video.js, PWA com shortcuts.
+
+**Deploy:** veja [DEPLOYMENT.md](DEPLOYMENT.md) para instruções completas (Cloudflare Pages + Workers + D1).
+
+---
+
 ## 🚀 Começando
 
 ### Pré-requisitos
@@ -97,12 +127,12 @@ docker-compose up -d
 
 | Endpoint | Método | Função |
 |---|---|---|
-| `/api/feed?tab=all\|shorts\|videos&viewer=<id>` | GET | Feed inteligente: ranking por engajamento (likes, conclusões), taxa de conclusão, views, recência e jitter de exploração por espectador. Separa `shorts` (≤60s ou vertical 9:16) de `videos` |
+| `/api/feed?tab=all|shorts|videos&viewer=<id>` | GET | Feed inteligente: ranking por engajamento (likes, conclusões), taxa de conclusão, views, recência e jitter de exploração por espectador. Separa `shorts` (≤60s ou vertical 9:16) de `videos` |
 | `/api/videos` | GET | Últimos vídeos prontos (cronológico) |
 | `/api/videos/:id` | GET | Detalhe + incrementa views |
 | `/api/videos/:id/like` | POST | Curtir (alimenta o ranking) |
 | `/api/videos/:id/watch` | POST | Telemetria de watch time/conclusão (alimenta o ranking) |
-| `/api/videos/upload?title=&description=&type=short\|video&duration=` | PUT | Upload (auth). Detecta duração/resolução via ffprobe e classifica Short automaticamente |
+| `/api/videos/upload?title=&description=&type=short|video&duration=` | PUT | Upload (auth). Detecta duração/resolução via ffprobe e classifica Short automaticamente |
 | `/api/search?q=` | GET | Busca textual em título/descrição |
 | `/api/geo` | GET | Detecção de idioma por IP (CF-IPCountry) / Accept-Language |
 | `/api/translate` | POST | Tradução de títulos/descrições via LibreTranslate self-hosted (`TRANSLATE_URL`) |
@@ -200,7 +230,7 @@ nexastream/
 
 1. **Fork** o repositório.
 2. **Crie uma branch** para sua feature (`git checkout -b feature/nova-feature`).
-3. **Faça commit** das suas mudanças (`git commit -m 'Adiciona nova feature'`).
+3. **Faça commit** das mudanças (`git commit -m 'Adiciona nova feature'`).
 4. **Push** para a branch (`git push origin feature/nova-feature`).
 5. **Abra um Pull Request**.
 

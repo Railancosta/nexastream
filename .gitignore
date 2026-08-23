@@ -24,3 +24,4 @@ start.sh
 .wrangler/
 .dev.vars
 .cloudflare/
+out/

@@ -13,14 +13,14 @@ const items = [
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
       <path strokeLinecap="round" strokeLinejoin="round" d="M13 3 4 14h6l-1 7 9-11h-6l1-7Z" fill={a ? 'currentColor' : 'none'} />
     </svg>) },
-  { href: '/live', key: 'live', icon: (a: boolean) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-      <circle cx="12" cy="12" r="3" fill={a ? 'currentColor' : 'none'} />
-      <path strokeLinecap="round" d="M7.5 7.5a6.5 6.5 0 0 0 0 9m9-9a6.5 6.5 0 0 1 0 9M5 5a10 10 0 0 0 0 14m14-14a10 10 0 0 1 0 14" />
-    </svg>) },
-  { href: '/notifications', key: 'alerts', icon: (a: boolean) => (
+  { href: '/watchlist', key: 'library', icon: (a: boolean) => (
     <svg viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 3H7a2 2 0 0 0-2 2v16l7-4 7 4V5a2 2 0 0 0-2-2Z" />
+    </svg>) },
+  { href: '/categories', key: 'categories', icon: (a: boolean) => (
+    <svg viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
     </svg>) },
   { href: '/login', key: 'profile', icon: (a: boolean) => (
     <svg viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" className="w-6 h-6">
