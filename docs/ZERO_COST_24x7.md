@@ -7,7 +7,7 @@ Objetivo: a plataforma **não depende do celular nem do Termux ligado**. O Termu
 | Camada | Onde roda 24/7 (grátis) | Como |
 |---|---|---|
 | Código + CI/CD | GitHub | `.github/workflows/ci.yml` (build + testes) e `deploy-site.yml` (deploy automático a cada push na `main`) |
-| Frontend (home, feed, shorts, upload) | GitHub Pages / Cloudflare Pages | `STATIC_EXPORT=1 npm run build` em `apps/web` — estático, CDN global grátis |
+| Frontend (home, feed, shorts, upload) | GitHub Pages / Cloudflare Pages | `npm run build` em `apps/web` (PWA estático, gera `out/`) — CDN global grátis |
 | DNS + CDN + HTTPS + geo-IP | Cloudflare (free) | Proxy do domínio; header `CF-IPCountry` alimenta `/api/geo` (tradução automática por IP) |
 | API (core, auth, vídeos, feed) | Nós da comunidade / qualquer VM ou PC ligado | `node services/core/server.js` — zero dependências, ~30 MB RAM |
 | Vídeos (storage) | Rede P2P (`p2p/`) | Chunks replicados entre nós; sobrevive a falha de nós individuais |
@@ -38,7 +38,7 @@ A blockchain **nano não tem smart contracts nem padrão de token** — ela tran
 ```sh
 pkg install nodejs ffmpeg git
 git clone https://github.com/Railancosta/nexastream
-cd nexastream/apps/web && npm ci && npm run build
+cd nexastream/apps/web && npm run build
 JWT_SECRET=$(openssl rand -hex 32) node ../../services/core/server.js &
 PORT=3000 npm start
 ```
@@ -50,7 +50,7 @@ O Termux serve para **desenvolver e testar**. Produção = GitHub + Cloudflare +
 O domínio `nexastream.org` está no GoDaddy (`ns67.domaincontrol.com`) e **não tem nenhum registro A/CNAME** — por isso o site não abre. Em GoDaddy → Meus produtos → DNS, adicione:
 
 ### Opção A — Dinâmico (Vercel, SSR Next.js) — RECOMENDADO
-1. Na Vercel (grátis): importe o repo `Railancosta/nexastream`, root = `apps/web`, framework Next.js. Adicione o domínio `nexastream.org`.
+1. Na Vercel (grátis): importe o repo `Railancosta/nexastream`, root = `apps/web`, output estático (`out/`). Adicione o domínio `nexastream.org`.
 2. No GitHub: Settings → Secrets and variables → Actions → crie a variável `VERCEL_ENABLED=true` e os secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (a Vercel mostra os IDs no `.vercel/project.json` após o primeiro link). A partir daí, todo push na `main` faz deploy automático (`.github/workflows/deploy-vercel.yml`).
 3. DNS no GoDaddy:
    - `A` → `@` → `76.76.21.21`

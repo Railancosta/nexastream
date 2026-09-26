@@ -32,7 +32,7 @@ async function payout(r) {
   try {
     const g = chainDb.prepare('SELECT txs FROM blocks WHERE idx=0').get();
     const treasuryAddr = JSON.parse(g.txs)[0].to;
-    const w = chainDb.prepare('SELECT privkey FROM wallets WHERE address=?').get(treasuryAddr);
+    const w = chainDb.prepare('SELECT privkey FROM chain_wallets WHERE address=?').get(treasuryAddr);
     if (w) {
       const resp = await fetch('http://localhost:3008/api/chain/tx', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: treasuryAddr, to: r.reporter_nst, amount: r.reward_nst, privateKey: w.privkey }) });
       const j = await resp.json();

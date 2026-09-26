@@ -25,12 +25,23 @@ jobs:
           fetch-depth: 0  # Necessário para o git history
 
       - name: TruffleHog OSS (Secret Scanner)
+        if: github.event_name != 'schedule'
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.before || github.event.repository.default_branch }}
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
           head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --only-verified
+
+      # On a scheduled run there is no "before" commit, so a diff scan would
+      # compare the branch against itself and TruffleHog exits with an error
+      # instead of scanning. Scan the full history instead.
+      - name: TruffleHog OSS (full history)
+        if: github.event_name == 'schedule'
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          extra_args: --only-verified
 
   # Job 2: Verificar vulnerabilidades em dependências
   dependency-audit:

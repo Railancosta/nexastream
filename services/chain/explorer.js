@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// NexaStream Explorer + Creator Economy — MAINNET
+// NexaStream Explorer + Creator Economy — TESTNET
 // Port 3009 | Zero npm deps (node:http + node:crypto + node:sqlite)
 //
 // Features:
@@ -19,6 +19,9 @@ const { DatabaseSync } = require('node:sqlite');
 const ROOT = path.resolve(__dirname, '../..');
 const chain = new DatabaseSync(path.join(ROOT, 'database', 'nexastream.db'), { readOnly: true });
 const exp = new DatabaseSync(path.join(ROOT, 'database', 'explorer.db'));
+// Must match the chain service so the explorer never reports a network the
+// chain itself does not claim.
+const NETWORK = process.env.NS_NETWORK || 'testnet';
 
 exp.exec(`
   CREATE TABLE IF NOT EXISTS binds(username TEXT PRIMARY KEY, address TEXT, created_at INTEGER DEFAULT (strftime('%s','now')*1000));
@@ -69,7 +72,7 @@ const server = http.createServer(async (req, res) => {
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const blocks = chain.prepare('SELECT idx, hash, prev, miner, ts, nonce, difficulty, txs FROM blocks ORDER BY idx DESC LIMIT ?').all(limit);
     return json(res, 200, {
-      network: 'mainnet',
+      network: NETWORK,
       height: blocks.length ? blocks[0].idx : 0,
       blocks: blocks.map(b => ({ ...b, txs: JSON.parse(b.txs), txCount: JSON.parse(b.txs).length }))
     });
@@ -119,7 +122,7 @@ const server = http.createServer(async (req, res) => {
   if (maddr) {
     const addr = maddr[1];
     const bal = chain.prepare('SELECT amount FROM balances WHERE address=?').get(addr);
-    const wallet = chain.prepare('SELECT created_at FROM wallets WHERE address=?').get(addr);
+    const wallet = chain.prepare('SELECT created_at FROM chain_wallets WHERE address=?').get(addr);
     const stake = chain.prepare('SELECT * FROM stakes WHERE address=? AND amount > 0').get(addr);
     return json(res, 200, {
       address: addr,
@@ -184,7 +187,7 @@ const server = http.createServer(async (req, res) => {
 
     // Execute reward transaction
     const tAddr = treasury();
-    const tr = chain.prepare('SELECT privkey FROM wallets WHERE address=?').get(tAddr);
+    const tr = chain.prepare('SELECT privkey FROM chain_wallets WHERE address=?').get(tAddr);
     const r = await fetch('http://localhost:3008/api/chain/tx', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -220,7 +223,7 @@ const server = http.createServer(async (req, res) => {
     const totalTxs = chain.prepare('SELECT COUNT(*) c FROM usedtx').get().c || 0;
     const totalRewards = exp.prepare('SELECT COUNT(*) c, SUM(amount) s FROM rewards').get();
     const bindings = exp.prepare('SELECT COUNT(*) c FROM binds').get().c;
-    const wallets = chain.prepare('SELECT COUNT(*) c FROM wallets').get().c;
+    const wallets = chain.prepare('SELECT COUNT(*) c FROM chain_wallets').get().c;
     const balances = chain.prepare('SELECT COUNT(*) c FROM balances WHERE amount > 0').get().c;
     const mempool = chain.prepare('SELECT COUNT(*) c FROM mempool').get().c;
 
@@ -232,7 +235,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     return json(res, 200, {
-      network: 'mainnet', height, totalWallets: wallets, activeAddresses: balances,
+      network: NETWORK, height, totalWallets: wallets, activeAddresses: balances,
       mempoolSize: mempool, avgBlockTimeMs: Math.round(avgBlockTime),
       rewards: { count: totalRewards.c || 0, totalNST: totalRewards.s || 0 },
       bindings, consensus: 'PoW-secp256k1'
@@ -241,12 +244,12 @@ const server = http.createServer(async (req, res) => {
 
   if (p === '/api/health') {
     const height = chain.prepare('SELECT MAX(idx) h FROM blocks').get().h || 0;
-    return json(res, 200, { ok: true, service: 'explorer', network: 'mainnet', height });
+    return json(res, 200, { ok: true, service: 'explorer', network: NETWORK, height });
   }
 
   json(res, 404, { error: 'rota nao encontrada' });
 });
 
 server.listen(process.env.PORT || 3009, () => {
-  console.log('Explorer + Creator Economy MAINNET: http://localhost:' + (process.env.PORT || 3009));
+  console.log('Explorer + Creator Economy ' + NETWORK.toUpperCase() + ': http://localhost:' + (process.env.PORT || 3009));
 });

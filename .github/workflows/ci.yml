@@ -20,7 +20,8 @@ jobs:
         run: |
           cd services/chain
           node server.js &
-          sleep 2
+          node explorer.js &
+          sleep 3
           node test-chain.mjs
       - name: Testes do core e do gateway de monetizacao
         run: |
@@ -53,6 +54,11 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: android-actions/setup-android@v3
+        with:
+          # The runner image preinstalls an sdkmanager older than this action
+          # expects; the default 'tools' package no longer exists in the SDK
+          # repository and makes the step fail before Gradle ever runs.
+          packages: platform-tools platforms;android-35 build-tools;35.0.0
       - uses: gradle/actions/setup-gradle@v4
       - name: Testes unitarios do app
         run: ./gradlew :app:testDebugUnitTest
@@ -63,6 +69,19 @@ jobs:
           name: nexastream-android-debug
           path: apps/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
+  platform:
+    name: Plataforma web (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # The root app is the actual web platform (src/app). It uses Tailwind via
+      # the root postcss.config.mjs, so it needs the root install.
+      - run: npm ci
+      - run: npm run build
   web:
     runs-on: ubuntu-latest
     defaults:
@@ -73,7 +92,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: apps/web/package-lock.json
-      - run: npm ci
+      # apps/web has no dependencies (static PWA shell built by build.mjs),
+      # so there is no lockfile to cache or install from.
       - run: npm run build
+      - name: Verificar que o bundle estatico foi gerado
+        run: |
+          for f in out/index.html out/app.js out/style.css out/manifest.webmanifest; do
+            test -f "$f" || { echo "faltando: $f"; exit 1; }
+          done

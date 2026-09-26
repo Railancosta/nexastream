@@ -1,6 +1,10 @@
 // ---------------------------------------------------------------------------
-// NexaStream Blockchain — MAINNET (Item 40 — community-audited launch)
+// NexaStream Blockchain — TESTNET
 // Port 3008 | Zero npm deps (node:http + node:crypto + node:sqlite)
+//
+// This is a testnet. It has not been independently audited and must not be
+// presented as mainnet (see the developer pitch plan: "MAINNET IS NOT A BUTTON").
+// Set NS_NETWORK=mainnet only after the Phase 6 gates are actually met.
 //
 // Features:
 //   - SHA-256 PoW with dynamic difficulty adjustment
@@ -28,7 +32,7 @@ db.exec(`
     idx INTEGER PRIMARY KEY, hash TEXT UNIQUE, prev TEXT, ts INTEGER,
     miner TEXT, nonce INTEGER, txs TEXT, difficulty INTEGER DEFAULT 2
   );
-  CREATE TABLE IF NOT EXISTS wallets(
+  CREATE TABLE IF NOT EXISTS chain_wallets(
     address TEXT PRIMARY KEY, pubkey TEXT, privkey TEXT, created_at INTEGER DEFAULT (strftime('%s','now')*1000)
   );
   CREATE TABLE IF NOT EXISTS balances(address TEXT PRIMARY KEY, amount REAL DEFAULT 0);
@@ -42,6 +46,9 @@ db.exec(`
 
 // --- Constants ---
 const MAX_SUPPLY = 55_000_000;
+// Reported by /api/health, /api/chain and the explorer. Defaults to testnet so a
+// default deployment can never advertise itself as a live network.
+const NETWORK = process.env.NS_NETWORK || 'testnet';
 const INITIAL_DIFF = 2;  // starts at 2 leading zeros
 const REWARD = 10;        // NST per block
 const FEE_RATE = 0.001;   // 0.1% fee on transfers
@@ -66,13 +73,13 @@ if (!g0) {
   const pub = kp.publicKey.export({ type: 'spki', format: 'pem' });
   const priv = kp.privateKey.export({ type: 'pkcs8', format: 'pem' });
   TREASURY_ADDR = sha(pub).slice(0, 40);
-  db.prepare('INSERT OR IGNORE INTO wallets VALUES (?,?,?,?)').run(TREASURY_ADDR, pub, priv, Date.now());
+  db.prepare('INSERT OR IGNORE INTO chain_wallets VALUES (?,?,?,?)').run(TREASURY_ADDR, pub, priv, Date.now());
   db.prepare('INSERT OR IGNORE INTO balances VALUES (?,?)').run(TREASURY_ADDR, MAX_SUPPLY);
   const txs = JSON.stringify([{ type: 'genesis', to: TREASURY_ADDR, amount: MAX_SUPPLY, ts: Date.now() }]);
   const base = { idx: 0, prev: '0'.repeat(64), ts: Date.now(), miner: 'genesis', txs, difficulty: INITIAL_DIFF };
   const hash = sha(JSON.stringify(base));
   db.prepare('INSERT INTO blocks VALUES (?,?,?,?,?,?,?,?)').run(0, hash, base.prev, base.ts, base.miner, 0, txs, INITIAL_DIFF);
-  db.prepare("INSERT OR REPLACE INTO chain_meta VALUES ('network','mainnet')").run();
+  db.prepare("INSERT OR REPLACE INTO chain_meta VALUES ('network',?)").run(NETWORK);
   db.prepare("INSERT OR REPLACE INTO chain_meta VALUES ('genesis_time',?)").run(String(Date.now()));
   console.log('GENESIS OK — 55M NST treasury at ' + TREASURY_ADDR.slice(0, 12) + '...');
 } else {
@@ -104,7 +111,7 @@ function newWallet() {
   const pub = kp.publicKey.export({ type: 'spki', format: 'pem' });
   const priv = kp.privateKey.export({ type: 'pkcs8', format: 'pem' });
   const address = sha(pub).slice(0, 40);
-  db.prepare('INSERT OR IGNORE INTO wallets VALUES (?,?,?,?)').run(address, pub, priv, Date.now());
+  db.prepare('INSERT OR IGNORE INTO chain_wallets VALUES (?,?,?,?)').run(address, pub, priv, Date.now());
   db.prepare('INSERT OR IGNORE INTO balances VALUES (?,0)').run(address);
   return { address, publicKey: pub, privateKey: priv };
 }
@@ -120,7 +127,7 @@ function submitTx(body) {
   if (!from || !to || !amount || amount <= 0) return { error: 'campos invalidos' };
   if (from === to) return { error: 'from e to sao iguais' };
 
-  const w = db.prepare('SELECT * FROM wallets WHERE address=?').get(from);
+  const w = db.prepare('SELECT * FROM chain_wallets WHERE address=?').get(from);
   if (!w) return { error: 'carteira nao existe' };
 
   const t = makeTx(from, to, amount, privateKey, db.prepare('SELECT COUNT(*) c FROM usedtx').get().c + 1);
@@ -192,7 +199,7 @@ function mine(miner) {
     const p = JSON.parse(r.payload);
 
     // Verify signature
-    const w = db.prepare('SELECT pubkey FROM wallets WHERE address=?').get(p.from);
+    const w = db.prepare('SELECT pubkey FROM chain_wallets WHERE address=?').get(p.from);
     if (!w || !verify(w.pubkey, r.payload, r.sig)) continue;
 
     // Verify balance
@@ -212,7 +219,7 @@ function mine(miner) {
   const totalFees = fees.reduce((a, b) => a + b, 0);
 
   // Block reward from treasury
-  const tr = db.prepare('SELECT * FROM wallets WHERE address=?').get(TREASURY_ADDR);
+  const tr = db.prepare('SELECT * FROM chain_wallets WHERE address=?').get(TREASURY_ADDR);
   if (tr) {
     const rw = makeTx(TREASURY_ADDR, miner, reward, tr.privkey, 1000000 + last.idx);
     db.prepare('UPDATE balances SET amount=amount-? WHERE address=?').run(reward, TREASURY_ADDR);
@@ -241,7 +248,7 @@ function mine(miner) {
 
 // --- Staking ---
 function stake(address, amount, privkey, delegator, until) {
-  const w = db.prepare('SELECT pubkey FROM wallets WHERE address=?').get(address);
+  const w = db.prepare('SELECT pubkey FROM chain_wallets WHERE address=?').get(address);
   if (!w) return { error: 'carteira nao existe' };
   if (!verify(w.privkey || '', '', '')) { /* skip */ }
 
@@ -276,7 +283,7 @@ function verifyChain() {
     // Transaction signature verification
     for (const tx of JSON.parse(b.txs)) {
       if (tx.type === 'genesis') continue;
-      const w = db.prepare('SELECT pubkey FROM wallets WHERE address=?').get(tx.from);
+      const w = db.prepare('SELECT pubkey FROM chain_wallets WHERE address=?').get(tx.from);
       const canon = JSON.stringify({ from: tx.from, to: tx.to, amount: tx.amount, nonce: tx.nonce, ts: tx.ts });
       if (!w || !verify(w.pubkey, canon, tx.sig)) {
         sigErrors++;
@@ -296,7 +303,7 @@ function verifyChain() {
     assinaturasInvalidas: sigErrors,
     maxSupply: MAX_SUPPLY,
     circulating: db.prepare('SELECT SUM(amount) s FROM balances').get().s,
-    network: 'mainnet'
+    network: NETWORK
   };
 }
 
@@ -312,7 +319,7 @@ const server = http.createServer(async (req, res) => {
   // --- Faucet (mainnet: limited, testnet: generous) ---
   if (p === '/api/chain/faucet' && req.method === 'POST') {
     const amount = Math.min(body.amount || 100, 1000); // max 1000 NST per faucet call
-    const tr = db.prepare('SELECT * FROM wallets WHERE address=?').get(TREASURY_ADDR);
+    const tr = db.prepare('SELECT * FROM chain_wallets WHERE address=?').get(TREASURY_ADDR);
     return json(res, 200, submitTx({ from: TREASURY_ADDR, to: body.to, amount, privateKey: tr.privkey }));
   }
 
@@ -351,7 +358,7 @@ const server = http.createServer(async (req, res) => {
     const blocks = db.prepare('SELECT idx, hash, miner, ts, difficulty FROM blocks ORDER BY idx DESC LIMIT 10').all();
     const totalSupply = db.prepare('SELECT SUM(amount) s FROM balances').get().s || 0;
     return json(res, 200, {
-      network: 'mainnet', height, difficulty: diff, reward,
+      network: NETWORK, height, difficulty: diff, reward,
       totalSupply: Math.round(totalSupply * 1e4) / 1e4, maxSupply: MAX_SUPPLY,
       circulating: Math.round((MAX_SUPPLY - totalSupply + db.prepare('SELECT amount FROM balances WHERE address=?').get(TREASURY_ADDR)?.amount || 0) * 1e4) / 1e4,
       consensus: 'PoW-secp256k1', blocks
@@ -395,7 +402,7 @@ const server = http.createServer(async (req, res) => {
   if (p === '/api/health') {
     const height = db.prepare('SELECT MAX(idx) h FROM blocks').get().h || 0;
     const mempool = db.prepare('SELECT COUNT(*) c FROM mempool').get().c;
-    return json(res, 200, { ok: true, service: 'chain', network: 'mainnet', height, mempool, uptime: process.uptime() | 0 });
+    return json(res, 200, { ok: true, service: 'chain', network: NETWORK, height, mempool, uptime: process.uptime() | 0 });
   }
 
   json(res, 404, { error: 'rota nao encontrada' });
@@ -403,5 +410,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(process.env.PORT || 3008, () => {
   const height = db.prepare('SELECT MAX(idx) h FROM blocks').get().h || 0;
-  console.log('NST Chain MAINNET: http://localhost:' + (process.env.PORT || 3008) + ' (height=' + height + ')');
+  console.log('NST Chain ' + NETWORK.toUpperCase() + ': http://localhost:' + (process.env.PORT || 3008) + ' (height=' + height + ')');
 });
