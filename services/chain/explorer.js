@@ -13,15 +13,43 @@
 
 const http = require('node:http');
 const crypto = require('node:crypto');
+const fs = require('node:fs');
 const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
-const chain = new DatabaseSync(path.join(ROOT, 'database', 'nexastream.db'), { readOnly: true });
-const exp = new DatabaseSync(path.join(ROOT, 'database', 'explorer.db'));
-// Must match the chain service so the explorer never reports a network the
-// chain itself does not claim.
+const DB_DIR = path.join(ROOT, 'database');
+const CHAIN_DB = path.join(DB_DIR, 'nexastream.db');
 const NETWORK = process.env.NS_NETWORK || 'testnet';
+
+fs.mkdirSync(DB_DIR, { recursive: true });
+
+// The explorer only reads the chain DB, so it cannot create it. When both
+// processes start together the chain server may not have written the file yet,
+// and a readOnly open then fails with "unable to open database file" instead of
+// waiting. Poll until the chain has created it, then open read-only.
+function openChainDb(timeoutMs = 30000) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    if (fs.existsSync(CHAIN_DB)) {
+      try {
+        return new DatabaseSync(CHAIN_DB, { readOnly: true });
+      } catch (err) {
+        if (Date.now() >= deadline) throw err;
+      }
+    }
+    if (Date.now() >= deadline) {
+      throw new Error(
+        `chain database not found at ${CHAIN_DB} after ${timeoutMs}ms — start services/chain/server.js first`
+      );
+    }
+    // Synchronous sleep: module init is sequential and the wait is short.
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+  }
+}
+
+const chain = openChainDb();
+const exp = new DatabaseSync(path.join(DB_DIR, 'explorer.db'));
 
 exp.exec(`
   CREATE TABLE IF NOT EXISTS binds(username TEXT PRIMARY KEY, address TEXT, created_at INTEGER DEFAULT (strftime('%s','now')*1000));

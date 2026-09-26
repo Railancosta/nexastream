@@ -15,16 +15,21 @@
 //   - Persistent SQLite storage
 //   - Full chain verification (hashes + signatures)
 //   - Staking/delegation support (PoS hybrid)
-//   - Mainnet status (community-audited, Item 62)
+//   - Network label via NS_NETWORK (defaults to testnet)
 // ---------------------------------------------------------------------------
 
 const http = require('node:http');
 const crypto = require('node:crypto');
+const fs = require('node:fs');
 const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
-const db = new DatabaseSync(path.join(ROOT, 'database', 'nexastream.db'));
+const DB_DIR = path.join(ROOT, 'database');
+// The database directory is gitignored, so it does not exist in a fresh clone
+// and SQLite refuses to create the file inside a missing directory.
+fs.mkdirSync(DB_DIR, { recursive: true });
+const db = new DatabaseSync(path.join(DB_DIR, 'nexastream.db'));
 
 // --- Schema ---
 db.exec(`
@@ -316,7 +321,7 @@ const server = http.createServer(async (req, res) => {
   // --- Wallet ---
   if (p === '/api/chain/wallet' && req.method === 'POST') return json(res, 200, newWallet());
 
-  // --- Faucet (mainnet: limited, testnet: generous) ---
+  // --- Faucet (testnet only: dispenses from the genesis treasury) ---
   if (p === '/api/chain/faucet' && req.method === 'POST') {
     const amount = Math.min(body.amount || 100, 1000); // max 1000 NST per faucet call
     const tr = db.prepare('SELECT * FROM chain_wallets WHERE address=?').get(TREASURY_ADDR);
