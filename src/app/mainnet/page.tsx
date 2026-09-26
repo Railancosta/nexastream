@@ -7,6 +7,8 @@ export default function MainnetPage() {
   const [explorer, setExplorer] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
+  const isMainnet = chain?.network === 'mainnet'
+
   useEffect(() => {
     Promise.all([
       fetch(API() + '/api/chain').then(r => r.json()).catch(() => null),
@@ -28,14 +30,23 @@ export default function MainnetPage() {
   return (
     <main className="pb-24 md:pb-8">
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-        {/* Status Banner */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-green-950 to-emerald-950 border border-green-800">
+        {/* Status Banner — reflects the network the API actually reports, so a
+            testnet deployment can never advertise itself as a live mainnet. */}
+        <div className={`p-5 rounded-2xl border ${
+          isMainnet
+            ? 'bg-gradient-to-br from-green-950 to-emerald-950 border-green-800'
+            : 'bg-gradient-to-br from-amber-950 to-yellow-950 border-amber-800'
+        }`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-            <h1 className="text-xl font-bold">NST MAINNET — ATIVA</h1>
+            <div className={`w-3 h-3 rounded-full animate-pulse ${isMainnet ? 'bg-green-400' : 'bg-amber-400'}`} />
+            <h1 className="text-xl font-bold">
+              {isMainnet ? 'NST MAINNET — ATIVA' : 'NST TESTNET — EM TESTE'}
+            </h1>
           </div>
-          <p className="text-sm text-green-300">
-            Lançamento com auditoria comunitária. Usuários são auditores independentes da plataforma de vídeo.
+          <p className={`text-sm ${isMainnet ? 'text-green-300' : 'text-amber-300'}`}>
+            {isMainnet
+              ? 'Mainnet ativada após os gates da Fase 6.'
+              : 'Rede de teste. Sem valor real, sem promessa de ganhos. A mainnet só é ativada após auditorias independentes, testes de consenso e validação de recuperação de desastre (Fase 6) — "mainnet não é um botão".'}
           </p>
         </div>
 
@@ -62,7 +73,9 @@ export default function MainnetPage() {
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="text-[10px] px-2 py-1 rounded-full bg-green-900 text-green-300">MAINNET</span>
+              <span className={`text-[10px] px-2 py-1 rounded-full ${
+                isMainnet ? 'bg-green-900 text-green-300' : 'bg-amber-900 text-amber-300'
+              }`}>{isMainnet ? 'MAINNET' : 'TESTNET'}</span>
               <span className="text-[10px] px-2 py-1 rounded-full bg-indigo-900 text-indigo-300">PoW-secp256k1</span>
               <span className="text-[10px] px-2 py-1 rounded-full bg-purple-900 text-purple-300">55M MAX</span>
             </div>
@@ -117,7 +130,7 @@ export default function MainnetPage() {
               <span className="text-green-400 mt-0.5">✓</span>
               <div>
                 <p className="font-semibold">Supply máximo fixo</p>
-                <p className="text-gray-400">55.000.000 NST —硬编码 no genesis, verificável</p>
+                <p className="text-gray-400">55.000.000 NST — fixado no genesis, verificável</p>
               </div>
             </div>
             <div className="flex items-start gap-2">
@@ -130,8 +143,8 @@ export default function MainnetPage() {
             <div className="flex items-start gap-2">
               <span className="text-green-400 mt-0.5">✓</span>
               <div>
-                <p className="font-semibold">Auditoria comunitária (Item 62)</p>
-                <p className="text-gray-400">Usuários são auditores independentes. Código aberto. Revisão por参加者.</p>
+                <p className="font-semibold">Código aberto e verificável</p>
+                <p className="text-gray-400">Código público e cadeia verificável por qualquer pessoa. A auditoria independente da Fase 6 ainda não foi realizada.</p>
               </div>
             </div>
           </div>
@@ -168,7 +181,7 @@ export default function MainnetPage() {
             <li>• NST não é investimento. Não há promessa de ganhos.</li>
             <li>• Possuir NFT ≠ propriedade de direitos autorais (Item 19).</li>
             <li>• Rede em evolução. Use por sua conta e risco.</li>
-            <li>• Auditoria comunitária: qualquer pessoa pode verificar o código e a cadeia.</li>
+            <li>• Auditoria independente (Fase 6) ainda pendente. Não trate esta rede como pronta para produção.</li>
           </ul>
         </div>
       </div>

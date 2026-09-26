@@ -2,7 +2,8 @@
 
 ## Stack
 - Backend: Node.js zero-dependências (`node:http` + `node:sqlite` DatabaseSync) em `services/*/server.js`. Core na porta 3002 exige `JWT_SECRET` no ambiente, senão aborta.
-- Frontend: Next.js 16 (Turbopack) + Tailwind v4 em `apps/web`. Build: `npm run build` (STATIC_EXPORT=1 gera estático).
+- Frontend: o app Next.js 16 + Tailwind v4 é a **raiz do repo** (`src/app`, build `npm run build`). `apps/web` é só um PWA estático (index.html + app.js + style.css, build `node build.mjs` que gera `out/`). `apps/site` é o portal público, também Next.
+- Android: app nativo Kotlin + Compose em `apps/android` (`./gradlew :app:testDebugUnitTest`, `:app:assembleDebug`).
 - Transcoding: ffmpeg/ffprobe precisam estar no PATH (no sandbox, binário estático instalado em /usr/local/bin a partir de johnvansickle.com).
 
 ## Feed inteligente
@@ -28,3 +29,30 @@
 - Serviços com type:module + server.js CJS foram renomeados p/ server.cjs (moderation, kpi, live, analytics).
 - nanocurrency v2 é ASYNC: await generateSeed()/deriveSecretKey(seed, 0); endereço via deriveAddress (prefixo xrb_ -> trocar p/ nano_).
 - database/nano-treasury.json contém SEED — gitignored, nunca commitar.
+
+## Sessão 3 (Android + monetização + correções de infra)
+- **Colisão de tabela `wallets`**: core e chain compartilham `database/nexastream.db`. O core cria `wallets(owner_id, nst_micro, ...)` e o chain criava `wallets(address, pubkey, privkey, ...)`. Como `CREATE TABLE IF NOT EXISTS` mantém a primeira, o chain quebrava no boot com "table wallets has 10 columns but 4 values were supplied". A tabela do chain agora é `chain_wallets` (também usada por explorer.js e bounty/server.js). Nunca reutilize nome de tabela entre serviços que abrem o mesmo arquivo.
+- **Rede**: chain/explorer reportavam `network: 'mainnet'` fixo. Agora usam `NS_NETWORK` (padrão `testnet`). Só defina `NS_NETWORK=mainnet` após os gates da Fase 6.
+- **apps/web NÃO é Next**: é um PWA estático (index.html + app.js + style.css). Não tem `app/` nem `pages/`, então `next build` sempre falhava. O build agora é `node build.mjs` (monta `out/`, que CI e deploy-site consomem). `style.css` estava faltando e foi recriado.
+- **apps/site tem postcss.config.mjs próprio** (plugins vazios) para não herdar o Tailwind da raiz. Sem isso, o build do site falha quando o `node_modules` da raiz não existe — que é exatamente o caso do CI.
+- **CI**: job `android` precisa de `packages:` explícito no setup-android (o pacote `tools` não existe mais e o sdkmanager pré-instalado é antigo). O job de chain precisa subir `explorer.js` junto, senão 7 testes do explorer falham. Job `platform` adicionado para buildar o app Next da raiz.
+- **Secret Scan**: em execução `schedule` não existe `github.event.before`, então o diff comparava o branch com ele mesmo e o TruffleHog falhava. Agora o scan agendado usa histórico completo.
+- Contract test (`apps/android/contract-test.mjs`) valida os campos que os parsers Android leem; se renomear rota/campo, ele quebra antes do device.
+
+## Sessão 3 (Android + monetização, reparo de CI)
+- **Sempre abra SQLite via `services/lib/sqlite.js`** (`openDatabase`), nunca `new DatabaseSync` direto. Vários serviços compartilham `database/nexastream.db` (chain, core, content, auth, videos, social, dao, bounty, search); sem `busy_timeout` o SQLite falha na hora com `database is locked` (errcode 5) em qualquer escrita concorrente. O helper também cria o diretório, liga WAL e aceita `NS_SQLITE_BUSY_TIMEOUT_MS`.
+- **`database/` é gitignored e não existe no clone limpo.** `database/*.db` NÃO cobre os sidecars do WAL — `.gitignore` agora tem `database/*.db-wal` e `database/*.db-shm`.
+- **Explorer abre o DB da chain como readOnly**, então não pode criá-lo: ele espera o arquivo aparecer (poll de 30s). Sem isso ele crasha se subir junto com `server.js`.
+- **Testar como o CI testa**: o job `backend` deixa `node server.js`/`explorer.js` rodando entre steps, e é isso que expõe o lock. Rodar os testes com os serviços já em execução, não em sequência limpa.
+- Cuidado ao matar processos: `node server.js` não tem caminho na linha de comando, então `pkill -f services/chain` não pega. Use `ps aux` + PID.
+- Não afirmar mainnet/auditoria onde não existe: `src/app/mainnet/page.tsx` agora segue `chain.network` (o gate real é `services/mainnet`, porta 3024). Comentários do `services/chain` que diziam "community-audited" foram corrigidos.
+
+## Sessão 4 (auditoria de deploys + gitlink)
+- **Gitlink órfão `nexastream`**: o caminho estava versionado como submodule (mode 160000) apontando para `68075ec5`, sem `.gitmodules` e sem o objeto no repo. Todo `actions/checkout` imprimia `fatal: No url found for submodule path 'nexastream' in .gitmodules` (exit 128). Removido do índice; nada no repo referencia o caminho (os matches de `nexastream/` são nomes de pacote npm). Verifique com `git ls-files -s | awk '$1=="160000"'` — deve ficar vazio.
+- **Deploy workflows quebrados no `main`** (não aparecem em PR porque rodam só em push/`main`):
+  - `Deploy site`: corrigido pelo postcss próprio do `apps/site` (ver Sessão 3). Testar com `npm ci` limpo, não com `node_modules` já populado.
+  - `Deploy to Cloudflare Pages`: `npm ci` na raiz abortava com `Missing: @cloudflare/workers-types` — o lockfile raiz estava fora de sincronia. Corrigido no lockfile.
+  - `Deploy NexaStream API`: falha por falta do secret `CLOUDFLARE_API_TOKEN` (erro do wrangler em ambiente não interativo). Não é corrigível em código — precisa configurar o secret no repo.
+- **Sempre validar workflows que só rodam em `main`**: `gh run list --branch main` mostra o histórico. `gh run list` do PR não cobre deploys. Rodar `npm ci` (não `npm install`) reproduz o CI.
+- **Security Audit agendado falhava há ~2 semanas** no `main` pelo mesmo motivo do Secret Scan (Sessão 3): o fix só passa a valer depois do merge.
+- Check externo "Deploy to Wasmer Edge" é uma GitHub App de terceiros; não há config no repo e não dá para corrigir aqui.

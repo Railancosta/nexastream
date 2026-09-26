@@ -17,7 +17,7 @@ jobs:
       - name: Build portal
         run: cd apps/site && npm ci && npm run build
       - name: Build platform UI (static)
-        run: cd apps/web && npm ci && STATIC_EXPORT=1 npm run build
+        run: cd apps/web && npm run build
       - name: Merge outputs
         run: |
           mkdir -p out/app

@@ -2,14 +2,14 @@ const http = require('node:http');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
+const { openDatabase } = require('../lib/sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
 const DB_PATH = path.join(ROOT, 'database', 'nexastream.db');
 const MANIFESTS = path.join(ROOT, 'storage', 'manifests');
 fs.mkdirSync(MANIFESTS, { recursive: true });
 
-const db = new DatabaseSync(DB_PATH);
+const db = openDatabase(DB_PATH);
 try { db.exec('ALTER TABLE videos ADD COLUMN content_id TEXT'); } catch (e) {}
 
 const CHUNK = 256 * 1024;

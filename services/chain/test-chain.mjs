@@ -139,10 +139,10 @@ describe('Mining', () => {
 
 // --- CHAIN INFO TESTS ---
 describe('Chain Info', () => {
-  it('returns chain status with mainnet', async () => {
+  it('returns chain status with the configured network', async () => {
     const { status, data } = await api(BASE + '/api/chain');
     assert.strictEqual(status, 200);
-    assert.strictEqual(data.network, 'mainnet');
+    assert.strictEqual(data.network, process.env.NS_NETWORK || 'testnet');
     assert.ok(typeof data.height === 'number');
     assert.ok(typeof data.difficulty === 'number');
     assert.ok(typeof data.reward === 'number');
@@ -172,7 +172,7 @@ describe('Chain Verification', () => {
     assert.strictEqual(data.valid, true);
     assert.ok(data.height >= 0);
     assert.ok(data.assinaturasVerificadas >= 0);
-    assert.strictEqual(data.network, 'mainnet');
+    assert.strictEqual(data.network, process.env.NS_NETWORK || 'testnet');
     assert.strictEqual(data.maxSupply, 55000000);
   });
 });
@@ -203,7 +203,7 @@ describe('Explorer', () => {
   it('returns chain overview', async () => {
     const { status, data } = await api(EXPLORER + '/api/explorer');
     assert.strictEqual(status, 200);
-    assert.strictEqual(data.network, 'mainnet');
+    assert.strictEqual(data.network, process.env.NS_NETWORK || 'testnet');
     assert.ok(typeof data.height === 'number');
     assert.ok(Array.isArray(data.blocks));
   });
@@ -242,7 +242,7 @@ describe('Health', () => {
     const { status, data } = await api(BASE + '/api/health');
     assert.strictEqual(status, 200);
     assert.ok(data.ok);
-    assert.strictEqual(data.network, 'mainnet');
+    assert.strictEqual(data.network, process.env.NS_NETWORK || 'testnet');
   });
 
   it('explorer health endpoint', async () => {

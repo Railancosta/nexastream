@@ -2,6 +2,9 @@ node_modules/
 .next/
 storage/
 database/*.db
+# SQLite WAL sidecar files: writing in WAL mode creates these next to every DB.
+database/*.db-wal
+database/*.db-shm
 *.log
 .env
 teste_video.mp4

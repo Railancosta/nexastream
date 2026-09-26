@@ -2,7 +2,7 @@ export default function Roadmap() {
   const phases = [
     { phase: 'Phase 0', title: 'Codebase Audit', status: 'done', items: ['Inventário completo', 'Mapa da arquitetura', 'Security review inicial', 'Identificação de dívidas técnicas'] },
     { phase: 'Phase 1', title: 'Foundation (MVP)', status: 'done', items: ['Backend + SQLite', 'Auth JWT', 'Canais + uploads', 'Transcoding ffmpeg', 'Player, busca, feed', 'Analytics básico'] },
-    { phase: 'Phase 2', title: 'Creator Platform', status: 'wip', items: ['Creator Studio', 'Comentários + inscrições', 'Notificações', 'Monetização (1 NST/view)', 'Live streaming (planejado)'] },
+    { phase: 'Phase 2', title: 'Creator Platform', status: 'wip', items: ['Creator Studio', 'Gateway de monetização (accrue, wallet, studio)', 'Split 50/50 com ledger auditável', 'Payout com validação de endereço + timelock', 'App Android nativo (feed, shorts, upload, wallet)', 'Live streaming (planejado)'] },
     { phase: 'Phase 3', title: 'Decentralized Infra', status: 'done', items: ['P2P peer discovery', 'Chunk transfer com integridade', 'Content addressing', 'Replication básica', 'Node monitoring'] },
     { phase: 'Phase 4', title: 'Blockchain Testnet', status: 'wip', items: ['Genesis 55M NST', 'Carteiras secp256k1', 'Tx assinadas + PoW', 'Explorer + wallet', 'Sem auditoria ainda'] },
     { phase: 'Phase 5', title: 'Security', status: 'planned', items: ['Threat modeling', 'Code audit externo', 'Penetration testing', 'Disaster recovery', 'Backup recovery tests'] },

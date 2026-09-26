@@ -1,12 +1,12 @@
 const http = require('node:http');
 const crypto = require('node:crypto');
 const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
+const { openDatabase } = require('../lib/sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
-const db = new DatabaseSync(path.join(ROOT, 'database', 'social.db'));
+const db = openDatabase(path.join(ROOT, 'database', 'social.db'));
 let coreDb = null;
-try { coreDb = new DatabaseSync(path.join(ROOT, 'database', 'nexastream.db'), { readOnly: true }); } catch (e) {}
+try { coreDb = openDatabase(path.join(ROOT, 'database', 'nexastream.db'), { readOnly: true }); } catch (e) {}
 
 db.exec(`CREATE TABLE IF NOT EXISTS comments(id TEXT PRIMARY KEY, video_id TEXT, username TEXT, content TEXT, created_at TEXT DEFAULT (datetime('now')));
 CREATE TABLE IF NOT EXISTS subscriptions(id TEXT PRIMARY KEY, subscriber TEXT, channel TEXT, created_at TEXT DEFAULT (datetime('now')), UNIQUE(subscriber, channel));

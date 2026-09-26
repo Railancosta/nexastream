@@ -1,9 +1,9 @@
 const http = require('node:http');
 const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
+const { openDatabase } = require('../lib/sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
-function openRo(name) { try { return new DatabaseSync(path.join(ROOT, 'database', name), { readOnly: true }); } catch (e) { return null; } }
+function openRo(name) { try { return openDatabase(path.join(ROOT, 'database', name), { readOnly: true }); } catch (e) { return null; } }
 const core = openRo('nexastream.db');
 const social = openRo('social.db');
 const analytics = openRo('analytics.db');
