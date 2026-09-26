@@ -39,3 +39,11 @@
 - **Secret Scan**: em execução `schedule` não existe `github.event.before`, então o diff comparava o branch com ele mesmo e o TruffleHog falhava. Agora o scan agendado usa histórico completo.
 - Contract test (`apps/android/contract-test.mjs`) valida os campos que os parsers Android leem; se renomear rota/campo, ele quebra antes do device.
 
+## Sessão 3 (Android + monetização, reparo de CI)
+- **Sempre abra SQLite via `services/lib/sqlite.js`** (`openDatabase`), nunca `new DatabaseSync` direto. Vários serviços compartilham `database/nexastream.db` (chain, core, content, auth, videos, social, dao, bounty, search); sem `busy_timeout` o SQLite falha na hora com `database is locked` (errcode 5) em qualquer escrita concorrente. O helper também cria o diretório, liga WAL e aceita `NS_SQLITE_BUSY_TIMEOUT_MS`.
+- **`database/` é gitignored e não existe no clone limpo.** `database/*.db` NÃO cobre os sidecars do WAL — `.gitignore` agora tem `database/*.db-wal` e `database/*.db-shm`.
+- **Explorer abre o DB da chain como readOnly**, então não pode criá-lo: ele espera o arquivo aparecer (poll de 30s). Sem isso ele crasha se subir junto com `server.js`.
+- **Testar como o CI testa**: o job `backend` deixa `node server.js`/`explorer.js` rodando entre steps, e é isso que expõe o lock. Rodar os testes com os serviços já em execução, não em sequência limpa.
+- Cuidado ao matar processos: `node server.js` não tem caminho na linha de comando, então `pkill -f services/chain` não pega. Use `ps aux` + PID.
+- Não afirmar mainnet/auditoria onde não existe: `src/app/mainnet/page.tsx` agora segue `chain.network` (o gate real é `services/mainnet`, porta 3024). Comentários do `services/chain` que diziam "community-audited" foram corrigidos.
+
