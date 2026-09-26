@@ -47,3 +47,12 @@
 - Cuidado ao matar processos: `node server.js` não tem caminho na linha de comando, então `pkill -f services/chain` não pega. Use `ps aux` + PID.
 - Não afirmar mainnet/auditoria onde não existe: `src/app/mainnet/page.tsx` agora segue `chain.network` (o gate real é `services/mainnet`, porta 3024). Comentários do `services/chain` que diziam "community-audited" foram corrigidos.
 
+## Sessão 4 (auditoria de deploys + gitlink)
+- **Gitlink órfão `nexastream`**: o caminho estava versionado como submodule (mode 160000) apontando para `68075ec5`, sem `.gitmodules` e sem o objeto no repo. Todo `actions/checkout` imprimia `fatal: No url found for submodule path 'nexastream' in .gitmodules` (exit 128). Removido do índice; nada no repo referencia o caminho (os matches de `nexastream/` são nomes de pacote npm). Verifique com `git ls-files -s | awk '$1=="160000"'` — deve ficar vazio.
+- **Deploy workflows quebrados no `main`** (não aparecem em PR porque rodam só em push/`main`):
+  - `Deploy site`: corrigido pelo postcss próprio do `apps/site` (ver Sessão 3). Testar com `npm ci` limpo, não com `node_modules` já populado.
+  - `Deploy to Cloudflare Pages`: `npm ci` na raiz abortava com `Missing: @cloudflare/workers-types` — o lockfile raiz estava fora de sincronia. Corrigido no lockfile.
+  - `Deploy NexaStream API`: falha por falta do secret `CLOUDFLARE_API_TOKEN` (erro do wrangler em ambiente não interativo). Não é corrigível em código — precisa configurar o secret no repo.
+- **Sempre validar workflows que só rodam em `main`**: `gh run list --branch main` mostra o histórico. `gh run list` do PR não cobre deploys. Rodar `npm ci` (não `npm install`) reproduz o CI.
+- **Security Audit agendado falhava há ~2 semanas** no `main` pelo mesmo motivo do Secret Scan (Sessão 3): o fix só passa a valer depois do merge.
+- Check externo "Deploy to Wasmer Edge" é uma GitHub App de terceiros; não há config no repo e não dá para corrigir aqui.
