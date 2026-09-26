@@ -1,12 +1,12 @@
 const http = require('node:http');
 const crypto = require('node:crypto');
 const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
+const { openDatabase } = require('../lib/sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
-const db = new DatabaseSync(path.join(ROOT, 'database', 'bounty.db'));
+const db = openDatabase(path.join(ROOT, 'database', 'bounty.db'));
 let chainDb = null;
-try { chainDb = new DatabaseSync(path.join(ROOT, 'database', 'nexastream.db'), { readOnly: true }); } catch (e) {}
+try { chainDb = openDatabase(path.join(ROOT, 'database', 'nexastream.db'), { readOnly: true }); } catch (e) {}
 
 db.exec(`CREATE TABLE IF NOT EXISTS reports(id TEXT PRIMARY KEY, reporter TEXT, reporter_nst TEXT, title TEXT, description TEXT, poc_url TEXT, severity TEXT DEFAULT 'unrated', reward_nst REAL DEFAULT 0, status TEXT DEFAULT 'open', timelock_until INTEGER DEFAULT 0, created_at INTEGER);
 CREATE TABLE IF NOT EXISTS approvals(id TEXT PRIMARY KEY, report_id TEXT, approver TEXT, ts INTEGER, UNIQUE(report_id, approver));

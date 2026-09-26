@@ -1,12 +1,12 @@
 const http = require('node:http');
 const crypto = require('node:crypto');
 const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
+const { openDatabase } = require('../lib/sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
-const db = new DatabaseSync(path.join(ROOT, 'database', 'dao.db'));
+const db = openDatabase(path.join(ROOT, 'database', 'dao.db'));
 let chain = null;
-try { chain = new DatabaseSync(path.join(ROOT, 'database', 'nexastream.db'), { readOnly: true }); } catch (e) {}
+try { chain = openDatabase(path.join(ROOT, 'database', 'nexastream.db'), { readOnly: true }); } catch (e) {}
 
 db.exec(`CREATE TABLE IF NOT EXISTS proposals(id TEXT PRIMARY KEY, title TEXT, description TEXT, proposer TEXT, type TEXT DEFAULT 'general', amount REAL DEFAULT 0, to_addr TEXT, status TEXT DEFAULT 'active', yes REAL DEFAULT 0, no REAL DEFAULT 0, created_at INTEGER, ends_at INTEGER, timelock_h REAL DEFAULT 24, execute_after INTEGER, result TEXT);
 CREATE TABLE IF NOT EXISTS votes(id TEXT PRIMARY KEY, proposal_id TEXT, voter TEXT, weight REAL, choice TEXT, created_at INTEGER, UNIQUE(proposal_id, voter));

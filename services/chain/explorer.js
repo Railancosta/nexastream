@@ -15,14 +15,12 @@ const http = require('node:http');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
+const { openDatabase } = require('../lib/sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
 const DB_DIR = path.join(ROOT, 'database');
 const CHAIN_DB = path.join(DB_DIR, 'nexastream.db');
 const NETWORK = process.env.NS_NETWORK || 'testnet';
-
-fs.mkdirSync(DB_DIR, { recursive: true });
 
 // The explorer only reads the chain DB, so it cannot create it. When both
 // processes start together the chain server may not have written the file yet,
@@ -33,7 +31,7 @@ function openChainDb(timeoutMs = 30000) {
   for (;;) {
     if (fs.existsSync(CHAIN_DB)) {
       try {
-        return new DatabaseSync(CHAIN_DB, { readOnly: true });
+        return openDatabase(CHAIN_DB, { readOnly: true });
       } catch (err) {
         if (Date.now() >= deadline) throw err;
       }
@@ -49,7 +47,7 @@ function openChainDb(timeoutMs = 30000) {
 }
 
 const chain = openChainDb();
-const exp = new DatabaseSync(path.join(DB_DIR, 'explorer.db'));
+const exp = openDatabase(path.join(DB_DIR, 'explorer.db'));
 
 exp.exec(`
   CREATE TABLE IF NOT EXISTS binds(username TEXT PRIMARY KEY, address TEXT, created_at INTEGER DEFAULT (strftime('%s','now')*1000));

@@ -3,7 +3,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
-const { DatabaseSync } = require('node:sqlite');
+const { openDatabase } = require('../lib/sqlite');
 const monetization = require('./monetization');
 
 const ROOT = path.resolve(__dirname, '../..');
@@ -19,9 +19,8 @@ if (!SECRET) {
 
 fs.mkdirSync(path.join(STORAGE, 'videos'), { recursive: true });
 fs.mkdirSync(path.join(STORAGE, 'thumbs'), { recursive: true });
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
-const db = new DatabaseSync(DB_PATH);
+const db = openDatabase(DB_PATH);
 db.exec(`CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, email TEXT UNIQUE, password_hash TEXT, username TEXT UNIQUE);
 CREATE TABLE IF NOT EXISTS channels(id TEXT PRIMARY KEY, owner_id TEXT, name TEXT, handle TEXT UNIQUE);
 CREATE TABLE IF NOT EXISTS videos(id TEXT PRIMARY KEY, channel_id TEXT, title TEXT, description TEXT, video_path TEXT, thumbnail_path TEXT, duration INTEGER DEFAULT 0, status TEXT DEFAULT 'processing', views INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')));`);

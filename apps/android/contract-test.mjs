@@ -9,8 +9,10 @@
  */
 const BASE = process.env.CORE_URL || 'http://127.0.0.1:3002';
 const DB_PATH = process.env.DB_PATH || 'database/nexastream.db';
-const { DatabaseSync } = await import('node:sqlite');
-const db = new DatabaseSync(DB_PATH);
+// This harness writes directly to the shared database while the services hold
+// it open, so it needs the same lock tolerance they do.
+const { openDatabase } = await import('../../services/lib/sqlite.js');
+const db = openDatabase(DB_PATH);
 let pass = 0, fail = 0;
 const failures = [];
 

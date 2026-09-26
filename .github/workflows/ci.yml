@@ -13,7 +13,7 @@ jobs:
           node-version: 22
       - name: Syntax check dos servicos
         run: |
-          for f in services/core/server.js services/content/server.js services/chain/server.js services/chain/explorer.js services/monitor/server.js p2p/p2p.js; do
+          for f in services/lib/sqlite.js services/core/server.js services/content/server.js services/chain/server.js services/chain/explorer.js services/monitor/server.js p2p/p2p.js; do
             node --check "$f" && echo "OK $f"
           done
       - name: Teste unitario da blockchain

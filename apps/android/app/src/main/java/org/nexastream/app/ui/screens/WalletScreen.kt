@@ -160,8 +160,8 @@ fun WalletScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         SectionHeader("Request a payout")
                         Text(
-                            text = "Payouts are settled on testnet. Requests are recorded and " +
-                                "audited; nothing is broadcast automatically.",
+                            text = "Payouts are settled on testnet. Requests are recorded with " +
+                                "an audit trail; nothing is broadcast automatically.",
                             style = MaterialTheme.typography.bodySmall,
                             color = NsMuted,
                         )

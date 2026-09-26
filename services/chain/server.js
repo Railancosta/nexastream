@@ -20,16 +20,12 @@
 
 const http = require('node:http');
 const crypto = require('node:crypto');
-const fs = require('node:fs');
 const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
+const { openDatabase } = require('../lib/sqlite');
 
 const ROOT = path.resolve(__dirname, '../..');
 const DB_DIR = path.join(ROOT, 'database');
-// The database directory is gitignored, so it does not exist in a fresh clone
-// and SQLite refuses to create the file inside a missing directory.
-fs.mkdirSync(DB_DIR, { recursive: true });
-const db = new DatabaseSync(path.join(DB_DIR, 'nexastream.db'));
+const db = openDatabase(path.join(DB_DIR, 'nexastream.db'));
 
 // --- Schema ---
 db.exec(`
