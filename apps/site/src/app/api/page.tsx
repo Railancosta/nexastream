@@ -38,6 +38,16 @@ export default function Api() {
       ['POST', '/api/explorer/bind', 'Vincular carteira a username'],
       ['POST', '/api/explorer/reward', 'Recompensar criador (1 NST)'],
     ]},
+    { cat: 'Monetização', port: 3002, list: [
+      ['GET',  '/api/monetization/config', 'Tabela de taxas, split 50/50 e limites'],
+      ['GET',  '/api/monetization/rates', 'Versão da tabela de taxas + taxas'],
+      ['POST', '/api/monetization/accrue', 'Registrar view e creditar criador'],
+      ['POST', '/api/monetization/reward/:kind', 'Reward por like/subscribe (kind = like|subscribe)'],
+      ['GET',  '/api/monetization/wallet', 'Saldo, ledger e histórico de payout (requer auth)'],
+      ['GET',  '/api/monetization/studio', 'Economia por vídeo do criador (requer auth)'],
+      ['POST', '/api/monetization/payout', 'Solicitar payout NST (requer auth)'],
+      ['GET',  '/api/monetization/validate-address', 'Validar endereço de destino por rede'],
+    ]},
     { cat: 'Observability', port: 3010, list: [
       ['GET', '/api/metrics', 'Métricas ao vivo de todos os serviços'],
       ['GET', '/api/metrics/history', 'Histórico das últimas 40 coletas'],

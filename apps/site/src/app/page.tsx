@@ -55,6 +55,12 @@ export default function Home() {
             <span className="status status-wip">testnet</span>
           </div>
           <div className="card">
+            <span className="icon">📱</span>
+            <h3>App Android</h3>
+            <p>App nativo (Kotlin + Compose) com feed, shorts, player, upload, wallet e Creator Studio. Monetização desde o primeiro vídeo.</p>
+            <span className="status status-wip">em desenvolvimento</span>
+          </div>
+          <div className="card">
             <span className="icon">📡</span>
             <h3>Live Streaming</h3>
             <p>Ingest, segmentação HLS, chat, gravação LIVE→VOD, monetização ao vivo.</p>

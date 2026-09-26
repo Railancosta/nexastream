@@ -16,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <li><Link href="/testnet/">Testnet</Link></li>
               <li><Link href="/api/">API</Link></li>
               <li><Link href="/roadmap/">Roadmap</Link></li>
+              <li><Link href="/android/">Android</Link></li>
               <li><a href="https://github.com/Railancosta/nexastream" target="_blank" rel="noopener">GitHub ↗</a></li>
             </ul>
           </div>

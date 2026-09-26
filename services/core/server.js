@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { DatabaseSync } = require('node:sqlite');
+const monetization = require('./monetization');
 
 const ROOT = path.resolve(__dirname, '../..');
 const DB_PATH = path.join(ROOT, 'database', 'nexastream.db');
@@ -167,7 +168,9 @@ setInterval(() => { if (translateCache.size > 5000) translateCache.clear(); }, 1
 function checkRateLimit(ip) {
   const now = Date.now();
   const window = 15 * 60 * 1000; // 15 minutos
-  const limit = 100; // 100 requisições por IP
+  // Overridable so load/contract test suites can exercise the API without
+  // tripping the per-IP budget. Production leaves this at the default.
+  const limit = Number(process.env.RATE_LIMIT_MAX || 100); // 100 requisições por IP
   
   const record = rateLimitMap.get(ip) || { count: 0, lastReset: now };
   if (now - record.lastReset > window) {
@@ -225,8 +228,11 @@ function transcode(id, input, meta) {
 
   for (const res of resolutions) {
     const outPath = path.join(STORAGE, 'videos', id + '_' + res.suffix + '.mp4');
+    // libx264 (yuv420p) rejects odd dimensions, and `force_original_aspect_ratio`
+    // alone can produce them (e.g. 640x360 -> 360x203). The extra trunc() pass
+    // rounds to even so every rendition is encodable regardless of aspect ratio.
     const vf = isShort
-      ? 'scale=' + res.height + ':' + (res.height * 9 / 6) + ':force_original_aspect_ratio=decrease'
+      ? 'scale=' + res.height + ':' + (res.height * 9 / 6) + ':force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2'
       : 'scale=-2:' + res.height;
     execFile('ffmpeg', [
       '-y', '-i', input, '-vf', vf,
@@ -304,6 +310,13 @@ const server = http.createServer(async (req, res) => {
   }
   
   if (req.method === 'OPTIONS') return json(res, 204, {});
+
+  // Instant Monetization Gateway (Items 20-22, 33): rates, reward accrual,
+  // wallet, payouts and creator unit economics.
+  if (p.startsWith('/api/monetization/')) {
+    const handled = await monetization.handle(req, res, url, p);
+    if (handled !== false) return handled;
+  }
 
   if (p.startsWith('/storage/')) {
     const file = path.join(STORAGE, path.normalize(p).replace(/^[/\\]+/, '').replace('storage/', ''));
@@ -392,7 +405,9 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/videos' && req.method === 'GET') {
-      const rows = db.prepare("SELECT v.*, c.name AS channel_name FROM videos v LEFT JOIN channels c ON c.id=v.channel_id WHERE v.status='ready' ORDER BY v.created_at DESC LIMIT 30").all();
+      // channel_handle is included because clients use it to open the creator's
+      // channel from any list surface, not just the video detail page.
+      const rows = db.prepare("SELECT v.*, c.name AS channel_name, c.handle AS channel_handle FROM videos v LEFT JOIN channels c ON c.id=v.channel_id WHERE v.status='ready' ORDER BY v.created_at DESC LIMIT 30").all();
       return json(res, 200, { videos: rows });
     }
 
@@ -400,7 +415,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/feed' && req.method === 'GET') {
       const tab = url.searchParams.get('tab') || 'all';
       const viewer = url.searchParams.get('viewer') || 'anon';
-      const rows = db.prepare("SELECT v.*, c.name AS channel_name FROM videos v LEFT JOIN channels c ON c.id=v.channel_id WHERE v.status='ready'").all();
+      const rows = db.prepare("SELECT v.*, c.name AS channel_name, c.handle AS channel_handle FROM videos v LEFT JOIN channels c ON c.id=v.channel_id WHERE v.status='ready'").all();
       const ranked = rankFeed(rows, viewer);
       const shorts = ranked.filter((v) => v.is_short);
       const videos = ranked.filter((v) => !v.is_short);
@@ -429,12 +444,47 @@ const server = http.createServer(async (req, res) => {
       const q = url.searchParams.get('q') || '';
       // Sanitizar input de busca
       const sanitizedQ = sanitizeInput(q);
-      const rows = db.prepare("SELECT * FROM videos WHERE status='ready' AND (title LIKE ? OR description LIKE ?) LIMIT 20").all('%' + sanitizedQ + '%', '%' + sanitizedQ + '%');
+      const rows = db.prepare("SELECT v.*, c.name AS channel_name, c.handle AS channel_handle FROM videos v LEFT JOIN channels c ON c.id=v.channel_id WHERE v.status='ready' AND (v.title LIKE ? OR v.description LIKE ?) LIMIT 20").all('%' + sanitizedQ + '%', '%' + sanitizedQ + '%');
       return json(res, 200, { videos: rows });
     }
 
-    if (p.startsWith('/api/videos/') && req.method === 'GET') {
-      const v = db.prepare('SELECT * FROM videos WHERE id=?').get(p.split('/')[3]);
+    // Vídeos relacionados (sidebar do player). Must be declared before the
+    // generic /api/videos/:id route, which would otherwise swallow the suffix.
+    if (/^\/api\/videos\/[^/]+\/related$/.test(p) && req.method === 'GET') {
+      const id = p.split('/')[3];
+      const base = db.prepare('SELECT channel_id, is_short FROM videos WHERE id=?').get(id);
+      const rows = db.prepare("SELECT v.*, c.name AS channel_name FROM videos v LEFT JOIN channels c ON c.id=v.channel_id WHERE v.status='ready' AND v.id<>? ORDER BY (v.channel_id=? ) DESC, v.views DESC LIMIT 12")
+        .all(id, base ? base.channel_id : '');
+      return json(res, 200, { videos: rows });
+    }
+
+    // Canal: perfil + vídeos + estatísticas (usado pelo app Android e web).
+    if (/^\/api\/channels\/[^/]+$/.test(p) && req.method === 'GET') {
+      const key = decodeURIComponent(p.split('/')[3]);
+      const ch = db.prepare('SELECT id, owner_id, name, handle FROM channels WHERE handle=? OR id=?').get(key, key);
+      if (!ch) return json(res, 404, { error: 'canal nao encontrado' });
+      const videos = db.prepare("SELECT * FROM videos WHERE channel_id=? AND status='ready' ORDER BY created_at DESC LIMIT 60").all(ch.id);
+      const stats = videos.reduce((a, v) => {
+        a.views += v.views || 0; a.likes += v.likes || 0;
+        a.watchSeconds += v.watch_seconds || 0; return a;
+      }, { views: 0, likes: 0, watchSeconds: 0 });
+      const wallet = db.prepare('SELECT nst_micro, lifetime_creator_micro FROM wallets WHERE owner_id=?').get(ch.owner_id);
+      return json(res, 200, {
+        channel: {
+          id: ch.id, name: ch.name, handle: ch.handle,
+          videoCount: videos.length,
+          views: stats.views, likes: stats.likes,
+          watchHours: Math.round((stats.watchSeconds / 3600) * 100) / 100,
+          monetized: true,
+          lifetimeEarnedNst: wallet ? Math.round(wallet.lifetime_creator_micro) / 1e6 : 0
+        },
+        videos
+      });
+    }
+
+    if (/^\/api\/videos\/[^/]+$/.test(p) && req.method === 'GET') {
+      const v = db.prepare(`SELECT v.*, c.name AS channel_name, c.handle AS channel_handle, c.id AS channel_id
+        FROM videos v LEFT JOIN channels c ON c.id=v.channel_id WHERE v.id=?`).get(p.split('/')[3]);
       if (!v) return json(res, 404, { error: 'nao encontrado' });
       db.prepare('UPDATE videos SET views=views+1 WHERE id=?').run(v.id);
       // Parse qualities JSON e gerar URLs de cada resolução
@@ -477,7 +527,7 @@ const server = http.createServer(async (req, res) => {
       const sanitizedTitle = sanitizeInput(url.searchParams.get('title') || 'Sem titulo');
       const sanitizedDescription = sanitizeInput(url.searchParams.get('description') || '');
       
-      const ch = db.prepare('SELECT id FROM channels WHERE owner_id=?').get(a.userId);
+      const ch = db.prepare('SELECT id, handle FROM channels WHERE owner_id=?').get(a.userId);
       db.prepare('INSERT INTO videos (id, channel_id, title, description, video_path) VALUES (?,?,?,?,?)').run(
         id,
         ch ? ch.id : 'x',
@@ -499,7 +549,12 @@ const server = http.createServer(async (req, res) => {
         const isShort = hint.type === 'short' || (duration > 0 && duration <= 60) || vertical;
         transcode(id, file, { duration, width, height, isShort });
       });
-      return json(res, 200, { videoId: id, status: 'processing' });
+      return json(res, 200, {
+        videoId: id,
+        status: 'processing',
+        channelId: ch ? ch.id : null,
+        channelHandle: ch ? ch.handle : null
+      });
     }
 
     return json(res, 404, { error: 'rota nao encontrada' });
@@ -510,3 +565,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(3002, () => console.log('NexaStream Core API: http://localhost:3002 (zero dependencias)'));
+
+// Monetization gateway needs the core's db/json/auth helpers.
+monetization.init({ db, json, readBody, auth, rateLimitKey: process.env.JWT_SECRET });
