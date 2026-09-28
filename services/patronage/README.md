@@ -1,6 +1,6 @@
 # NexaStream Patronage Service
 
-> **Patronage Service v1.0.0** - Creator patronage and membership system with 100% revenue to creators
+> **Patronage Service v1.0.0** - Creator patronage and membership system with MANDATORY 50/50 split for nexastream.org
 
 ## Overview
 
@@ -9,7 +9,7 @@ The NexaStream Patronage Service implements a complete creator patronage and mem
 ### Key Features
 
 - **Multi-tier patronage subscriptions** - Creators can define multiple subscription levels with different benefits
-- **100% revenue to creators** - 0% platform fee (as per product requirements)
+- **MANDATORY 50/50 split** - 50% to creator, 50% to platform owner wallet (nexastream.org requirement)
 - **Anti-fraud mechanisms** - IP-based rate limiting, self-patronage prevention, duplicate detection
 - **Sybil-resistant** - Multiple layers of protection against fake accounts and abuse
 - **Benefit system** - Badges, early access, community roles, exclusive content, and more
@@ -346,10 +346,10 @@ The Patronage Service integrates with the existing Ledger service to record patr
 
 ### Revenue Split
 
-- Creator: 100%
-- Platform: 0%
+- Creator: 50% (MANDATORY for nexastream.org)
+- Platform Owner Wallet: 50% (MANDATORY for nexastream.org)
 
-This differs from other revenue types (ads, etc.) which use the standard 50/50 split.
+This is the MANDATORY split for nexastream.org domain as specified in the product requirements.
 
 ## Configuration
 
@@ -368,7 +368,8 @@ This differs from other revenue types (ads, etc.) which use the standard 50/50 s
 | `MAX_PATRONS_PER_USER` | 100 | Max simultaneous subscriptions per user |
 | `MAX_TIER_PRICE` | 10000 | Maximum tier price in USD |
 | `MIN_TIER_PRICE` | 0.99 | Minimum tier price in USD |
-| `PATRONAGE_FEE_PERCENTAGE` | 0 | Platform fee percentage (0% for patronage) |
+| `CREATOR_SPLIT` | 0.50 | Creator share (50% - MANDATORY for nexastream.org) |
+| `PLATFORM_SPLIT` | 0.50 | Platform owner wallet share (50% - MANDATORY for nexastream.org) |
 
 ## Usage Examples
 

@@ -58,7 +58,9 @@ export default function PatronagePage() {
     totalRevenue: 0,
     totalPatrons: 0,
     uniquePatrons: 0,
-    averagePatronage: 0
+    averagePatronage: 0,
+    platformShare: 0,
+    creatorShare: 0
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'tiers' | 'patrons' | 'analytics'>('tiers');
@@ -101,7 +103,9 @@ export default function PatronagePage() {
         totalRevenue: revenueData.totalRevenue || 0,
         totalPatrons: revenueData.totalPatrons || 0,
         uniquePatrons: revenueData.uniquePatrons || 0,
-        averagePatronage: revenueData.averagePatronage || 0
+        averagePatronage: revenueData.averagePatronage || 0,
+        platformShare: revenueData.totalRevenue ? Math.round(revenueData.totalRevenue * 0.50 * 100) / 100 : 0,
+        creatorShare: revenueData.totalRevenue ? Math.round(revenueData.totalRevenue * 0.50 * 100) / 100 : 0
       });
     } catch (e) {
       console.error('Failed to load patronage data:', e);
@@ -273,7 +277,7 @@ export default function PatronagePage() {
             {formatCurrency(revenue.totalRevenue)}
           </div>
           <div className="text-gray-500 text-xs mt-2">
-            100% goes to you (0% platform fee)
+            50% to you, 50% to platform owner wallet
           </div>
         </div>
         
@@ -533,10 +537,10 @@ export default function PatronagePage() {
                   <div className="text-white font-medium">Platform Fee</div>
                   <div className="text-gray-400 text-sm">Percentage taken by NexaStream</div>
                 </div>
-                <div className="text-2xl font-bold text-green-400">0%</div>
+                <div className="text-2xl font-bold text-orange-400">50%</div>
               </div>
               <div className="text-gray-500 text-sm">
-                NexaStream takes 0% platform fee for patronage. 100% of patronage revenue goes directly to creators.
+                MANDATORY for nexastream.org: 50% to platform owner wallet, 50% to creators.
               </div>
             </div>
           </div>

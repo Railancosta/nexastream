@@ -151,7 +151,8 @@ const LEDGER_API_URL = process.env.LEDGER_API_URL || 'http://localhost:3016';
 const MAX_PATRONS_PER_USER = 100; // Max simultaneous patronage subscriptions per user
 const MAX_TIER_PRICE = 10000; // Max tier price in USD
 const MIN_TIER_PRICE = 0.99; // Min tier price in USD
-const PATRONAGE_FEE_PERCENTAGE = 0; // Platform fee for patronage (0% - patronage is fee-free as per requirements)
+const CREATOR_SPLIT = 0.50; // 50% to creator - MANDATORY for nexastream.org
+const PLATFORM_SPLIT = 0.50; // 50% to platform owner wallet - MANDATORY for nexastream.org
 
 // Benefit types
 const BENEFIT_TYPES = {
@@ -1012,7 +1013,7 @@ async function syncPatronageToLedger(patronId) {
   if (!patron || patron.status !== 'active') return;
   
   // Record patronage payment as revenue event in ledger
-  // Note: Patronage is 100% to creator (0% platform fee as per requirements)
+  // MANDATORY: 50/50 split for nexastream.org - 50% to creator, 50% to platform owner wallet
   const paymentData = {
     eventType: 'patronage',
     videoId: '', // No specific video for patronage
@@ -1047,11 +1048,12 @@ async function syncPatronageToLedger(patronId) {
         JSON.stringify(paymentData.metadata), paymentData.fraudScore, 'processed', getTimestamp()
       );
       
-      // Process the event (credit creator 100% since platform fee is 0% for patronage)
+      // Process the event with MANDATORY 50/50 split for nexastream.org
       const eventId = generateId();
-      const creatorShare = paymentData.amountUsd; // 100% to creator
-      const platformShare = 0; // 0% platform fee for patronage
+      const creatorShare = Math.round(paymentData.amountUsd * CREATOR_SPLIT * 100) / 100;
+      const platformShare = Math.round(paymentData.amountUsd * PLATFORM_SPLIT * 100) / 100;
       
+      // Credit creator balance with 50% share
       ledgerDb.prepare(`
         INSERT OR REPLACE INTO creator_balances (creator, nst_balance, usd_balance, total_earned, updated_at)
         VALUES (?, ?, ?, ?, ?)
@@ -1064,6 +1066,7 @@ async function syncPatronageToLedger(patronId) {
         creatorShare, creatorShare, getTimestamp()
       );
       
+      // Record the 50/50 split in history
       ledgerDb.prepare(`
         INSERT INTO split_history 
         (id, event_id, creator, creator_share, platform_share, total, created_at)
@@ -1073,7 +1076,7 @@ async function syncPatronageToLedger(patronId) {
         paymentData.amountUsd, getTimestamp()
       );
       
-      console.log(`[LEDGER] Patronage synced to ledger: $${creatorShare} credited to ${paymentData.creator}`);
+      console.log(`[LEDGER] Patronage synced to ledger: $${creatorShare} to creator, $${platformShare} to platform (50/50 split)`);
     } catch (e) {
       console.error('[LEDGER SYNC ERROR]', e.message);
     }
